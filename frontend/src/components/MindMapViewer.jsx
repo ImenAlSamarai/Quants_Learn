@@ -3,13 +3,15 @@ import ForceGraph2D from 'react-force-graph-2d';
 
 const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
   const fgRef = useRef();
-  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
 
   useEffect(() => {
     const updateDimensions = () => {
+      const width = window.innerWidth || 800;
+      const height = (window.innerHeight - 80) || 600;
       setDimensions({
-        width: window.innerWidth,
-        height: window.innerHeight - 80, // Account for header
+        width: width,
+        height: height,
       });
     };
 
@@ -53,6 +55,9 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
       const isRoot = !data.edges.some(e => e.target === node.id);
       const difficulty = node.difficulty_level || 1;
 
+      // Don't include x/y positions for DAG mode - let it calculate them
+      const { x_position, y_position, ...nodeWithoutPosition } = node;
+
       return {
         id: node.id,
         name: node.title,
@@ -62,7 +67,8 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         category: node.category,
         val: getNodeSize(difficulty, isRoot),
         isRoot: isRoot,
-        ...node,
+        description: node.description,
+        difficulty_level: node.difficulty_level,
       };
     }),
     links: data.edges.map(edge => ({

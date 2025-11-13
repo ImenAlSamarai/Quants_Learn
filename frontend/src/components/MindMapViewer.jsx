@@ -19,9 +19,13 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
   }, []);
 
   useEffect(() => {
-    // Center the graph on mount
+    // Center the graph on mount with a delay to ensure rendering
     if (fgRef.current && data.nodes.length > 0) {
-      fgRef.current.zoomToFit(400, 50);
+      setTimeout(() => {
+        if (fgRef.current) {
+          fgRef.current.zoomToFit(400, 50);
+        }
+      }, 500);
     }
   }, [data]);
 
@@ -82,6 +86,14 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     ctx.fillText(stars, node.x, node.y + node.val + 20 / globalScale);
   };
 
+  const nodePointerAreaPaint = (node, color, ctx) => {
+    // Define clickable area
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, node.val, 0, 2 * Math.PI, false);
+    ctx.fill();
+  };
+
   const paintLink = (link, ctx, globalScale) => {
     const start = link.source;
     const end = link.target;
@@ -138,6 +150,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
           </div>
         `}
         nodeCanvasObject={paintNode}
+        nodePointerAreaPaint={nodePointerAreaPaint}
         linkCanvasObject={paintLink}
         onNodeClick={handleNodeClick}
         nodeRelSize={1}

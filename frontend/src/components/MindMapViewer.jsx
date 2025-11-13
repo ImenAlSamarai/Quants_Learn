@@ -46,35 +46,39 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
   // Node size scales with complexity
   const getNodeSize = (difficulty, isRoot = false) => {
     if (isRoot) return 25;
-    return 12 + (difficulty * 3);
+    const size = 12 + ((difficulty || 1) * 3);
+    return isFinite(size) ? size : 15; // Fallback to 15 if not finite
   };
 
   // Transform data for force-graph with enhanced styling
   const graphData = {
     nodes: data.nodes.map(node => {
       const isRoot = !data.edges.some(e => e.target === node.id);
-      const difficulty = node.difficulty_level || 1;
+      const difficulty = Number(node.difficulty_level) || 1;
+      const nodeSize = getNodeSize(difficulty, isRoot);
 
-      // Don't include x/y positions for DAG mode - let it calculate them
-      const { x_position, y_position, ...nodeWithoutPosition } = node;
+      // Validate all values are finite
+      if (!isFinite(node.id) || !isFinite(nodeSize)) {
+        console.error('Invalid node data:', node);
+      }
 
       return {
-        id: node.id,
-        name: node.title,
-        icon: node.icon || '📚',
+        id: Number(node.id),
+        name: String(node.title || 'Untitled'),
+        icon: String(node.icon || '📚'),
         color: getNodeColor(difficulty),
         difficulty: difficulty,
-        category: node.category,
-        val: getNodeSize(difficulty, isRoot),
+        category: String(node.category || ''),
+        val: nodeSize,
         isRoot: isRoot,
-        description: node.description,
-        difficulty_level: node.difficulty_level,
+        description: String(node.description || ''),
+        difficulty_level: difficulty,
       };
     }),
     links: data.edges.map(edge => ({
-      source: edge.source,
-      target: edge.target,
-      type: edge.type || 'prerequisite',
+      source: Number(edge.source),
+      target: Number(edge.target),
+      type: String(edge.type || 'prerequisite'),
     })),
   };
 
@@ -277,8 +281,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         nodePointerAreaPaint={nodePointerAreaPaint}
         linkCanvasObject={paintLink}
         onNodeClick={handleNodeClick}
-        dagMode="td"
-        dagLevelDistance={150}
+        dagMode={null}
         nodeRelSize={1}
         linkDirectionalArrowLength={0}
         linkDirectionalArrowRelPos={1}

@@ -102,6 +102,9 @@ class VectorStoreService:
             if node_metadata:
                 metadata.update(node_metadata)
 
+            # Filter out None values (Pinecone doesn't accept null)
+            metadata = {k: v for k, v in metadata.items() if v is not None}
+
             vectors.append({
                 'id': vector_id,
                 'values': embedding,

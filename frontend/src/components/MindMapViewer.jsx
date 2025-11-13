@@ -72,6 +72,14 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     })),
   };
 
+  // Debug logging
+  console.log('Mind map data:', {
+    nodeCount: graphData.nodes.length,
+    linkCount: graphData.links.length,
+    nodes: graphData.nodes,
+    links: graphData.links
+  });
+
   const handleNodeClick = (node) => {
     onNodeClick(node);
   };
@@ -229,6 +237,8 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     ctx.fill();
   };
 
+  console.log('Checking empty state, node count:', data.nodes.length);
+
   if (data.nodes.length === 0) {
     return (
       <div className="empty-state">
@@ -262,7 +272,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         linkCanvasObject={paintLink}
         onNodeClick={handleNodeClick}
         dagMode="td"
-        dagLevelDistance={100}
+        dagLevelDistance={150}
         nodeRelSize={1}
         linkDirectionalArrowLength={0}
         linkDirectionalArrowRelPos={1}

@@ -15,7 +15,7 @@ class NodeBase(BaseModel):
     color: Optional[str] = "#3b82f6"
     icon: Optional[str] = "📚"
     content_path: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
+    extra_metadata: Optional[Dict[str, Any]] = None
 
 
 class NodeCreate(NodeBase):

@@ -32,7 +32,7 @@ class Node(Base):
     color = Column(String(20))  # Hex color for the node
     icon = Column(String(50))  # Emoji or icon name
     content_path = Column(String(500))  # Path to markdown file
-    metadata = Column(JSON)  # Additional flexible metadata
+    extra_metadata = Column(JSON)  # Additional flexible metadata
 
     # Relationships
     children = relationship(
@@ -55,7 +55,7 @@ class ContentChunk(Base):
     chunk_text = Column(Text, nullable=False)
     chunk_index = Column(Integer)  # Order within the document
     vector_id = Column(String(100), unique=True)  # Pinecone vector ID
-    metadata = Column(JSON)  # chunk_type: explanation, example, formula, etc.
+    extra_metadata = Column(JSON)  # chunk_type: explanation, example, formula, etc.
 
     node = relationship('Node', back_populates='content_chunks')
 
@@ -70,7 +70,7 @@ class UserProgress(Base):
     completed = Column(Integer, default=0)  # 0-100 percentage
     quiz_score = Column(Float)
     time_spent_minutes = Column(Integer, default=0)
-    metadata = Column(JSON)
+    extra_metadata = Column(JSON)
 
     node = relationship('Node')
 

@@ -170,8 +170,12 @@ class VectorStoreService:
             self.index.delete(filter={'node_id': node_id})
             print(f"Deleted vectors for node {node_id}")
         except Exception as e:
-            print(f"Error deleting vectors: {e}")
-            raise
+            # Ignore "namespace not found" errors (expected on first index)
+            if "Namespace not found" in str(e) or "404" in str(e):
+                print(f"No existing vectors to delete for node {node_id} (first time indexing)")
+            else:
+                print(f"Error deleting vectors: {e}")
+                raise
 
     def get_index_stats(self) -> Dict[str, Any]:
         """Get statistics about the index"""

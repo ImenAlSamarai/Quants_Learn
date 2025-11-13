@@ -78,6 +78,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         id: nodeId,
         name: String(node.title || 'Untitled'),
         val: nodeSize,
+        color: getNodeColor(difficulty),
       };
     }).filter(Boolean), // Remove any null entries
     links: data.edges.map(edge => {

@@ -133,6 +133,8 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         onNodeClick={handleNodeClick}
         nodeAutoColorBy="color"
         backgroundColor="#0f172a"
+        dagMode="td"
+        dagLevelDistance={150}
         enableNodeDrag={true}
         enableZoomInteraction={true}
         enablePanInteraction={true}

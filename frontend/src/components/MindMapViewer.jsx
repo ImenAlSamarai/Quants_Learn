@@ -27,16 +27,16 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Color scheme based on difficulty level - Modern Portfolio Theme
+  // Color scheme based on difficulty level - Claude-inspired Light Theme
   const getNodeColor = (difficulty) => {
     const colors = {
-      1: '#64FFDA', // Teal - Fundamentals
-      2: '#64B5F6', // Light Blue - Core Concepts
-      3: '#81C784', // Green - Intermediate
-      4: '#FFD54F', // Yellow - Advanced
-      5: '#FF8A65', // Coral - Expert
+      1: '#7BA591', // Sage - Fundamentals
+      2: '#6B9BD1', // Ocean - Core Concepts
+      3: '#9B8FB5', // Lavender - Intermediate
+      4: '#D4A574', // Tan - Advanced
+      5: '#C17B6C', // Terracotta - Expert
     };
-    return colors[difficulty] || '#64FFDA';
+    return colors[difficulty] || '#7BA591';
   };
 
   // Node size scales with complexity
@@ -154,7 +154,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     ctx.fill();
 
     // Draw border (thicker if selected)
-    ctx.strokeStyle = node.id === selectedNode?.id ? '#8B6F47' : '#3C3C3C';
+    ctx.strokeStyle = node.id === selectedNode?.id ? '#C9A96E' : '#1A1A1A';
     ctx.lineWidth = (node.id === selectedNode?.id ? 3 : 2) / globalScale;
     ctx.stroke();
 
@@ -162,17 +162,17 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     ctx.font = `${16 / globalScale}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#F5EFE6';
+    ctx.fillStyle = '#FFFFFF';
     ctx.fillText(node.icon, node.x, node.y);
 
     // Draw label below node
-    ctx.font = `bold ${fontSize}px Sans-Serif`;
+    ctx.font = `bold ${fontSize}px 'Inter', sans-serif`;
     const labelY = node.y + radius + 16 / globalScale;
 
-    // Label background (light beige)
+    // Label background
     const textWidth = ctx.measureText(label).width;
     const padding = 6 / globalScale;
-    ctx.fillStyle = 'rgba(245, 239, 230, 0.95)';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     ctx.fillRect(
       node.x - textWidth / 2 - padding,
       labelY - fontSize / 2 - padding / 2,
@@ -180,8 +180,8 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
       fontSize + padding
     );
 
-    // Label text (dark gray/black)
-    ctx.fillStyle = '#2C2C2C';
+    // Label text
+    ctx.fillStyle = '#1A1A1A';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, node.x, labelY);
@@ -276,7 +276,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         nodeCanvasObject={paintNode}
         linkCanvasObject={paintLink}
         onNodeClick={handleNodeClick}
-        backgroundColor="#F5EFE6"
+        backgroundColor="#FAF9F6"
         nodeRelSize={8}
         linkDirectionalArrowLength={0}
         d3AlphaDecay={0.02}

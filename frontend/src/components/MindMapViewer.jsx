@@ -26,14 +26,25 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Auto-center the graph on load
+  // Apply custom forces for better layout
   useEffect(() => {
     if (fgRef.current && data.nodes.length > 0) {
+      const fg = fgRef.current;
+
+      // Add radial force to spread nodes from center
+      fg.d3Force('radial', null); // Remove if exists
+      fg.d3Force('charge').strength(-400); // Stronger repulsion
+      fg.d3Force('link').distance(150); // Longer links
+
+      // Add collision force to prevent overlap
+      fg.d3Force('collision', window.d3.forceCollide(50));
+
+      // Center the graph after physics settle
       setTimeout(() => {
         if (fgRef.current) {
           fgRef.current.zoomToFit(400, 80);
         }
-      }, 500);
+      }, 2000);
     }
   }, [data]);
 
@@ -216,13 +227,14 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         linkCanvasObject={paintLink}
         onNodeClick={handleNodeClick}
         backgroundColor="#0f172a"
-        dagMode="lr"
-        dagLevelDistance={200}
         nodeRelSize={8}
-        enableNodeDrag={false}
+        linkDirectionalArrowLength={0}
+        d3AlphaDecay={0.02}
+        d3VelocityDecay={0.3}
+        cooldownTicks={100}
+        enableNodeDrag={true}
         enableZoomInteraction={true}
         enablePanInteraction={true}
-        linkDirectionalArrowLength={0}
       />
 
       <div className="controls-overlay">

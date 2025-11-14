@@ -36,10 +36,11 @@ def main():
     db = SessionLocal()
 
     try:
-        # Clear existing nodes
-        print("Clearing existing nodes...")
-        db.query(Node).delete()
-        db.commit()
+        # Clear existing data by dropping and recreating all tables
+        print("Clearing existing data...")
+        Base.metadata.drop_all(bind=engine)
+        Base.metadata.create_all(bind=engine)
+        print("Database tables recreated successfully!")
 
         print("Creating nodes...")
 

@@ -27,16 +27,16 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Color scheme based on difficulty level
+  // Color scheme based on difficulty level - Vintage/Old Paper Theme
   const getNodeColor = (difficulty) => {
     const colors = {
-      1: '#10b981', // Green - Fundamentals
-      2: '#3b82f6', // Blue - Core Concepts
-      3: '#8b5cf6', // Purple - Intermediate
-      4: '#ec4899', // Pink - Advanced
-      5: '#ef4444', // Red - Expert
+      1: '#2D5F3F', // Dark Forest Green - Fundamentals
+      2: '#1E3A5F', // Dark Navy - Core Concepts
+      3: '#4A2C5B', // Dark Purple - Intermediate
+      4: '#6B3640', // Dark Wine - Advanced
+      5: '#5A2E2E', // Dark Brown - Expert
     };
-    return colors[difficulty] || '#3b82f6';
+    return colors[difficulty] || '#2C2C2C';
   };
 
   // Node size scales with complexity
@@ -154,7 +154,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     ctx.fill();
 
     // Draw border (thicker if selected)
-    ctx.strokeStyle = node.id === selectedNode?.id ? '#fbbf24' : '#ffffff';
+    ctx.strokeStyle = node.id === selectedNode?.id ? '#8B6F47' : '#3C3C3C';
     ctx.lineWidth = (node.id === selectedNode?.id ? 3 : 2) / globalScale;
     ctx.stroke();
 
@@ -162,17 +162,17 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     ctx.font = `${16 / globalScale}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = '#F5EFE6';
     ctx.fillText(node.icon, node.x, node.y);
 
     // Draw label below node
     ctx.font = `bold ${fontSize}px Sans-Serif`;
     const labelY = node.y + radius + 16 / globalScale;
 
-    // Label background
+    // Label background (light beige)
     const textWidth = ctx.measureText(label).width;
     const padding = 6 / globalScale;
-    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.fillStyle = 'rgba(245, 239, 230, 0.95)';
     ctx.fillRect(
       node.x - textWidth / 2 - padding,
       labelY - fontSize / 2 - padding / 2,
@@ -180,8 +180,8 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
       fontSize + padding
     );
 
-    // Label text
-    ctx.fillStyle = '#ffffff';
+    // Label text (dark gray/black)
+    ctx.fillStyle = '#2C2C2C';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(label, node.x, labelY);
@@ -276,7 +276,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         nodeCanvasObject={paintNode}
         linkCanvasObject={paintLink}
         onNodeClick={handleNodeClick}
-        backgroundColor="#0f172a"
+        backgroundColor="#F5EFE6"
         nodeRelSize={8}
         linkDirectionalArrowLength={0}
         d3AlphaDecay={0.02}
@@ -291,23 +291,23 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         <div className="legend">
           <h4>Difficulty Levels</h4>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#10b981' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#2D5F3F' }}></span>
             <span>Fundamentals</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#3b82f6' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#1E3A5F' }}></span>
             <span>Core Concepts</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#8b5cf6' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#4A2C5B' }}></span>
             <span>Intermediate</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#ec4899' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#6B3640' }}></span>
             <span>Advanced</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#ef4444' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#5A2E2E' }}></span>
             <span>Expert</span>
           </div>
 

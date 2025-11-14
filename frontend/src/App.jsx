@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import MindMapViewer from './components/MindMapViewerReactflow';
+import MindMapViewer from './components/MindMapViewer';
 import NodePanel from './components/NodePanel';
 import Header from './components/Header';
 import AdminPanel from './components/AdminPanel';

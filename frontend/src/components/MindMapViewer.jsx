@@ -1,12 +1,10 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
-import LayoutSelector from './LayoutSelector';
-import { forceManyBody, forceX, forceY } from 'd3-force';
+import { forceX, forceY } from 'd3-force';
 
 const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
   const fgRef = useRef();
   const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
-  const [layoutMode, setLayoutMode] = useState('force'); // 'force', 'dag', 'radial'
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -95,78 +93,31 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     }).filter(Boolean),
   }), [data]);
 
-  // Apply custom forces based on layout mode
+  // Apply radial cluster layout forces
   useEffect(() => {
     if (fgRef.current && data.nodes.length > 0) {
       const fg = fgRef.current;
 
-      console.log('Switching to layout mode:', layoutMode);
+      // Radial: Category-based circular clusters
+      fg.d3Force('charge').strength(-200);
+      fg.d3Force('link').distance(100);
 
-      // Clear all custom forces first
-      fg.d3Force('category', null);
-      fg.d3Force('difficulty', null);
-      fg.d3Force('category-x', null);
-      fg.d3Force('category-y', null);
+      // Position categories in a circle using forceX and forceY
+      const categories = ['linear_algebra', 'calculus', 'probability', 'statistics'];
+      const angleStep = (2 * Math.PI) / categories.length;
+      const radius = 300;
 
-      if (layoutMode === 'force') {
-        // Force-Directed: Organic physics-based layout with category clustering
-        fg.d3Force('charge').strength(-400);
-        fg.d3Force('link').distance(link => {
-          // Shorter links within same category, longer between categories
-          const source = graphData.nodes.find(n => n.id === (typeof link.source === 'object' ? link.source.id : link.source));
-          const target = graphData.nodes.find(n => n.id === (typeof link.target === 'object' ? link.target.id : link.target));
-          return source?.category === target?.category ? 100 : 200;
-        });
+      fg.d3Force('category-x', forceX().strength(0.5).x(d => {
+        const index = categories.indexOf(d.category);
+        if (d.isRoot) return 0;
+        return Math.cos(index * angleStep) * radius;
+      }));
 
-        // Add category-based attraction
-        fg.d3Force('category', forceManyBody().strength(d => {
-          return d.isRoot ? -500 : -200;
-        }));
-
-      } else if (layoutMode === 'dag') {
-        // DAG: Top-down hierarchical layout by difficulty level
-        fg.d3Force('charge').strength(-300);
-        fg.d3Force('link').distance(150);
-
-        // Add vertical positioning force based on difficulty
-        fg.d3Force('difficulty', forceY().strength(0.5).y(d => {
-          return (d.difficulty - 1) * 120; // Spread vertically by difficulty
-        }));
-
-        // Add horizontal clustering by category
-        fg.d3Force('category-x', forceX().strength(0.3).x(d => {
-          const categories = ['linear_algebra', 'calculus', 'probability', 'statistics'];
-          const index = categories.indexOf(d.category);
-          return index * 250 - 375; // Spread horizontally by category
-        }));
-
-      } else if (layoutMode === 'radial') {
-        // Radial: Category-based circular clusters
-        fg.d3Force('charge').strength(-200);
-        fg.d3Force('link').distance(100);
-
-        // Position categories in a circle using forceX and forceY
-        const categories = ['linear_algebra', 'calculus', 'probability', 'statistics'];
-        const angleStep = (2 * Math.PI) / categories.length;
-        const radius = 300;
-
-        fg.d3Force('category-x', forceX().strength(0.5).x(d => {
-          const index = categories.indexOf(d.category);
-          if (d.isRoot) return 0;
-          return Math.cos(index * angleStep) * radius;
-        }));
-
-        fg.d3Force('category-y', forceY().strength(0.5).y(d => {
-          const index = categories.indexOf(d.category);
-          if (d.isRoot) return 0;
-          return Math.sin(index * angleStep) * radius;
-        }));
-      }
-
-      // Restart simulation to apply new forces
-      fg.d3ReheatSimulation();
-
-      console.log('Layout forces applied and simulation reheated');
+      fg.d3Force('category-y', forceY().strength(0.5).y(d => {
+        const index = categories.indexOf(d.category);
+        if (d.isRoot) return 0;
+        return Math.sin(index * angleStep) * radius;
+      }));
 
       // Center the graph after physics settle
       setTimeout(() => {
@@ -175,7 +126,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         }
       }, 2000);
     }
-  }, [data, layoutMode, graphData]);
+  }, [data, graphData]);
 
   // Debug logging
   console.log('Mind map data:', {
@@ -334,11 +285,6 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         enableNodeDrag={true}
         enableZoomInteraction={true}
         enablePanInteraction={true}
-      />
-
-      <LayoutSelector
-        currentLayout={layoutMode}
-        onLayoutChange={setLayoutMode}
       />
 
       <div className="controls-overlay">

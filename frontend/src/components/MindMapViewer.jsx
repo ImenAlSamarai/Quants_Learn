@@ -148,6 +148,12 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     const fontSize = 14 / globalScale;
     const radius = node.val;
 
+    // Draw subtle shadow
+    ctx.beginPath();
+    ctx.arc(node.x, node.y + 2 / globalScale, radius, 0, 2 * Math.PI, false);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
+    ctx.fill();
+
     // Draw node circle
     ctx.beginPath();
     ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
@@ -155,8 +161,8 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     ctx.fill();
 
     // Draw border (thicker if selected)
-    ctx.strokeStyle = node.id === selectedNode?.id ? '#C9A96E' : '#1A1A1A';
-    ctx.lineWidth = (node.id === selectedNode?.id ? 3 : 2) / globalScale;
+    ctx.strokeStyle = node.id === selectedNode?.id ? '#C9A96E' : 'rgba(26, 26, 26, 0.6)';
+    ctx.lineWidth = (node.id === selectedNode?.id ? 3 : 1.5) / globalScale;
     ctx.stroke();
 
     // Draw icon in center
@@ -167,13 +173,24 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     ctx.fillText(node.icon, node.x, node.y);
 
     // Draw label below node
-    ctx.font = `bold ${fontSize}px 'Inter', sans-serif`;
+    ctx.font = `600 ${fontSize}px 'Inter', -apple-system, sans-serif`;
     const labelY = node.y + radius + 16 / globalScale;
 
-    // Label background
+    // Label background with shadow
     const textWidth = ctx.measureText(label).width;
-    const padding = 6 / globalScale;
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    const padding = 8 / globalScale;
+
+    // Shadow for label
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.04)';
+    ctx.fillRect(
+      node.x - textWidth / 2 - padding + 1 / globalScale,
+      labelY - fontSize / 2 - padding / 2 + 1 / globalScale,
+      textWidth + padding * 2,
+      fontSize + padding
+    );
+
+    // Label background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.98)';
     ctx.fillRect(
       node.x - textWidth / 2 - padding,
       labelY - fontSize / 2 - padding / 2,

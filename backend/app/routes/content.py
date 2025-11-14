@@ -1,12 +1,29 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.models.database import get_db, Node
+from sqlalchemy import func
+from app.models.database import get_db, Node, GeneratedContent, User
 from app.models.schemas import QueryRequest, QueryResponse, ContentGenerationRequest
 from app.services.vector_store import vector_store
 from app.services.llm_service import llm_service
 from typing import Dict, Any
+from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/content", tags=["content"])
+
+
+def get_or_create_user(user_id: str, db: Session) -> User:
+    """Get existing user or create new one with default settings"""
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        user = User(user_id=user_id, learning_level=3)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    else:
+        # Update last_active timestamp
+        user.last_active = datetime.utcnow()
+        db.commit()
+    return user
 
 
 @router.post("/query", response_model=QueryResponse)
@@ -15,7 +32,7 @@ def query_content(
     db: Session = Depends(get_db)
 ):
     """
-    Query content for a specific node and generate LLM response
+    Query content for a specific node and generate LLM response (with caching)
 
     Supports multiple query types:
     - explanation: Conceptual explanation
@@ -27,6 +44,38 @@ def query_content(
     node = db.query(Node).filter(Node.id == request.node_id).first()
     if not node:
         raise HTTPException(status_code=404, detail="Node not found")
+
+    # Get or create user to determine difficulty level
+    user = get_or_create_user(request.user_id, db)
+    difficulty_level = user.learning_level
+
+    # Check cache first (unless force_regenerate is True)
+    if not request.force_regenerate:
+        cached = db.query(GeneratedContent).filter(
+            GeneratedContent.node_id == request.node_id,
+            GeneratedContent.content_type == request.query_type,
+            GeneratedContent.difficulty_level == difficulty_level,
+            GeneratedContent.is_valid == True
+        ).first()
+
+        if cached:
+            # Cache hit! Increment access count and return cached content
+            cached.access_count += 1
+            db.commit()
+
+            print(f"✓ Cache HIT: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}")
+
+            return QueryResponse(
+                node_title=node.title,
+                content_type=request.query_type,
+                generated_content=cached.generated_content,
+                source_chunks=cached.source_chunks or [],
+                related_topics=cached.related_topics or [],
+                interactive_component=cached.interactive_component
+            )
+
+    # Cache miss - generate new content
+    print(f"✗ Cache MISS: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}")
 
     # Retrieve relevant chunks from vector store
     search_query = f"{node.title} {node.description or ''}"
@@ -51,7 +100,7 @@ def query_content(
         generated_content = llm_service.generate_explanation(
             topic=node.title,
             context_chunks=context_chunks,
-            difficulty=node.difficulty_level,
+            difficulty=difficulty_level,
             user_context=request.user_context
         )
 
@@ -59,7 +108,8 @@ def query_content(
         example_data = llm_service.generate_applied_example(
             topic=node.title,
             context_chunks=context_chunks,
-            domain="quant_finance"
+            domain="quant_finance",
+            difficulty=difficulty_level
         )
         generated_content = f"## {example_data.get('title', 'Applied Example')}\n\n"
         generated_content += f"**Scenario:** {example_data.get('scenario', '')}\n\n"
@@ -84,7 +134,7 @@ def query_content(
         quiz_data = llm_service.generate_quiz(
             topic=node.title,
             context_chunks=context_chunks,
-            difficulty=node.difficulty_level,
+            difficulty=difficulty_level,
             num_questions=5
         )
         generated_content = "## Interactive Quiz\n\nTest your understanding of the concepts.\n"
@@ -115,6 +165,24 @@ def query_content(
         current_topic=node.title,
         all_topics=all_topics
     )
+
+    # Save to cache for future requests
+    cached_content = GeneratedContent(
+        node_id=request.node_id,
+        content_type=request.query_type,
+        difficulty_level=difficulty_level,
+        generated_content=generated_content,
+        interactive_component=interactive_component,
+        source_chunks=source_chunks,
+        related_topics=related_topics[:5],
+        content_version=1,
+        access_count=1,
+        is_valid=True
+    )
+    db.add(cached_content)
+    db.commit()
+
+    print(f"✓ Content cached: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}")
 
     return QueryResponse(
         node_title=node.title,

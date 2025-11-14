@@ -11,6 +11,50 @@ class LLMService:
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
         self.model = settings.OPENAI_MODEL
 
+        # Define audience profiles for difficulty-aware prompting
+        self.difficulty_profiles = {
+            1: {
+                "audience": "undergraduate student new to quantitative finance",
+                "approach": "Use simple language, everyday analogies, minimal equations. Focus on intuition over rigor.",
+                "example_level": "Basic numerical examples with step-by-step explanations",
+                "math_level": "High school math assumed. Introduce new notation carefully."
+            },
+            2: {
+                "audience": "undergraduate student with foundational mathematical knowledge",
+                "approach": "Balance intuition with some formalism. Use analogies alongside equations.",
+                "example_level": "Simple real-world finance examples with some calculations",
+                "math_level": "Basic calculus and linear algebra. Explain advanced notation."
+            },
+            3: {
+                "audience": "graduate student with strong mathematical background",
+                "approach": "Balance intuitive explanations with mathematical rigor. Formal notation is appropriate.",
+                "example_level": "Realistic quant finance problems with detailed solutions",
+                "math_level": "Calculus, linear algebra, probability assumed. Introduce specialized concepts."
+            },
+            4: {
+                "audience": "PhD student conducting research in quantitative finance",
+                "approach": "Focus on subtle points, edge cases, and research implications. Assume comfort with formalism.",
+                "example_level": "Research-level examples, cutting-edge applications, implementation details",
+                "math_level": "Advanced mathematics assumed. Focus on technical precision."
+            },
+            5: {
+                "audience": "experienced researcher or practitioner",
+                "approach": "Technical depth, latest research, computational considerations. Minimal hand-holding.",
+                "example_level": "Production-grade implementations, recent papers, advanced techniques",
+                "math_level": "Full mathematical rigor. Assume expertise in the field."
+            }
+        }
+
+    def _get_difficulty_context(self, difficulty: int) -> str:
+        """Get audience-appropriate context for prompts"""
+        profile = self.difficulty_profiles.get(difficulty, self.difficulty_profiles[3])
+        return f"""
+Audience: {profile['audience']}
+Approach: {profile['approach']}
+Examples: {profile['example_level']}
+Mathematical Level: {profile['math_level']}
+"""
+
     def generate_explanation(
         self,
         topic: str,
@@ -20,29 +64,32 @@ class LLMService:
     ) -> str:
         """Generate a concise conceptual explanation"""
 
-        system_prompt = """You are an expert educator specializing in quantitative finance, mathematics, and physics.
-Your role is to provide clear, concise explanations that build intuition and understanding.
+        difficulty_context = self._get_difficulty_context(difficulty)
+
+        system_prompt = f"""You are an expert educator specializing in quantitative finance, mathematics, and physics.
+Your role is to provide clear, concise explanations tailored to your audience's level.
+
+{difficulty_context}
 
 Guidelines:
-- Start with the core intuition
-- Use analogies when helpful
+- Start with the core intuition appropriate for this audience
+- Use analogies when helpful (more for beginners, less for experts)
 - Connect to practical applications in quant finance
-- Be concise but thorough (aim for 200-400 words)
-- Use mathematical notation when necessary
+- Be concise but thorough (200-400 words for levels 1-3, 300-500 for levels 4-5)
+- Adjust mathematical notation to the audience's level
 - Highlight key insights with bullet points"""
 
         context_text = "\n\n".join(context_chunks) if context_chunks else "No additional context available."
 
         user_prompt = f"""Topic: {topic}
-Difficulty Level: {difficulty}/5
 
 Context from learning materials:
 {context_text}
 
-{f"Student context: {user_context}" if user_context else ""}
+{f"Additional context: {user_context}" if user_context else ""}
 
-Provide a clear, conceptual explanation of this topic suitable for someone learning quantitative finance.
-Focus on building intuition and practical understanding."""
+Provide a clear, conceptual explanation of this topic tailored to the audience level specified above.
+Focus on building appropriate understanding for this learner."""
 
         response = self.client.chat.completions.create(
             model=self.model,
@@ -60,17 +107,22 @@ Focus on building intuition and practical understanding."""
         self,
         topic: str,
         context_chunks: List[str],
-        domain: str = "quant_finance"
+        domain: str = "quant_finance",
+        difficulty: int = 3
     ) -> Dict[str, Any]:
         """Generate an applied example in finance/quant research"""
 
-        system_prompt = """You are an expert in quantitative finance and applied mathematics.
+        difficulty_context = self._get_difficulty_context(difficulty)
+
+        system_prompt = f"""You are an expert in quantitative finance and applied mathematics.
 Generate practical, real-world examples that demonstrate how concepts are used in:
 - Quantitative trading strategies
 - Risk management
 - Portfolio optimization
 - Derivative pricing
-- Financial modeling"""
+- Financial modeling
+
+{difficulty_context}"""
 
         context_text = "\n\n".join(context_chunks) if context_chunks else ""
 

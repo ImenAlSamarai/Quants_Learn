@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 
 
 class NodeBase(BaseModel):
@@ -43,7 +44,9 @@ class QueryRequest(BaseModel):
         default="explanation",
         description="explanation, example, quiz, visualization"
     )
+    user_id: str = "demo_user"  # User identifier
     user_context: Optional[str] = None
+    force_regenerate: bool = False  # Skip cache if True
 
 
 class QueryResponse(BaseModel):
@@ -68,3 +71,50 @@ class ProgressUpdate(BaseModel):
     completed: int = Field(ge=0, le=100)
     quiz_score: Optional[float] = None
     time_spent_minutes: int = 0
+
+
+class UserCreate(BaseModel):
+    user_id: str
+    name: Optional[str] = None
+    learning_level: int = Field(ge=1, le=5, default=3)
+    background: Optional[str] = None
+    preferences: Optional[Dict[str, Any]] = None
+
+
+class UserResponse(BaseModel):
+    id: int
+    user_id: str
+    name: Optional[str]
+    learning_level: int
+    background: Optional[str]
+    preferences: Optional[Dict[str, Any]]
+    created_at: datetime
+    last_active: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    learning_level: Optional[int] = Field(None, ge=1, le=5)
+    background: Optional[str] = None
+    preferences: Optional[Dict[str, Any]] = None
+
+
+class ContentRating(BaseModel):
+    """Rating feedback for generated content"""
+    generated_content_id: int
+    rating: float = Field(ge=1.0, le=5.0)
+    feedback: Optional[str] = None
+
+
+class UsageStats(BaseModel):
+    """Usage statistics for admin dashboard"""
+    total_users: int
+    active_users_24h: int
+    total_queries: int
+    cache_hit_rate: float
+    most_accessed_nodes: List[Dict[str, Any]]
+    popular_content_types: Dict[str, int]
+    avg_rating_by_difficulty: Dict[int, float]

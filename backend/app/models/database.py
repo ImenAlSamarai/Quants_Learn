@@ -1,6 +1,7 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, Float, ForeignKey, Table, JSON
+from sqlalchemy import create_engine, Column, Integer, String, Text, Float, ForeignKey, Table, JSON, DateTime, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
+from datetime import datetime
 from app.config.settings import settings
 
 Base = declarative_base()
@@ -60,17 +61,56 @@ class ContentChunk(Base):
     node = relationship('Node', back_populates='content_chunks')
 
 
+class User(Base):
+    """User accounts with learning preferences"""
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(100), unique=True, nullable=False, index=True)  # Username or email
+    name = Column(String(200))
+    learning_level = Column(Integer, default=3)  # 1-5: undergrad to researcher
+    background = Column(Text)  # "physics PhD", "finance undergrad", etc.
+    preferences = Column(JSON)  # Custom preferences
+    created_at = Column(DateTime, default=datetime.utcnow)
+    last_active = Column(DateTime, default=datetime.utcnow)
+
+    progress = relationship('UserProgress', back_populates='user')
+
+
 class UserProgress(Base):
     """Track user learning progress"""
     __tablename__ = 'user_progress'
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(String(100), index=True)  # Simple user tracking for MVP
+    user_id = Column(String(100), ForeignKey('users.user_id'), index=True)
     node_id = Column(Integer, ForeignKey('nodes.id'))
     completed = Column(Integer, default=0)  # 0-100 percentage
     quiz_score = Column(Float)
     time_spent_minutes = Column(Integer, default=0)
+    last_accessed = Column(DateTime, default=datetime.utcnow)
     extra_metadata = Column(JSON)
+
+    user = relationship('User', back_populates='progress')
+    node = relationship('Node')
+
+
+class GeneratedContent(Base):
+    """Cache for LLM-generated content"""
+    __tablename__ = 'generated_content'
+
+    id = Column(Integer, primary_key=True, index=True)
+    node_id = Column(Integer, ForeignKey('nodes.id'), nullable=False, index=True)
+    content_type = Column(String(50), nullable=False, index=True)  # explanation, example, quiz, visualization
+    difficulty_level = Column(Integer, nullable=False, index=True)  # 1-5
+    generated_content = Column(Text, nullable=False)
+    interactive_component = Column(JSON)  # For quizzes, visualizations, etc.
+    source_chunks = Column(JSON)  # Track which chunks were used
+    related_topics = Column(JSON)  # Suggested related topics
+    content_version = Column(Integer, default=1)  # For cache invalidation
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    access_count = Column(Integer, default=0)  # Track usage
+    rating = Column(Float)  # Student feedback rating
+    is_valid = Column(Boolean, default=True)  # For cache invalidation
 
     node = relationship('Node')
 

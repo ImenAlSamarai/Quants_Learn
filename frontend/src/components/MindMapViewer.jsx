@@ -100,6 +100,14 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     if (fgRef.current && data.nodes.length > 0) {
       const fg = fgRef.current;
 
+      console.log('Switching to layout mode:', layoutMode);
+
+      // Clear all custom forces first
+      fg.d3Force('category', null);
+      fg.d3Force('difficulty', null);
+      fg.d3Force('category-x', null);
+      fg.d3Force('radial', null);
+
       if (layoutMode === 'force') {
         // Force-Directed: Organic physics-based layout with category clustering
         fg.d3Force('charge').strength(-400);
@@ -153,6 +161,9 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
           }
         ).strength(0.8));
       }
+
+      // Reheat simulation to apply new forces
+      fg.d3ReheatSimulation();
 
       // Center the graph after physics settle
       setTimeout(() => {

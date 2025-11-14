@@ -94,7 +94,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         }
       }, 2000);
     }
-  }, [data, layoutMode, graphData.nodes]);
+  }, [data, layoutMode]);
 
   // Color scheme based on difficulty level
   const getNodeColor = (difficulty) => {

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Network, GitBranch, Target } from 'lucide-react';
 
 const LayoutSelector = ({ currentLayout, onLayoutChange }) => {

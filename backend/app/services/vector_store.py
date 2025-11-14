@@ -10,15 +10,19 @@ class VectorStoreService:
     """Handles all vector database operations with Pinecone"""
 
     def __init__(self):
-        self.pc = Pinecone(api_key=settings.PINECONE_API_KEY)
-        self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+        self.pc = None
+        self.openai_client = None
         self.index_name = settings.PINECONE_INDEX_NAME
         self.index = None
+        self.available = False
         self._initialize_index()
 
     def _initialize_index(self):
         """Create index if it doesn't exist and connect to it"""
         try:
+            self.pc = Pinecone(api_key=settings.PINECONE_API_KEY)
+            self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+
             # Check if index exists
             existing_indexes = [idx.name for idx in self.pc.list_indexes()]
 
@@ -37,14 +41,18 @@ class VectorStoreService:
 
             # Connect to index
             self.index = self.pc.Index(self.index_name)
+            self.available = True
             print(f"Connected to Pinecone index: {self.index_name}")
 
         except Exception as e:
             print(f"Error initializing Pinecone index: {e}")
-            raise
+            print("Vector store will not be available - content generation will be disabled")
+            self.available = False
 
     def generate_embedding(self, text: str) -> List[float]:
         """Generate embedding vector for text using OpenAI"""
+        if not self.available:
+            return []
         try:
             response = self.openai_client.embeddings.create(
                 model=settings.EMBEDDING_MODEL,
@@ -76,6 +84,9 @@ class VectorStoreService:
         Returns:
             List of vector IDs
         """
+        if not self.available:
+            return []
+
         vectors = []
         vector_ids = []
 
@@ -137,6 +148,9 @@ class VectorStoreService:
         Returns:
             List of matches with text and metadata
         """
+        if not self.available:
+            return []
+
         # Generate query embedding
         query_embedding = self.generate_embedding(query)
 
@@ -169,6 +183,8 @@ class VectorStoreService:
 
     def delete_node_vectors(self, node_id: int):
         """Delete all vectors associated with a node"""
+        if not self.available:
+            return
         try:
             self.index.delete(filter={'node_id': node_id})
             print(f"Deleted vectors for node {node_id}")
@@ -182,6 +198,8 @@ class VectorStoreService:
 
     def get_index_stats(self) -> Dict[str, Any]:
         """Get statistics about the index"""
+        if not self.available:
+            return {}
         return self.index.describe_index_stats()
 
 

@@ -39,12 +39,14 @@ def get_mindmap(
     db: Session = Depends(get_db)
 ):
     """Get complete mind map structure for visualization"""
+    print(f"[DEBUG] Mindmap request - category filter: {category}")
     query = db.query(Node)
 
     if category:
         query = query.filter(Node.category == category)
 
     nodes = query.all()
+    print(f"[DEBUG] Query returned {len(nodes)} nodes")
 
     # Build nodes list
     nodes_response = []

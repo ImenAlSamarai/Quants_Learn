@@ -31,13 +31,9 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     if (fgRef.current && data.nodes.length > 0) {
       const fg = fgRef.current;
 
-      // Add radial force to spread nodes from center
-      fg.d3Force('radial', null); // Remove if exists
-      fg.d3Force('charge').strength(-400); // Stronger repulsion
-      fg.d3Force('link').distance(150); // Longer links
-
-      // Add collision force to prevent overlap
-      fg.d3Force('collision', window.d3.forceCollide(50));
+      // Adjust forces for better spacing
+      fg.d3Force('charge').strength(-300);
+      fg.d3Force('link').distance(120);
 
       // Center the graph after physics settle
       setTimeout(() => {

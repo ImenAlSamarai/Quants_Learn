@@ -27,16 +27,16 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Color scheme based on difficulty level - Vintage/Old Paper Theme
+  // Color scheme based on difficulty level - Modern Portfolio Theme
   const getNodeColor = (difficulty) => {
     const colors = {
-      1: '#2D5F3F', // Dark Forest Green - Fundamentals
-      2: '#1E3A5F', // Dark Navy - Core Concepts
-      3: '#4A2C5B', // Dark Purple - Intermediate
-      4: '#6B3640', // Dark Wine - Advanced
-      5: '#5A2E2E', // Dark Brown - Expert
+      1: '#64FFDA', // Teal - Fundamentals
+      2: '#64B5F6', // Light Blue - Core Concepts
+      3: '#81C784', // Green - Intermediate
+      4: '#FFD54F', // Yellow - Advanced
+      5: '#FF8A65', // Coral - Expert
     };
-    return colors[difficulty] || '#2C2C2C';
+    return colors[difficulty] || '#64FFDA';
   };
 
   // Node size scales with complexity

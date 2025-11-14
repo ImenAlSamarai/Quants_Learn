@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import LayoutSelector from './LayoutSelector';
+import { forceManyBody, forceX, forceY, forceRadial } from 'd3-force';
 
 const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
   const fgRef = useRef();
@@ -110,7 +111,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         });
 
         // Add category-based attraction
-        fg.d3Force('category', window.d3.forceManyBody().strength(d => {
+        fg.d3Force('category', forceManyBody().strength(d => {
           return d.isRoot ? -500 : -200;
         }));
 
@@ -120,12 +121,12 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         fg.d3Force('link').distance(150);
 
         // Add vertical positioning force based on difficulty
-        fg.d3Force('difficulty', window.d3.forceY().strength(0.5).y(d => {
+        fg.d3Force('difficulty', forceY().strength(0.5).y(d => {
           return (d.difficulty - 1) * 120; // Spread vertically by difficulty
         }));
 
         // Add horizontal clustering by category
-        fg.d3Force('category-x', window.d3.forceX().strength(0.3).x(d => {
+        fg.d3Force('category-x', forceX().strength(0.3).x(d => {
           const categories = ['linear_algebra', 'calculus', 'probability', 'statistics'];
           const index = categories.indexOf(d.category);
           return index * 250 - 375; // Spread horizontally by category
@@ -140,7 +141,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         const categories = ['linear_algebra', 'calculus', 'probability', 'statistics'];
         const angleStep = (2 * Math.PI) / categories.length;
 
-        fg.d3Force('radial', window.d3.forceRadial(
+        fg.d3Force('radial', forceRadial(
           d => d.isRoot ? 0 : 200, // Root nodes at center, others at radius
           d => {
             const index = categories.indexOf(d.category);

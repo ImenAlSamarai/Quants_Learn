@@ -9,13 +9,20 @@ This script will:
 
 Usage:
     python backend/scripts/migrate_database.py
+    OR
+    cd backend && python scripts/migrate_database.py
 """
 
 import sys
+import os
 from pathlib import Path
 
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+# Add backend directory to Python path
+backend_dir = Path(__file__).parent.parent
+sys.path.insert(0, str(backend_dir))
+
+# Change to backend directory for imports to work
+os.chdir(backend_dir)
 
 from sqlalchemy import create_engine, text
 from app.config.settings import settings

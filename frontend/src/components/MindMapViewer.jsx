@@ -26,16 +26,16 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     return () => window.removeEventListener('resize', updateDimensions);
   }, []);
 
-  // Temporarily disabled zoomToFit for debugging
-  // useEffect(() => {
-  //   if (fgRef.current && data.nodes.length > 0) {
-  //     setTimeout(() => {
-  //       if (fgRef.current) {
-  //         fgRef.current.zoomToFit(400, 100);
-  //       }
-  //     }, 1000);
-  //   }
-  // }, [data]);
+  // Auto-center the graph on load
+  useEffect(() => {
+    if (fgRef.current && data.nodes.length > 0) {
+      setTimeout(() => {
+        if (fgRef.current) {
+          fgRef.current.zoomToFit(400, 80);
+        }
+      }, 500);
+    }
+  }, [data]);
 
   // Color scheme based on difficulty level
   const getNodeColor = (difficulty) => {
@@ -77,8 +77,13 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
       return {
         id: nodeId,
         name: String(node.title || 'Untitled'),
+        icon: String(node.icon || '📚'),
+        difficulty: difficulty,
+        description: String(node.description || ''),
+        category: String(node.category || ''),
         val: nodeSize,
         color: getNodeColor(difficulty),
+        isRoot: isRoot,
       };
     }).filter(Boolean), // Remove any null entries
     links: data.edges.map(edge => {
@@ -111,6 +116,84 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     onNodeClick(node);
   };
 
+  // Custom node rendering with labels
+  const paintNode = (node, ctx, globalScale) => {
+    const label = node.name;
+    const fontSize = 14 / globalScale;
+    const radius = node.val;
+
+    // Draw node circle
+    ctx.beginPath();
+    ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+    ctx.fillStyle = node.color;
+    ctx.fill();
+
+    // Draw border (thicker if selected)
+    ctx.strokeStyle = node.id === selectedNode?.id ? '#fbbf24' : '#ffffff';
+    ctx.lineWidth = (node.id === selectedNode?.id ? 3 : 2) / globalScale;
+    ctx.stroke();
+
+    // Draw icon in center
+    ctx.font = `${16 / globalScale}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(node.icon, node.x, node.y);
+
+    // Draw label below node
+    ctx.font = `bold ${fontSize}px Sans-Serif`;
+    const labelY = node.y + radius + 16 / globalScale;
+
+    // Label background
+    const textWidth = ctx.measureText(label).width;
+    const padding = 6 / globalScale;
+    ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+    ctx.fillRect(
+      node.x - textWidth / 2 - padding,
+      labelY - fontSize / 2 - padding / 2,
+      textWidth + padding * 2,
+      fontSize + padding
+    );
+
+    // Label text
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, node.x, labelY);
+  };
+
+  // Custom link rendering with arrows
+  const paintLink = (link, ctx, globalScale) => {
+    const start = link.source;
+    const end = link.target;
+
+    // Draw link line
+    ctx.beginPath();
+    ctx.moveTo(start.x, start.y);
+    ctx.lineTo(end.x, end.y);
+    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.lineWidth = 2 / globalScale;
+    ctx.stroke();
+
+    // Draw arrowhead
+    const arrowLength = 10 / globalScale;
+    const angle = Math.atan2(end.y - start.y, end.x - start.x);
+
+    ctx.beginPath();
+    ctx.moveTo(end.x, end.y);
+    ctx.lineTo(
+      end.x - arrowLength * Math.cos(angle - Math.PI / 6),
+      end.y - arrowLength * Math.sin(angle - Math.PI / 6)
+    );
+    ctx.lineTo(
+      end.x - arrowLength * Math.cos(angle + Math.PI / 6),
+      end.y - arrowLength * Math.sin(angle + Math.PI / 6)
+    );
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.fill();
+  };
+
   console.log('Checking empty state, node count:', data.nodes.length);
 
   if (data.nodes.length === 0) {
@@ -129,15 +212,17 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         graphData={graphData}
         width={dimensions.width}
         height={dimensions.height}
-        nodeLabel="name"
+        nodeCanvasObject={paintNode}
+        linkCanvasObject={paintLink}
         onNodeClick={handleNodeClick}
-        nodeAutoColorBy="color"
         backgroundColor="#0f172a"
-        dagMode="td"
-        dagLevelDistance={150}
-        enableNodeDrag={true}
+        dagMode="lr"
+        dagLevelDistance={200}
+        nodeRelSize={8}
+        enableNodeDrag={false}
         enableZoomInteraction={true}
         enablePanInteraction={true}
+        linkDirectionalArrowLength={0}
       />
 
       <div className="controls-overlay">

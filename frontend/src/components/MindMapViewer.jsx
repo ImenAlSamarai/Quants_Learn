@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import LayoutSelector from './LayoutSelector';
-import { forceManyBody, forceX, forceY, forceRadial } from 'd3-force';
+import { forceManyBody, forceX, forceY } from 'd3-force';
 
 const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
   const fgRef = useRef();
@@ -106,7 +106,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
       fg.d3Force('category', null);
       fg.d3Force('difficulty', null);
       fg.d3Force('category-x', null);
-      fg.d3Force('radial', null);
+      fg.d3Force('category-y', null);
 
       if (layoutMode === 'force') {
         // Force-Directed: Organic physics-based layout with category clustering
@@ -145,25 +145,28 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         fg.d3Force('charge').strength(-200);
         fg.d3Force('link').distance(100);
 
-        // Position categories in a circle
+        // Position categories in a circle using forceX and forceY
         const categories = ['linear_algebra', 'calculus', 'probability', 'statistics'];
         const angleStep = (2 * Math.PI) / categories.length;
+        const radius = 300;
 
-        fg.d3Force('radial', forceRadial(
-          d => d.isRoot ? 0 : 200, // Root nodes at center, others at radius
-          d => {
-            const index = categories.indexOf(d.category);
-            return Math.cos(index * angleStep) * 300;
-          },
-          d => {
-            const index = categories.indexOf(d.category);
-            return Math.sin(index * angleStep) * 300;
-          }
-        ).strength(0.8));
+        fg.d3Force('category-x', forceX().strength(0.5).x(d => {
+          const index = categories.indexOf(d.category);
+          if (d.isRoot) return 0;
+          return Math.cos(index * angleStep) * radius;
+        }));
+
+        fg.d3Force('category-y', forceY().strength(0.5).y(d => {
+          const index = categories.indexOf(d.category);
+          if (d.isRoot) return 0;
+          return Math.sin(index * angleStep) * radius;
+        }));
       }
 
-      // Reheat simulation to apply new forces
+      // Restart simulation to apply new forces
       fg.d3ReheatSimulation();
+
+      console.log('Layout forces applied and simulation reheated');
 
       // Center the graph after physics settle
       setTimeout(() => {

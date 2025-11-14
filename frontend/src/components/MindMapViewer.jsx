@@ -169,35 +169,71 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
     ctx.fillText(label, node.x, labelY);
   };
 
-  // Custom link rendering with arrows
+  // Custom link rendering with curved arrows and varying styles
   const paintLink = (link, ctx, globalScale) => {
     const start = link.source;
     const end = link.target;
 
-    // Draw link line
+    // Calculate midpoint for curved path
+    const dx = end.x - start.x;
+    const dy = end.y - start.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Create curved path (quadratic curve)
+    const curvature = 0.25;
+    const controlX = start.x + dx * 0.5 - dy * curvature;
+    const controlY = start.y + dy * 0.5 + dx * curvature;
+
+    // Determine link strength based on difficulty difference
+    const sourceDifficulty = start.difficulty || 1;
+    const targetDifficulty = end.difficulty || 1;
+    const difficultyGap = Math.abs(targetDifficulty - sourceDifficulty);
+
+    // Direct prerequisites (same or +1 difficulty) = thick solid line
+    // Larger gaps = thinner, more transparent (indirect/optional)
+    const isDirectPrereq = difficultyGap <= 1;
+    const lineWidth = isDirectPrereq ? 2.5 / globalScale : 1.5 / globalScale;
+    const opacity = isDirectPrereq ? 0.8 : 0.4;
+
+    // Color based on target difficulty
+    const targetColor = end.color || '#3b82f6';
+
+    // Draw curved line
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
-    ctx.lineTo(end.x, end.y);
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.6)';
-    ctx.lineWidth = 2 / globalScale;
-    ctx.stroke();
+    ctx.quadraticCurveTo(controlX, controlY, end.x, end.y);
+    ctx.strokeStyle = `${targetColor}${Math.floor(opacity * 255).toString(16).padStart(2, '0')}`;
+    ctx.lineWidth = lineWidth;
 
-    // Draw arrowhead
-    const arrowLength = 10 / globalScale;
-    const angle = Math.atan2(end.y - start.y, end.x - start.x);
+    // Dashed for optional/indirect paths
+    if (!isDirectPrereq) {
+      ctx.setLineDash([5 / globalScale, 5 / globalScale]);
+    } else {
+      ctx.setLineDash([]);
+    }
+
+    ctx.stroke();
+    ctx.setLineDash([]); // Reset
+
+    // Draw arrowhead at the end
+    const arrowLength = isDirectPrereq ? 12 / globalScale : 8 / globalScale;
+    const arrowWidth = isDirectPrereq ? 8 / globalScale : 6 / globalScale;
+
+    // Calculate angle at the end of the curve
+    const angle = Math.atan2(end.y - controlY, end.x - controlX);
 
     ctx.beginPath();
     ctx.moveTo(end.x, end.y);
     ctx.lineTo(
-      end.x - arrowLength * Math.cos(angle - Math.PI / 6),
-      end.y - arrowLength * Math.sin(angle - Math.PI / 6)
+      end.x - arrowLength * Math.cos(angle - Math.PI / 7),
+      end.y - arrowLength * Math.sin(angle - Math.PI / 7)
     );
     ctx.lineTo(
-      end.x - arrowLength * Math.cos(angle + Math.PI / 6),
-      end.y - arrowLength * Math.sin(angle + Math.PI / 6)
+      end.x - arrowLength * Math.cos(angle + Math.PI / 7),
+      end.y - arrowLength * Math.sin(angle + Math.PI / 7)
     );
     ctx.closePath();
-    ctx.fillStyle = 'rgba(148, 163, 184, 0.6)';
+    ctx.fillStyle = `${targetColor}${Math.floor(opacity * 255).toString(16).padStart(2, '0')}`;
     ctx.fill();
   };
 
@@ -235,7 +271,7 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
 
       <div className="controls-overlay">
         <div className="legend">
-          <h4>Learning Path</h4>
+          <h4>Difficulty Levels</h4>
           <div className="legend-item">
             <span className="legend-dot" style={{ backgroundColor: '#10b981' }}></span>
             <span>Fundamentals</span>
@@ -256,11 +292,35 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
             <span className="legend-dot" style={{ backgroundColor: '#ef4444' }}></span>
             <span>Expert</span>
           </div>
+
+          <h4 style={{ marginTop: '1rem' }}>Connections</h4>
+          <div className="legend-item">
+            <span style={{
+              display: 'inline-block',
+              width: '30px',
+              height: '3px',
+              backgroundColor: '#3b82f6',
+              marginRight: '8px'
+            }}></span>
+            <span>Direct prerequisite</span>
+          </div>
+          <div className="legend-item">
+            <span style={{
+              display: 'inline-block',
+              width: '30px',
+              height: '2px',
+              backgroundColor: '#94a3b8',
+              marginRight: '8px',
+              backgroundImage: 'linear-gradient(to right, #94a3b8 50%, transparent 50%)',
+              backgroundSize: '8px 2px'
+            }}></span>
+            <span>Related/Optional</span>
+          </div>
         </div>
         <div className="control-hint">
           <span>🖱️ Click nodes to explore</span>
           <span>🔍 Scroll to zoom</span>
-          <span>✋ Drag to pan</span>
+          <span>✋ Drag nodes to arrange</span>
         </div>
       </div>
     </div>

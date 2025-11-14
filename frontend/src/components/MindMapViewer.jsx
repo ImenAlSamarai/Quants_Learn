@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { forceX, forceY } from 'd3-force';
+import { MousePointer2, ZoomIn, Move } from 'lucide-react';
 
 const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
   const fgRef = useRef();
@@ -291,54 +292,65 @@ const MindMapViewer = ({ data, onNodeClick, selectedNode }) => {
         <div className="legend">
           <h4>Difficulty Levels</h4>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#2D5F3F' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#7BA591' }}></span>
             <span>Fundamentals</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#1E3A5F' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#6B9BD1' }}></span>
             <span>Core Concepts</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#4A2C5B' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#9B8FB5' }}></span>
             <span>Intermediate</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#6B3640' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#D4A574' }}></span>
             <span>Advanced</span>
           </div>
           <div className="legend-item">
-            <span className="legend-dot" style={{ backgroundColor: '#5A2E2E' }}></span>
+            <span className="legend-dot" style={{ backgroundColor: '#C17B6C' }}></span>
             <span>Expert</span>
           </div>
 
-          <h4 style={{ marginTop: '1rem' }}>Connections</h4>
+          <h4 style={{ marginTop: '1.25rem' }}>Connections</h4>
           <div className="legend-item">
             <span style={{
               display: 'inline-block',
-              width: '30px',
-              height: '3px',
-              backgroundColor: '#3b82f6',
-              marginRight: '8px'
+              width: '28px',
+              height: '2.5px',
+              backgroundColor: '#6B6B6B',
+              borderRadius: '2px',
+              flexShrink: 0
             }}></span>
             <span>Direct prerequisite</span>
           </div>
           <div className="legend-item">
             <span style={{
               display: 'inline-block',
-              width: '30px',
+              width: '28px',
               height: '2px',
-              backgroundColor: '#94a3b8',
-              marginRight: '8px',
-              backgroundImage: 'linear-gradient(to right, #94a3b8 50%, transparent 50%)',
-              backgroundSize: '8px 2px'
+              backgroundColor: '#9B9B9B',
+              borderRadius: '2px',
+              flexShrink: 0,
+              backgroundImage: 'linear-gradient(to right, #9B9B9B 50%, transparent 50%)',
+              backgroundSize: '6px 2px'
             }}></span>
             <span>Related/Optional</span>
           </div>
         </div>
         <div className="control-hint">
-          <span>🖱️ Click nodes to explore</span>
-          <span>🔍 Scroll to zoom</span>
-          <span>✋ Drag nodes to arrange</span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <MousePointer2 size={14} />
+            <span>Click nodes to explore</span>
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ZoomIn size={14} />
+            <span>Scroll to zoom</span>
+          </span>
+          <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Move size={14} />
+            <span>Drag nodes to arrange</span>
+          </span>
         </div>
       </div>
     </div>

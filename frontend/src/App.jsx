@@ -52,19 +52,35 @@ function App() {
       <div className="app">
         <div style={{
           position: 'fixed',
-          top: '1rem',
-          right: '1rem',
+          top: '1.25rem',
+          right: '2rem',
           zIndex: 1000
         }}>
           <button
             onClick={() => setShowAdmin(false)}
             style={{
-              background: 'white',
-              border: '2px solid #667eea',
+              background: 'rgba(51, 65, 85, 0.5)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              color: '#f1f5f9',
+              border: '1px solid rgba(148, 163, 184, 0.3)',
               padding: '0.75rem 1.5rem',
-              borderRadius: '8px',
-              fontWeight: 'bold',
-              cursor: 'pointer'
+              borderRadius: '12px',
+              fontWeight: '600',
+              cursor: 'pointer',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+              fontSize: '0.9rem'
+            }}
+            onMouseEnter={(e) => {
+              e.target.style.transform = 'translateY(-2px)';
+              e.target.style.boxShadow = '0 8px 30px rgba(59, 130, 246, 0.3)';
+              e.target.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.target.style.transform = 'translateY(0)';
+              e.target.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+              e.target.style.borderColor = 'rgba(148, 163, 184, 0.3)';
             }}
           >
             ← Back to Learning
@@ -85,8 +101,8 @@ function App() {
 
       <div style={{
         position: 'fixed',
-        top: '1rem',
-        right: '1rem',
+        top: '1.25rem',
+        right: '2rem',
         zIndex: 1000,
         display: 'flex',
         gap: '0.75rem'
@@ -94,14 +110,28 @@ function App() {
         <button
           onClick={() => setShowSettings(true)}
           style={{
-            background: 'white',
-            color: '#667eea',
-            border: '2px solid #667eea',
+            background: 'rgba(51, 65, 85, 0.5)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
+            color: '#f1f5f9',
+            border: '1px solid rgba(148, 163, 184, 0.3)',
             padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            fontWeight: 'bold',
+            borderRadius: '12px',
+            fontWeight: '600',
             cursor: 'pointer',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            fontSize: '0.9rem'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = '0 8px 30px rgba(59, 130, 246, 0.3)';
+            e.target.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+            e.target.style.borderColor = 'rgba(148, 163, 184, 0.3)';
           }}
         >
           ⚙️ Settings
@@ -109,14 +139,26 @@ function App() {
         <button
           onClick={() => setShowAdmin(true)}
           style={{
-            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)',
+            backdropFilter: 'blur(10px)',
+            WebkitBackdropFilter: 'blur(10px)',
             color: 'white',
-            border: 'none',
+            border: '1px solid rgba(59, 130, 246, 0.5)',
             padding: '0.75rem 1.5rem',
-            borderRadius: '8px',
-            fontWeight: 'bold',
+            borderRadius: '12px',
+            fontWeight: '600',
             cursor: 'pointer',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+            boxShadow: '0 4px 20px rgba(59, 130, 246, 0.3)',
+            transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+            fontSize: '0.9rem'
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.transform = 'translateY(-2px)';
+            e.target.style.boxShadow = '0 8px 40px rgba(59, 130, 246, 0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.transform = 'translateY(0)';
+            e.target.style.boxShadow = '0 4px 20px rgba(59, 130, 246, 0.3)';
           }}
         >
           📊 Admin Panel

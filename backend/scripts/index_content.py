@@ -327,9 +327,196 @@ def main():
             parent_ids=[eigen_id]
         )
 
+        # Index Calculus nodes
+        calc_root = indexer.index_node(
+            title="Calculus",
+            category="calculus",
+            subcategory=None,
+            content_path=os.path.join(args.content_dir, "calculus/overview.md"),
+            description="Mathematical study of continuous change, rates, and accumulation",
+            difficulty=2,
+            x_pos=6,
+            y_pos=0,
+            color="#10b981",
+            icon="∫"
+        )
+
+        limits_id = indexer.index_node(
+            title="Limits and Continuity",
+            category="calculus",
+            subcategory="limits",
+            content_path=os.path.join(args.content_dir, "calculus/limits.md"),
+            description="Foundation of calculus: behavior as values approach points",
+            difficulty=1,
+            x_pos=4,
+            y_pos=2,
+            color="#34d399",
+            icon="→",
+            parent_ids=[calc_root]
+        )
+
+        derivatives_id = indexer.index_node(
+            title="Derivatives",
+            category="calculus",
+            subcategory="derivatives",
+            content_path=os.path.join(args.content_dir, "calculus/derivatives.md"),
+            description="Instantaneous rates of change and optimization",
+            difficulty=2,
+            x_pos=6,
+            y_pos=2,
+            color="#34d399",
+            icon="d/dx",
+            parent_ids=[calc_root, limits_id]
+        )
+
+        integrals_id = indexer.index_node(
+            title="Integration",
+            category="calculus",
+            subcategory="integrals",
+            content_path=os.path.join(args.content_dir, "calculus/integrals.md"),
+            description="Accumulation and areas under curves",
+            difficulty=2,
+            x_pos=8,
+            y_pos=2,
+            color="#34d399",
+            icon="∫",
+            parent_ids=[calc_root, derivatives_id]
+        )
+
+        multivariable_id = indexer.index_node(
+            title="Multivariable Calculus",
+            category="calculus",
+            subcategory="multivariable",
+            content_path=os.path.join(args.content_dir, "calculus/multivariable.md"),
+            description="Calculus in multiple dimensions: gradients and optimization",
+            difficulty=3,
+            x_pos=6,
+            y_pos=4,
+            color="#059669",
+            icon="∇",
+            parent_ids=[derivatives_id, integrals_id]
+        )
+
+        # Index Probability nodes
+        prob_root = indexer.index_node(
+            title="Probability Theory",
+            category="probability",
+            subcategory=None,
+            content_path=os.path.join(args.content_dir, "probability/overview.md"),
+            description="Mathematical framework for quantifying uncertainty",
+            difficulty=2,
+            x_pos=12,
+            y_pos=0,
+            color="#f59e0b",
+            icon="🎲"
+        )
+
+        prob_foundations_id = indexer.index_node(
+            title="Probability Foundations",
+            category="probability",
+            subcategory="foundations",
+            content_path=os.path.join(args.content_dir, "probability/foundations.md"),
+            description="Sample spaces, events, axioms, and conditional probability",
+            difficulty=1,
+            x_pos=10,
+            y_pos=2,
+            color="#fbbf24",
+            icon="Ω",
+            parent_ids=[prob_root]
+        )
+
+        random_vars_id = indexer.index_node(
+            title="Random Variables and Distributions",
+            category="probability",
+            subcategory="random_variables",
+            content_path=os.path.join(args.content_dir, "probability/random_variables.md"),
+            description="Discrete and continuous distributions, transformations",
+            difficulty=2,
+            x_pos=12,
+            y_pos=2,
+            color="#fbbf24",
+            icon="X",
+            parent_ids=[prob_root, prob_foundations_id]
+        )
+
+        expectation_id = indexer.index_node(
+            title="Expectation and Moments",
+            category="probability",
+            subcategory="expectation",
+            content_path=os.path.join(args.content_dir, "probability/expectation.md"),
+            description="Expected values, variance, and characterizing distributions",
+            difficulty=2,
+            x_pos=14,
+            y_pos=2,
+            color="#fbbf24",
+            icon="E[X]",
+            parent_ids=[prob_root, random_vars_id]
+        )
+
+        # Index Statistics nodes
+        stats_root = indexer.index_node(
+            title="Statistics",
+            category="statistics",
+            subcategory=None,
+            content_path=os.path.join(args.content_dir, "statistics/overview.md"),
+            description="Analyzing data and making inferences under uncertainty",
+            difficulty=2,
+            x_pos=18,
+            y_pos=0,
+            color="#8b5cf6",
+            icon="📊"
+        )
+
+        inference_id = indexer.index_node(
+            title="Statistical Inference",
+            category="statistics",
+            subcategory="inference",
+            content_path=os.path.join(args.content_dir, "statistics/inference.md"),
+            description="Estimation, confidence intervals, and hypothesis testing",
+            difficulty=2,
+            x_pos=16,
+            y_pos=2,
+            color="#a78bfa",
+            icon="CI",
+            parent_ids=[stats_root, expectation_id]
+        )
+
+        regression_id = indexer.index_node(
+            title="Regression Analysis",
+            category="statistics",
+            subcategory="regression",
+            content_path=os.path.join(args.content_dir, "statistics/regression.md"),
+            description="Modeling relationships between variables",
+            difficulty=3,
+            x_pos=18,
+            y_pos=2,
+            color="#a78bfa",
+            icon="β",
+            parent_ids=[stats_root, inference_id, multivariable_id]
+        )
+
+        timeseries_id = indexer.index_node(
+            title="Time Series Analysis",
+            category="statistics",
+            subcategory="time_series",
+            content_path=os.path.join(args.content_dir, "statistics/time_series.md"),
+            description="ARMA, GARCH, and forecasting sequential data",
+            difficulty=3,
+            x_pos=20,
+            y_pos=2,
+            color="#a78bfa",
+            icon="📈",
+            parent_ids=[stats_root, regression_id]
+        )
+
         print("=" * 60)
         print("Content indexing completed successfully!")
-        print(f"Total nodes indexed: 6")
+        print(f"Total nodes indexed: 20")
+        print("\nCategories:")
+        print("  - Linear Algebra: 6 nodes")
+        print("  - Calculus: 5 nodes")
+        print("  - Probability: 4 nodes")
+        print("  - Statistics: 4 nodes")
         print("\nNext steps:")
         print("1. Start the backend server: python -m app.main")
         print("2. View indexed content at http://localhost:8000/api/nodes/mindmap")

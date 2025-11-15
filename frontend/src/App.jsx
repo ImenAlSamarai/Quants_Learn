@@ -66,12 +66,12 @@ function App() {
         if (data.nodes) {
           const categoryTopics = data.nodes.map((node) => ({
             id: node.id,
-            name: node.name,
+            name: node.title || node.name, // Fix: API returns 'title'
             description: node.description || '',
             icon: node.icon || '📚',
             category: category.id,
-            difficulty: node.difficulty || 1,
-            prerequisites: node.prerequisites || [],
+            difficulty: node.difficulty_level || node.difficulty || 1, // Fix: API returns 'difficulty_level'
+            prerequisites: node.parent_ids || node.prerequisites || [], // Fix: API returns 'parent_ids'
             content: node.content || '',
           }));
           allTopics.push(...categoryTopics);
@@ -117,7 +117,7 @@ function App() {
       <div className="app">
         <div className="loading-screen">
           <div className="spinner"></div>
-          <p>Loading your learning platform...</p>
+          <p>🚀 NEW VERSION LOADING - Testing HMR...</p>
         </div>
       </div>
     );

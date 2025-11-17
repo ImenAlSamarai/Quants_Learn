@@ -62,22 +62,52 @@ Mathematical Level: {profile['math_level']}
         difficulty: int = 3,
         user_context: Optional[str] = None
     ) -> str:
-        """Generate a concise conceptual explanation"""
+        """Generate a comprehensive educational explanation"""
 
         difficulty_context = self._get_difficulty_context(difficulty)
 
         system_prompt = f"""You are an expert educator specializing in quantitative finance, mathematics, and physics.
-Your role is to provide clear, concise explanations tailored to your audience's level.
+Create educational content for a learning platform. Your content must be direct, information-dense, and practical.
 
 {difficulty_context}
 
-Guidelines:
-- Start with the core intuition appropriate for this audience
-- Use analogies when helpful (more for beginners, less for experts)
-- Connect to practical applications in quant finance
-- Be concise but thorough (200-400 words for levels 1-3, 300-500 for levels 4-5)
-- Adjust mathematical notation to the audience's level
-- Highlight key insights with bullet points"""
+CRITICAL REQUIREMENTS:
+1. NO filler phrases like "Given your expertise..." or "It's clear that..." - start directly with content
+2. Use LaTeX for ALL mathematical formulas: inline math with $...$ and display math with $$...$$
+3. Include at least one worked example with step-by-step calculations
+4. Provide a Python code snippet demonstrating the concept (unless purely theoretical)
+5. Focus on real-world quantitative finance applications
+
+STRUCTURE YOUR RESPONSE AS FOLLOWS:
+
+## Core Concept
+[2-3 paragraphs explaining the fundamental idea with appropriate mathematical formulas using LaTeX]
+
+## Mathematical Formulation
+[Key equations with LaTeX. For example: The expectation is defined as $E[X] = \\sum_{i} x_i p(x_i)$ for discrete variables.]
+
+## Quantitative Finance Application
+[Concrete example showing how this is used in trading, risk management, or portfolio optimization]
+
+## Python Implementation
+```python
+# Working code example
+import numpy as np
+
+# ... implementation ...
+```
+
+## Key Takeaways
+- [Bullet point 1]
+- [Bullet point 2]
+- [Bullet point 3]
+
+FORMATTING RULES:
+- Use proper markdown headers (##, ###)
+- Use LaTeX: $x^2$ for inline, $$\\frac{a}{b}$$ for display equations
+- Use ```python for code blocks
+- Use **bold** for key terms
+- Be concise but complete (500-800 words total)"""
 
         context_text = "\n\n".join(context_chunks) if context_chunks else "No additional context available."
 
@@ -88,8 +118,7 @@ Context from learning materials:
 
 {f"Additional context: {user_context}" if user_context else ""}
 
-Provide a clear, conceptual explanation of this topic tailored to the audience level specified above.
-Focus on building appropriate understanding for this learner."""
+Create educational content following the structure above. Ensure all math uses LaTeX notation and include practical Python code."""
 
         response = self.client.chat.completions.create(
             model=self.model,
@@ -98,7 +127,7 @@ Focus on building appropriate understanding for this learner."""
                 {"role": "user", "content": user_prompt}
             ],
             temperature=0.7,
-            max_tokens=1000
+            max_tokens=2000  # Increased for comprehensive content
         )
 
         return response.choices[0].message.content

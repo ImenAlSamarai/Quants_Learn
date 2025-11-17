@@ -4,6 +4,7 @@ import { CheckCircle, ArrowRight, BookOpen, Clock, Star, Loader2 } from 'lucide-
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '../../store/useAppStore';
 import { queryContent } from '../../services/api';
+import MarkdownContent from '../MarkdownContent';
 
 const StudyMode = ({ topic, categoryId }) => {
   const navigate = useNavigate();
@@ -198,10 +199,9 @@ const StudyMode = ({ topic, categoryId }) => {
           </div>
         ) : content ? (
           <div className="content-section">
-            <div
-              className="markdown-content"
-              dangerouslySetInnerHTML={{ __html: content.generated_content.replace(/\n/g, '<br />') }}
-            />
+            <div className="markdown-content">
+              <MarkdownContent content={content.generated_content} />
+            </div>
 
             {content.source_chunks && content.source_chunks.length > 0 && (
               <div className="content-sources">

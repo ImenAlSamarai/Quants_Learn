@@ -12,6 +12,7 @@ const useAppStore = create((set, get) => ({
       // User progress
       completedTopics: [],
       currentProgress: {},
+      learningLevel: 1, // 1-5, default to beginner
 
       // Data
       categories: [],
@@ -21,6 +22,8 @@ const useAppStore = create((set, get) => ({
       setCurrentCategory: (categoryId) => set({ currentCategory: categoryId }),
 
       setCurrentTopic: (topicId) => set({ currentTopic: topicId }),
+
+      setLearningLevel: (level) => set({ learningLevel: level }),
 
       setViewMode: (mode) => set({ viewMode: mode }),
 

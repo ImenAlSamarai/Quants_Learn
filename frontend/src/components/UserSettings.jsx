@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import useAppStore from '../store/useAppStore';
 import '../styles/UserSettings.css';
 
 const UserSettings = ({ userId, onClose }) => {
-  const [userLevel, setUserLevel] = useState(3);
+  const setLearningLevel = useAppStore((state) => state.setLearningLevel);
+  const storedLevel = useAppStore((state) => state.learningLevel);
+  const [userLevel, setUserLevel] = useState(storedLevel || 3);
   const [background, setBackground] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -95,6 +98,8 @@ const UserSettings = ({ userId, onClose }) => {
       }
 
       if (response.ok) {
+        // Update the Zustand store with the new learning level
+        setLearningLevel(userLevel);
         alert('✓ Settings saved! Future content will be tailored to your level.');
         onClose();
       } else {
@@ -102,7 +107,10 @@ const UserSettings = ({ userId, onClose }) => {
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      alert('Failed to save settings. Please try again.');
+      // Even if backend fails, update the store for demo mode
+      setLearningLevel(userLevel);
+      alert('✓ Settings saved locally! Future content will be tailored to your level.');
+      onClose();
     } finally {
       setSaving(false);
     }

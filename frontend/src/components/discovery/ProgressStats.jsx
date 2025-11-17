@@ -3,11 +3,23 @@ import { TrendingUp, Target, Award, Clock } from 'lucide-react';
 import useAppStore from '../../store/useAppStore';
 
 const ProgressStats = () => {
-  const { completedTopics, topics } = useAppStore();
+  const { completedTopics, topics, learningLevel } = useAppStore();
 
   const totalTopics = topics.length;
   const completed = completedTopics.length;
   const percentage = totalTopics > 0 ? Math.round((completed / totalTopics) * 100) : 0;
+
+  // Get level label based on learningLevel
+  const getLevelLabel = () => {
+    const levels = {
+      1: '🌱 Beginner',
+      2: '📚 Foundation',
+      3: '🎓 Graduate',
+      4: '🔬 Researcher',
+      5: '⭐ Expert',
+    };
+    return levels[learningLevel] || '🌱 Beginner';
+  };
 
   const stats = [
     {
@@ -24,8 +36,8 @@ const ProgressStats = () => {
     },
     {
       icon: <Award size={20} />,
-      label: 'Achievements',
-      value: completed > 5 ? '🏆 Explorer' : '🌱 Beginner',
+      label: 'Learning Level',
+      value: getLevelLabel(),
       color: 'gold',
     },
     {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Brain, Sparkles } from 'lucide-react';
+import { Brain } from 'lucide-react';
 import CategoryCard from '../components/discovery/CategoryCard';
 import ProgressStats from '../components/discovery/ProgressStats';
 import RecommendedTopics from '../components/discovery/RecommendedTopics';
@@ -33,15 +33,6 @@ const LandingPage = () => {
             Explore interconnected topics, build deep understanding, and advance your quant skills
             through interactive learning paths
           </p>
-          <motion.div
-            className="hero-badge"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Sparkles size={16} />
-            <span>Interactive • Progressive • Comprehensive</span>
-          </motion.div>
         </div>
       </motion.section>
 
@@ -49,9 +40,6 @@ const LandingPage = () => {
       <section className="stats-section">
         <ProgressStats />
       </section>
-
-      {/* Recommended Topics */}
-      <RecommendedTopics />
 
       {/* Categories Grid */}
       <section className="categories-section">
@@ -68,6 +56,9 @@ const LandingPage = () => {
           ))}
         </div>
       </section>
+
+      {/* Recommended Topics */}
+      <RecommendedTopics />
 
       {/* Quick Tips */}
       <motion.section

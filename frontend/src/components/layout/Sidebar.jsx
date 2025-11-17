@@ -7,7 +7,7 @@ import useAppStore from '../../store/useAppStore';
 const Sidebar = ({ categoryId }) => {
   const navigate = useNavigate();
   const { topicId } = useParams();
-  const { topics, completedTopics, sidebarCollapsed } = useAppStore();
+  const { topics, isTopicCompleted, sidebarCollapsed } = useAppStore();
 
   // Convert topicId from URL param (string) to number for comparison
   const activeTopicId = topicId ? parseInt(topicId, 10) || topicId : null;
@@ -101,7 +101,7 @@ const Sidebar = ({ categoryId }) => {
                     transition={{ duration: 0.2 }}
                   >
                     {groupedTopics[level].map((topic) => {
-                      const isCompleted = completedTopics.includes(topic.id);
+                      const isCompleted = isTopicCompleted(topic.id);
                       const isActive = topic.id === activeTopicId;
 
                       return (

@@ -10,9 +10,10 @@ const useAppStore = create((set, get) => ({
       sidebarCollapsed: false,
 
       // User progress
-      completedTopics: [],
+      // completedTopics now tracks by level: { "topicId-level": true }
+      completedTopics: {},
       currentProgress: {},
-      learningLevel: 1, // 1-5, default to beginner
+      learningLevel: 3, // 1-5, default to graduate student
 
       // Data
       categories: [],
@@ -32,11 +33,23 @@ const useAppStore = create((set, get) => ({
       setSidebarCollapsed: (collapsed) => set({ sidebarCollapsed: collapsed }),
 
       markTopicComplete: (topicId) => set((state) => {
-        if (!state.completedTopics.includes(topicId)) {
-          return { completedTopics: [...state.completedTopics, topicId] };
+        const key = `${topicId}-${state.learningLevel}`;
+        if (!state.completedTopics[key]) {
+          return {
+            completedTopics: {
+              ...state.completedTopics,
+              [key]: true
+            }
+          };
         }
         return state;
       }),
+
+      isTopicCompleted: (topicId) => {
+        const state = get();
+        const key = `${topicId}-${state.learningLevel}`;
+        return !!state.completedTopics[key];
+      },
 
       setCategories: (categories) => set({ categories }),
 
@@ -55,9 +68,10 @@ const useAppStore = create((set, get) => ({
         const categoryTopics = state.topics.filter(
           (topic) => topic.category === categoryId
         );
-        const completedCount = categoryTopics.filter((topic) =>
-          state.completedTopics.includes(topic.id)
-        ).length;
+        const completedCount = categoryTopics.filter((topic) => {
+          const key = `${topic.id}-${state.learningLevel}`;
+          return !!state.completedTopics[key];
+        }).length;
         return {
           total: categoryTopics.length,
           completed: completedCount,

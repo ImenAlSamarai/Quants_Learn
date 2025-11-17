@@ -3,10 +3,10 @@ import { TrendingUp, Target, Award, Clock } from 'lucide-react';
 import useAppStore from '../../store/useAppStore';
 
 const ProgressStats = () => {
-  const { completedTopics, topics, learningLevel } = useAppStore();
+  const { isTopicCompleted, topics, learningLevel } = useAppStore();
 
   const totalTopics = topics.length;
-  const completed = completedTopics.length;
+  const completed = topics.filter((topic) => isTopicCompleted(topic.id)).length;
   const percentage = totalTopics > 0 ? Math.round((completed / totalTopics) * 100) : 0;
 
   // Get level label based on learningLevel

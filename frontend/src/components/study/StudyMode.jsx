@@ -8,13 +8,13 @@ import MarkdownContent from '../MarkdownContent';
 
 const StudyMode = ({ topic, categoryId }) => {
   const navigate = useNavigate();
-  const { completedTopics, markTopicComplete, getRelatedTopics, topics, categories } = useAppStore();
+  const { isTopicCompleted, markTopicComplete, getRelatedTopics, topics, categories } = useAppStore();
 
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const isCompleted = completedTopics.includes(topic.id);
+  const isCompleted = isTopicCompleted(topic.id);
   const relatedTopics = getRelatedTopics(topic.id);
 
   // Fetch real content from backend
@@ -155,7 +155,7 @@ const StudyMode = ({ topic, categoryId }) => {
             {topic.prerequisites.map((prereqId) => {
               const prereq = topics.find((t) => t.id === prereqId);
               if (!prereq) return null;
-              const prereqCompleted = completedTopics.includes(prereqId);
+              const prereqCompleted = isTopicCompleted(prereqId);
 
               return (
                 <motion.button
@@ -202,28 +202,6 @@ const StudyMode = ({ topic, categoryId }) => {
             <div className="markdown-content">
               <MarkdownContent content={content.generated_content} />
             </div>
-
-            {content.source_chunks && content.source_chunks.length > 0 && (
-              <div className="content-sources">
-                <h3>Related Content</h3>
-                <ul>
-                  {content.source_chunks.slice(0, 3).map((chunk, idx) => (
-                    <li key={idx}>{chunk}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {content.related_topics && content.related_topics.length > 0 && (
-              <div className="content-related">
-                <h3>Explore Further</h3>
-                <ul>
-                  {content.related_topics.map((relatedTopic, idx) => (
-                    <li key={idx}>{relatedTopic}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         ) : (
           <div className="content-section">

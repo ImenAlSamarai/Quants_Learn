@@ -5,21 +5,21 @@ import useAppStore from '../../store/useAppStore';
 
 const RecommendedTopics = () => {
   const navigate = useNavigate();
-  const { topics, completedTopics, categories } = useAppStore();
+  const { topics, isTopicCompleted, categories } = useAppStore();
 
   // Get recommended topics (incomplete topics with completed prerequisites)
   let recommendedTopics = topics
     .filter((topic) => {
-      if (completedTopics.includes(topic.id)) return false;
+      if (isTopicCompleted(topic.id)) return false;
       if (!topic.prerequisites || topic.prerequisites.length === 0) return true;
-      return topic.prerequisites.every((prereq) => completedTopics.includes(prereq));
+      return topic.prerequisites.every((prereq) => isTopicCompleted(prereq));
     })
     .slice(0, 3);
 
   // Fallback for new users: show fundamental topics (difficulty 1) if no recommendations
   if (recommendedTopics.length === 0) {
     recommendedTopics = topics
-      .filter((topic) => !completedTopics.includes(topic.id) && topic.difficulty === 1)
+      .filter((topic) => !isTopicCompleted(topic.id) && topic.difficulty === 1)
       .slice(0, 3);
   }
 
@@ -38,7 +38,8 @@ const RecommendedTopics = () => {
   };
 
   // Check if showing fundamentals (for new users) or actual recommendations
-  const isShowingFundamentals = completedTopics.length === 0;
+  const hasAnyCompletions = topics.some((topic) => isTopicCompleted(topic.id));
+  const isShowingFundamentals = !hasAnyCompletions;
 
   return (
     <div className="recommended-section">

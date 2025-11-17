@@ -22,7 +22,7 @@ const ExploreMode = ({ categoryId }) => {
   const navigate = useNavigate();
   const graphRef = useRef();
   const [selectedNode, setSelectedNode] = useState(null);
-  const { topics, completedTopics } = useAppStore();
+  const { topics, isTopicCompleted, learningLevel } = useAppStore();
 
   // Filter topics for current category
   const categoryTopics = useMemo(() => {
@@ -38,7 +38,7 @@ const ExploreMode = ({ categoryId }) => {
       difficulty: topic.difficulty,
       color: getNodeColor(topic.difficulty),
       val: 8 + (topic.difficulty || 1) * 2, // Smaller nodes: 10-18px radius
-      completed: completedTopics.includes(topic.id),
+      completed: isTopicCompleted(topic.id),
     }));
 
     const links = [];
@@ -57,7 +57,7 @@ const ExploreMode = ({ categoryId }) => {
     });
 
     return { nodes, links };
-  }, [categoryTopics, completedTopics]);
+  }, [categoryTopics, learningLevel, isTopicCompleted]);
 
   // Custom node rendering
   const paintNode = (node, ctx, globalScale) => {

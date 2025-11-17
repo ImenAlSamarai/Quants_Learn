@@ -8,7 +8,7 @@ const RecommendedTopics = () => {
   const { topics, completedTopics, categories } = useAppStore();
 
   // Get recommended topics (incomplete topics with completed prerequisites)
-  const recommendedTopics = topics
+  let recommendedTopics = topics
     .filter((topic) => {
       if (completedTopics.includes(topic.id)) return false;
       if (!topic.prerequisites || topic.prerequisites.length === 0) return true;
@@ -16,6 +16,14 @@ const RecommendedTopics = () => {
     })
     .slice(0, 3);
 
+  // Fallback for new users: show fundamental topics (difficulty 1) if no recommendations
+  if (recommendedTopics.length === 0) {
+    recommendedTopics = topics
+      .filter((topic) => !completedTopics.includes(topic.id) && topic.difficulty === 1)
+      .slice(0, 3);
+  }
+
+  // If still no topics, don't render the section
   if (recommendedTopics.length === 0) {
     return null;
   }
@@ -29,15 +37,20 @@ const RecommendedTopics = () => {
     navigate(`/category/${topic.category}/topic/${topic.id}`);
   };
 
+  // Check if showing fundamentals (for new users) or actual recommendations
+  const isShowingFundamentals = completedTopics.length === 0;
+
   return (
     <div className="recommended-section">
       <div className="section-header">
         <div className="section-title">
           <Star size={24} className="section-icon" />
-          <h2>Recommended for You</h2>
+          <h2>{isShowingFundamentals ? 'Start Your Journey' : 'Recommended for You'}</h2>
         </div>
         <p className="section-subtitle">
-          Continue your learning journey with these topics
+          {isShowingFundamentals
+            ? 'Begin with these fundamental topics to build a strong foundation'
+            : 'Continue your learning journey with these topics'}
         </p>
       </div>
 

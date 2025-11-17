@@ -20,7 +20,8 @@ const CategoryView = () => {
   } = useAppStore();
 
   const category = categories.find((cat) => cat.id === categoryId);
-  const currentTopic = topicId ? topics.find((t) => t.id === topicId) : null;
+  // Convert topicId to number for comparison (URL params are strings)
+  const currentTopic = topicId ? topics.find((t) => t.id === parseInt(topicId, 10) || t.id === topicId) : null;
 
   if (!category) {
     return (

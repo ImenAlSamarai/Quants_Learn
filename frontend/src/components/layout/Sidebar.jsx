@@ -9,6 +9,9 @@ const Sidebar = ({ categoryId }) => {
   const { topicId } = useParams();
   const { topics, completedTopics, sidebarCollapsed } = useAppStore();
 
+  // Convert topicId from URL param (string) to number for comparison
+  const activeTopicId = topicId ? parseInt(topicId, 10) || topicId : null;
+
   // Group topics by difficulty level
   const categoryTopics = topics.filter((topic) => topic.category === categoryId);
 
@@ -114,7 +117,7 @@ const Sidebar = ({ categoryId }) => {
                     {groupedTopics[level].map((topic) => {
                       const isCompleted = completedTopics.includes(topic.id);
                       const isLocked = isTopicLocked(topic);
-                      const isActive = topic.id === topicId;
+                      const isActive = topic.id === activeTopicId;
 
                       return (
                         <motion.button

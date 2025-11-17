@@ -1,8 +1,8 @@
 import { useRef, useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ForceGraph2D from 'react-force-graph-2d';
-import { forceX, forceY } from 'd3-force';
-import { MousePointer2, ZoomIn, Move, Maximize2 } from 'lucide-react';
+import { forceX, forceY, forceCollide } from 'd3-force';
+import { MousePointer2, ZoomIn, Move } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useAppStore from '../../store/useAppStore';
 
@@ -37,7 +37,7 @@ const ExploreMode = ({ categoryId }) => {
       icon: topic.icon,
       difficulty: topic.difficulty,
       color: getNodeColor(topic.difficulty),
-      val: 20 + (topic.difficulty || 1) * 5,
+      val: 8 + (topic.difficulty || 1) * 2, // Smaller nodes: 10-18px radius
       completed: completedTopics.includes(topic.id),
     }));
 
@@ -90,8 +90,8 @@ const ExploreMode = ({ categoryId }) => {
     ctx.lineWidth = (node.id === selectedNode?.id ? 3 : 1.5) / globalScale;
     ctx.stroke();
 
-    // Draw icon
-    ctx.font = `${16 / globalScale}px Arial`;
+    // Draw icon (bigger and more visible)
+    ctx.font = `${24 / globalScale}px Arial`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = '#FFFFFF';
@@ -131,18 +131,18 @@ const ExploreMode = ({ categoryId }) => {
     const start = link.source;
     const end = link.target;
 
-    // Draw link
+    // Draw link with better visibility
     ctx.beginPath();
     ctx.moveTo(start.x, start.y);
     ctx.lineTo(end.x, end.y);
-    ctx.strokeStyle = 'rgba(107, 107, 107, 0.3)';
-    ctx.lineWidth = 2 / globalScale;
+    ctx.strokeStyle = 'rgba(107, 107, 107, 0.6)'; // More visible
+    ctx.lineWidth = 1.5 / globalScale;
     ctx.stroke();
 
     // Draw arrow
-    const arrowLength = 10 / globalScale;
+    const arrowLength = 8 / globalScale;
     const angle = Math.atan2(end.y - start.y, end.x - start.x);
-    const endRadius = end.val || 20;
+    const endRadius = end.val || 10;
 
     const arrowX = end.x - Math.cos(angle) * endRadius;
     const arrowY = end.y - Math.sin(angle) * endRadius;
@@ -158,8 +158,8 @@ const ExploreMode = ({ categoryId }) => {
       arrowX - arrowLength * Math.cos(angle + Math.PI / 6),
       arrowY - arrowLength * Math.sin(angle + Math.PI / 6)
     );
-    ctx.strokeStyle = 'rgba(107, 107, 107, 0.5)';
-    ctx.lineWidth = 2 / globalScale;
+    ctx.strokeStyle = 'rgba(107, 107, 107, 0.7)'; // More visible
+    ctx.lineWidth = 1.5 / globalScale;
     ctx.stroke();
   };
 
@@ -175,19 +175,24 @@ const ExploreMode = ({ categoryId }) => {
   useEffect(() => {
     if (graphRef.current) {
       // Add radial force for better layout
-      const numLevels = 5;
       graphRef.current.d3Force(
         'radial',
-        forceX(0).strength(0.1)
+        forceX(0).strength(0.05)
       );
       graphRef.current.d3Force(
         'radial-y',
-        forceY(0).strength(0.1)
+        forceY(0).strength(0.05)
       );
 
-      // Zoom to fit
+      // Add stronger collision to prevent overlapping
+      graphRef.current.d3Force('collide', null); // Remove default
+      graphRef.current.d3Force('collision',
+        forceCollide().radius((node) => (node.val || 10) + 20).strength(0.9)
+      );
+
+      // Zoom to fit with padding
       setTimeout(() => {
-        graphRef.current?.zoomToFit(400, 100);
+        graphRef.current?.zoomToFit(400, 80);
       }, 500);
     }
   }, [graphData]);

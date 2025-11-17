@@ -7,7 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30 second timeout for LLM content generation
+  timeout: 60000, // 60 second timeout for LLM content generation (first generation can be slow)
 });
 
 // Demo data for when backend is unavailable

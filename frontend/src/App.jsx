@@ -117,7 +117,7 @@ function App() {
       <div className="app">
         <div className="loading-screen">
           <div className="spinner"></div>
-          <p>🚀 NEW VERSION LOADING - Testing HMR...</p>
+          <p>Loading your learning platform...</p>
         </div>
       </div>
     );

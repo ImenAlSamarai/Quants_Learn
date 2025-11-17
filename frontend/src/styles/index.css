@@ -1,9 +1,9 @@
+/* Import new design system */
+@import './new-design.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import new design system */
-@import './new-design.css';
 
 * {
   margin: 0;
@@ -861,11 +861,28 @@ body {
   gap: 1rem;
 }
 
+.loading-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100vw;
+  background: var(--cream-bg);
+  gap: 1.5rem;
+}
+
+.loading-screen p {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
 .spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid var(--border-color);
-  border-top-color: var(--primary-blue);
+  width: 48px;
+  height: 48px;
+  border: 4px solid var(--cream-border);
+  border-top-color: var(--accent-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -884,6 +901,45 @@ body {
   height: 100%;
   gap: 1rem;
   color: var(--text-secondary);
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  background: var(--cream-bg);
+  color: var(--text-primary);
+  text-align: center;
+  padding: 2rem;
+}
+
+.error-page h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: var(--terracotta);
+}
+
+/* Back to Learning Button */
+.btn-back-to-learning {
+  padding: 0.75rem 1.5rem;
+  background: var(--accent-primary);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-back-to-learning:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(201, 169, 110, 0.3);
 }
 
 /* Scrollbar */

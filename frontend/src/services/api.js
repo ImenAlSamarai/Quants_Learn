@@ -1,19 +1,62 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 5000, // 5 second timeout
 });
+
+// Demo data for when backend is unavailable
+const generateDemoData = (category) => {
+  const demoNodes = {
+    linear_algebra: [
+      { id: 1, title: 'Vectors and Spaces', description: 'Understand vector fundamentals', difficulty_level: 1, parent_ids: [], icon: '📐' },
+      { id: 2, title: 'Matrix Operations', description: 'Learn matrix multiplication and properties', difficulty_level: 2, parent_ids: [1], icon: '🔢' },
+      { id: 3, title: 'Linear Transformations', description: 'Map vectors to vectors linearly', difficulty_level: 3, parent_ids: [2], icon: '↔️' },
+      { id: 4, title: 'Eigenvalues & Eigenvectors', description: 'Special vectors and scaling factors', difficulty_level: 4, parent_ids: [2, 3], icon: '⚡' },
+    ],
+    calculus: [
+      { id: 11, title: 'Limits', description: 'Foundation of calculus', difficulty_level: 1, parent_ids: [], icon: '∞' },
+      { id: 12, title: 'Derivatives', description: 'Rate of change', difficulty_level: 2, parent_ids: [11], icon: '📈' },
+      { id: 13, title: 'Integrals', description: 'Area under curves', difficulty_level: 3, parent_ids: [12], icon: '∫' },
+      { id: 14, title: 'Optimization', description: 'Find extrema', difficulty_level: 4, parent_ids: [12], icon: '🎯' },
+    ],
+    probability: [
+      { id: 21, title: 'Sample Spaces', description: 'Possible outcomes', difficulty_level: 1, parent_ids: [], icon: '🎲' },
+      { id: 22, title: 'Random Variables', description: 'Numerical outcomes', difficulty_level: 2, parent_ids: [21], icon: '🔀' },
+      { id: 23, title: 'Distributions', description: 'Probability patterns', difficulty_level: 3, parent_ids: [22], icon: '📊' },
+      { id: 24, title: 'Expectation', description: 'Average values', difficulty_level: 3, parent_ids: [22], icon: '⭐' },
+    ],
+    statistics: [
+      { id: 31, title: 'Descriptive Stats', description: 'Summarize data', difficulty_level: 1, parent_ids: [], icon: '📊' },
+      { id: 32, title: 'Hypothesis Testing', description: 'Test claims', difficulty_level: 2, parent_ids: [31], icon: '🧪' },
+      { id: 33, title: 'Regression', description: 'Model relationships', difficulty_level: 3, parent_ids: [31], icon: '📉' },
+      { id: 34, title: 'Time Series', description: 'Temporal patterns', difficulty_level: 4, parent_ids: [33], icon: '⏱️' },
+    ],
+  };
+
+  return {
+    nodes: demoNodes[category] || [],
+    edges: demoNodes[category]?.map(node =>
+      node.parent_ids.map(parentId => ({ parent_id: parentId, child_id: node.id }))
+    ).flat() || [],
+  };
+};
 
 // Node APIs
 export const fetchMindMap = async (category = null) => {
-  const params = category ? { category } : {};
-  const response = await api.get('/api/nodes/mindmap', { params });
-  return response.data;
+  try {
+    const params = category ? { category } : {};
+    const response = await api.get('/api/nodes/mindmap', { params });
+    return response.data;
+  } catch (error) {
+    console.warn('Backend unavailable, using demo data:', error.message);
+    return generateDemoData(category);
+  }
 };
 
 export const fetchNode = async (nodeId) => {
@@ -28,12 +71,23 @@ export const fetchNodesByCategory = async (category) => {
 
 // Content APIs
 export const queryContent = async (nodeId, queryType, userContext = null) => {
-  const response = await api.post('/api/content/query', {
-    node_id: nodeId,
-    query_type: queryType,
-    user_context: userContext,
-  });
-  return response.data;
+  try {
+    const response = await api.post('/api/content/query', {
+      node_id: nodeId,
+      query_type: queryType,
+      user_context: userContext,
+    });
+    return response.data;
+  } catch (error) {
+    console.warn('Backend unavailable, using demo content');
+    return {
+      node_title: 'Demo Topic',
+      content_type: queryType,
+      generated_content: `## Demo Content\n\nThis is demo content for ${queryType}. Connect the backend to see AI-generated content.\n\n### Key Concepts\n- Concept 1: Foundation principles\n- Concept 2: Advanced applications\n- Concept 3: Real-world examples\n\n### Learn More\nStart the backend server to get personalized, AI-generated explanations tailored to your level.`,
+      source_chunks: [],
+      related_topics: [],
+    };
+  }
 };
 
 export const getNodeSummary = async (nodeId) => {

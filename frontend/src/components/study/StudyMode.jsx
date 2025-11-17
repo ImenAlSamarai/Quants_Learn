@@ -19,17 +19,38 @@ const StudyMode = ({ topic, categoryId }) => {
   // Fetch real content from backend
   useEffect(() => {
     const fetchContent = async () => {
+      console.log('🟢 [StudyMode] Starting content fetch for topic:', {
+        topicId: topic.id,
+        topicName: topic.name,
+        topicCategory: categoryId,
+      });
+
       setLoading(true);
       setError(null);
 
       try {
         const response = await queryContent(topic.id, 'explanation');
+
+        console.log('✅ [StudyMode] Content fetched successfully:', {
+          nodeTitle: response.node_title,
+          contentType: response.content_type,
+          hasGeneratedContent: !!response.generated_content,
+          generatedContentLength: response.generated_content?.length,
+          sourceChunksCount: response.source_chunks?.length,
+          relatedTopicsCount: response.related_topics?.length,
+        });
+
         setContent(response);
       } catch (err) {
-        console.error('Failed to fetch content:', err);
+        console.error('❌ [StudyMode] Failed to fetch content:', err);
+        console.error('❌ [StudyMode] Error details:', {
+          message: err.message,
+          stack: err.stack,
+        });
         setError('Failed to load content. Please try again later.');
       } finally {
         setLoading(false);
+        console.log('🟢 [StudyMode] Fetch complete, loading:', false);
       }
     };
 
@@ -63,6 +84,15 @@ const StudyMode = ({ topic, categoryId }) => {
     };
     return labels[difficulty] || 'Unknown';
   };
+
+  // Debug rendering
+  console.log('🎨 [StudyMode] Rendering with state:', {
+    loading,
+    hasError: !!error,
+    hasContent: !!content,
+    topicId: topic.id,
+    topicName: topic.name,
+  });
 
   return (
     <motion.div

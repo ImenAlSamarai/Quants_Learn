@@ -54,13 +54,21 @@ function App() {
   }, []);
 
   const loadData = async () => {
+    console.log('🚀 [App] Starting to load data...');
     setLoading(true);
     try {
       // Load all categories' data
       const allTopics = [];
 
       for (const category of categories) {
+        console.log(`🔵 [App] Fetching data for category: ${category.id}`);
         const data = await fetchMindMap(category.id);
+
+        console.log(`✅ [App] Received data for ${category.id}:`, {
+          nodesCount: data.nodes?.length,
+          edgesCount: data.edges?.length,
+          firstNode: data.nodes?.[0],
+        });
 
         // Transform nodes to topics
         if (data.nodes) {
@@ -74,17 +82,28 @@ function App() {
             prerequisites: node.parent_ids || node.prerequisites || [], // Fix: API returns 'parent_ids'
             content: node.content || '',
           }));
+
+          console.log(`🔵 [App] Transformed ${categoryTopics.length} topics for ${category.id}:`, categoryTopics);
           allTopics.push(...categoryTopics);
         }
       }
+
+      console.log('✅ [App] All topics loaded:', {
+        totalTopics: allTopics.length,
+        byCategory: allTopics.reduce((acc, topic) => {
+          acc[topic.category] = (acc[topic.category] || 0) + 1;
+          return acc;
+        }, {}),
+      });
 
       // Store in Zustand
       setCategories(categories);
       setTopics(allTopics);
     } catch (error) {
-      console.error('Error loading data:', error);
+      console.error('❌ [App] Error loading data:', error);
     } finally {
       setLoading(false);
+      console.log('🚀 [App] Data loading complete');
     }
   };
 

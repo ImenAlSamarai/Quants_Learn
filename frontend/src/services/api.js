@@ -71,14 +71,40 @@ export const fetchNodesByCategory = async (category) => {
 
 // Content APIs
 export const queryContent = async (nodeId, queryType = 'explanation', userContext = null, userId = 'demo_user') => {
-  const response = await api.post('/api/content/query', {
-    node_id: nodeId,
-    query_type: queryType,
-    user_id: userId,
-    user_context: userContext,
-    force_regenerate: false,
-  });
-  return response.data;
+  console.log('🔵 [API] queryContent called:', { nodeId, queryType, userId });
+
+  try {
+    const requestData = {
+      node_id: nodeId,
+      query_type: queryType,
+      user_id: userId,
+      user_context: userContext,
+      force_regenerate: false,
+    };
+
+    console.log('🔵 [API] Sending request to backend:', requestData);
+
+    const response = await api.post('/api/content/query', requestData);
+
+    console.log('✅ [API] Response received:', {
+      nodeTitle: response.data.node_title,
+      contentType: response.data.content_type,
+      hasContent: !!response.data.generated_content,
+      contentLength: response.data.generated_content?.length,
+      contentPreview: response.data.generated_content?.substring(0, 100),
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error('❌ [API] Error fetching content:', error);
+    console.error('❌ [API] Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+    });
+    throw error;
+  }
 };
 
 export const getNodeSummary = async (nodeId) => {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronDown, ChevronRight, CheckCircle, Circle, Lock } from 'lucide-react';
+import { ChevronDown, ChevronRight, CheckCircle, Circle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useAppStore from '../../store/useAppStore';
 
@@ -38,21 +38,7 @@ const Sidebar = ({ categoryId }) => {
   };
 
   const handleTopicClick = (topic) => {
-    // Check if topic is locked (prerequisites not met)
-    if (topic.prerequisites && topic.prerequisites.length > 0) {
-      const allPrereqsMet = topic.prerequisites.every((prereqId) =>
-        completedTopics.includes(prereqId)
-      );
-      if (!allPrereqsMet) {
-        return; // Don't navigate if locked
-      }
-    }
     navigate(`/category/${categoryId}/topic/${topic.id}`);
-  };
-
-  const isTopicLocked = (topic) => {
-    if (!topic.prerequisites || topic.prerequisites.length === 0) return false;
-    return !topic.prerequisites.every((prereqId) => completedTopics.includes(prereqId));
   };
 
   const getLevelLabel = (level) => {
@@ -116,25 +102,19 @@ const Sidebar = ({ categoryId }) => {
                   >
                     {groupedTopics[level].map((topic) => {
                       const isCompleted = completedTopics.includes(topic.id);
-                      const isLocked = isTopicLocked(topic);
                       const isActive = topic.id === activeTopicId;
 
                       return (
                         <motion.button
                           key={topic.id}
-                          className={`topic-item ${isActive ? 'active' : ''} ${
-                            isLocked ? 'locked' : ''
-                          }`}
+                          className={`topic-item ${isActive ? 'active' : ''}`}
                           onClick={() => handleTopicClick(topic)}
-                          disabled={isLocked}
-                          whileHover={!isLocked ? { x: 4 } : {}}
-                          whileTap={!isLocked ? { scale: 0.98 } : {}}
+                          whileHover={{ x: 4 }}
+                          whileTap={{ scale: 0.98 }}
                         >
                           <span className="topic-item-icon">
                             {isCompleted ? (
                               <CheckCircle size={16} className="icon-completed" />
-                            ) : isLocked ? (
-                              <Lock size={16} className="icon-locked" />
                             ) : (
                               <Circle size={16} className="icon-default" />
                             )}

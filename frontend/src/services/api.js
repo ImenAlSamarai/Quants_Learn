@@ -70,24 +70,15 @@ export const fetchNodesByCategory = async (category) => {
 };
 
 // Content APIs
-export const queryContent = async (nodeId, queryType, userContext = null) => {
-  try {
-    const response = await api.post('/api/content/query', {
-      node_id: nodeId,
-      query_type: queryType,
-      user_context: userContext,
-    });
-    return response.data;
-  } catch (error) {
-    console.warn('Backend unavailable, using demo content');
-    return {
-      node_title: 'Demo Topic',
-      content_type: queryType,
-      generated_content: `## Demo Content\n\nThis is demo content for ${queryType}. Connect the backend to see AI-generated content.\n\n### Key Concepts\n- Concept 1: Foundation principles\n- Concept 2: Advanced applications\n- Concept 3: Real-world examples\n\n### Learn More\nStart the backend server to get personalized, AI-generated explanations tailored to your level.`,
-      source_chunks: [],
-      related_topics: [],
-    };
-  }
+export const queryContent = async (nodeId, queryType = 'explanation', userContext = null, userId = 'demo_user') => {
+  const response = await api.post('/api/content/query', {
+    node_id: nodeId,
+    query_type: queryType,
+    user_id: userId,
+    user_context: userContext,
+    force_regenerate: false,
+  });
+  return response.data;
 };
 
 export const getNodeSummary = async (nodeId) => {

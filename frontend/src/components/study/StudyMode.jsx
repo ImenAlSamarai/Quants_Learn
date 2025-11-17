@@ -1,14 +1,40 @@
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, ArrowRight, BookOpen, Clock, Star } from 'lucide-react';
+import { CheckCircle, ArrowRight, BookOpen, Clock, Star, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '../../store/useAppStore';
+import { queryContent } from '../../services/api';
 
 const StudyMode = ({ topic, categoryId }) => {
   const navigate = useNavigate();
   const { completedTopics, markTopicComplete, getRelatedTopics, topics, categories } = useAppStore();
 
+  const [content, setContent] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const isCompleted = completedTopics.includes(topic.id);
   const relatedTopics = getRelatedTopics(topic.id);
+
+  // Fetch real content from backend
+  useEffect(() => {
+    const fetchContent = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const response = await queryContent(topic.id, 'explanation');
+        setContent(response);
+      } catch (err) {
+        console.error('Failed to fetch content:', err);
+        setError('Failed to load content. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, [topic.id]);
 
   // Get next topic in same category
   const categoryTopics = topics.filter((t) => t.category === categoryId);
@@ -125,30 +151,55 @@ const StudyMode = ({ topic, categoryId }) => {
 
       {/* Main Content */}
       <div className="topic-content">
-        <div className="content-section">
-          <h2>Overview</h2>
-          <p>
-            {topic.content ||
-              'This topic provides essential knowledge for understanding quantitative finance concepts. Explore the fundamentals and build a strong foundation for advanced topics.'}
-          </p>
-        </div>
-
-        <div className="content-section">
-          <h2>Key Concepts</h2>
-          <ul className="key-concepts-list">
-            <li>Understanding the core principles and definitions</li>
-            <li>Practical applications in quantitative finance</li>
-            <li>Common techniques and methodologies</li>
-            <li>Real-world examples and case studies</li>
-          </ul>
-        </div>
-
-        <div className="content-section">
-          <h2>Practice</h2>
-          <div className="practice-box">
-            <p>💪 Interactive exercises and quizzes coming soon!</p>
+        {loading ? (
+          <div className="content-loading">
+            <Loader2 className="animate-spin" size={32} />
+            <p>Loading content...</p>
           </div>
-        </div>
+        ) : error ? (
+          <div className="content-error">
+            <p className="error-message">{error}</p>
+            <button
+              className="btn-retry"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </div>
+        ) : content ? (
+          <div className="content-section">
+            <div
+              className="markdown-content"
+              dangerouslySetInnerHTML={{ __html: content.generated_content.replace(/\n/g, '<br />') }}
+            />
+
+            {content.source_chunks && content.source_chunks.length > 0 && (
+              <div className="content-sources">
+                <h3>Related Content</h3>
+                <ul>
+                  {content.source_chunks.slice(0, 3).map((chunk, idx) => (
+                    <li key={idx}>{chunk}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {content.related_topics && content.related_topics.length > 0 && (
+              <div className="content-related">
+                <h3>Explore Further</h3>
+                <ul>
+                  {content.related_topics.map((relatedTopic, idx) => (
+                    <li key={idx}>{relatedTopic}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="content-section">
+            <p>No content available for this topic.</p>
+          </div>
+        )}
       </div>
 
       {/* Related Topics */}

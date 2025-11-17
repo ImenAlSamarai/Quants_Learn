@@ -84,7 +84,7 @@ STRUCTURE YOUR RESPONSE AS FOLLOWS:
 [2-3 paragraphs explaining the fundamental idea with appropriate mathematical formulas using LaTeX]
 
 ## Mathematical Formulation
-[Key equations with LaTeX. For example: The expectation is defined as $E[X] = \\sum_{i} x_i p(x_i)$ for discrete variables.]
+[Key equations with LaTeX. For example: The expectation is defined as $E[X] = \\sum_{{i}} x_{{i}} p(x_{{i}})$ for discrete variables.]
 
 ## Quantitative Finance Application
 [Concrete example showing how this is used in trading, risk management, or portfolio optimization]
@@ -104,7 +104,7 @@ import numpy as np
 
 FORMATTING RULES:
 - Use proper markdown headers (##, ###)
-- Use LaTeX: $x^2$ for inline, $$\\frac{a}{b}$$ for display equations
+- Use LaTeX: $x^2$ for inline, $$\\frac{{a}}{{b}}$$ for display equations
 - Use ```python for code blocks
 - Use **bold** for key terms
 - Be concise but complete (500-800 words total)"""

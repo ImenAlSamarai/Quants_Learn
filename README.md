@@ -1,75 +1,50 @@
-# 🧠 Quant Learning Platform
+# 🧠 Quant Learning Platform - MVP v1.0
 
-An interactive, mind-map-driven learning platform designed to help aspiring quant researchers master quantitative finance through visual exploration, AI-powered explanations, and hands-on experiments.
+An intelligent, adaptive learning platform for aspiring quantitative finance professionals. Features AI-generated educational content that adapts to your learning level, beautiful mathematical rendering, and progress tracking across difficulty levels.
 
-## ✨ Features
+## ✨ MVP Features
 
-- **🗺️ Interactive Mind Map**: Visually explore topics and their relationships
-- **🧠 AI-Powered Explanations**: GPT-4 generates conceptual explanations tailored to your level
-- **💡 Applied Examples**: Real-world applications in quant finance and physics
-- **🧩 Interactive Visualizations**: Experiment with mathematical concepts dynamically
-- **📊 Smart Quizzes**: Test understanding with AI-generated questions
-- **🔍 RAG-Based Search**: Semantic search across all learning materials
-- **📈 Progress Tracking**: Monitor your learning journey
+### 🎓 **Adaptive Learning Levels**
+- **5 Difficulty Levels**: From beginner to experienced researcher
+- **Level-Specific Content**: Each topic generates different explanations for different levels
+- **Independent Progress Tracking**: Complete topics at one level without affecting others
 
-## 🏗️ Architecture
+### 🧮 **Professional Mathematical Content**
+- **LaTeX Rendering**: Beautiful mathematical formulas with KaTeX
+- **Comprehensive Explanations**: Structured educational content with:
+  - Core concepts with mathematical formulations
+  - Real-world quantitative finance applications
+  - Python implementation examples
+  - Key takeaways
+- **Syntax-Highlighted Code**: Python code snippets with VS Code Dark Plus theme
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                      Frontend (React)                        │
-│  Mind Map Visualization • Content Viewer • Quizzes          │
-└─────────────────┬───────────────────────────────────────────┘
-                  │ HTTP/REST API
-┌─────────────────▼───────────────────────────────────────────┐
-│                   Backend (FastAPI)                          │
-│  • Node Management  • Content Query  • Progress Tracking    │
-└────┬──────────────────────────────────────────┬─────────────┘
-     │                                           │
-     ▼                                           ▼
-┌────────────────┐                    ┌──────────────────────┐
-│   PostgreSQL   │                    │  Pinecone Vector DB  │
-│ Node metadata  │                    │  Embeddings + chunks │
-│ Relationships  │                    │  Semantic search     │
-└────────────────┘                    └──────────────────────┘
-                                                │
-                                                ▼
-                                      ┌──────────────────┐
-                                      │  OpenAI GPT-4    │
-                                      │  • Embeddings    │
-                                      │  • Generation    │
-                                      └──────────────────┘
-```
+### 📊 **Learning Management**
+- **Interactive Mind Maps**: Visualexploration of topic relationships
+- **Progress Tracking**: Level-specific completion tracking
+- **Smart Caching**: Instant loading for previously viewed content
+- **Personalized Recommendations**: Suggested topics based on your progress
 
-## 📚 Learning Modules
-
-### Core Foundations (MVP)
+### 🗺️ **Core Content Categories**
 - **Linear Algebra**: Vectors, matrices, eigenvalues, SVD, PCA
-- **Calculus**: Derivatives, integrals, optimization
-- **Probability**: Distributions, expectations, limit theorems
-- **Statistics**: Inference, hypothesis testing, regression
-
-### Coming Soon
-- Machine Learning
-- Deep Learning
-- Time Series Analysis
-- Derivatives Pricing
-- Portfolio Theory
+- **Calculus**: Multivariable calculus, optimization, differential equations
+- **Probability**: Distributions, expectations, stochastic processes
+- **Statistics**: Inference, regression, hypothesis testing
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- Python 3.9+
-- Node.js 18+
-- PostgreSQL 13+
-- Pinecone account (free tier available)
-- OpenAI API key
+- **Python 3.9+** with pip
+- **Node.js 18+** with npm
+- **PostgreSQL 13+**
+- **Pinecone account** ([free tier](https://www.pinecone.io/))
+- **OpenAI API key** ([get one here](https://platform.openai.com/))
 
-### 1. Clone the Repository
+### 1. Clone Repository
 
 ```bash
-git clone https://github.com/yourusername/quant-learning-platform.git
-cd quant-learning-platform
+git clone https://github.com/ImenAlSamarai/Quants_Learn.git
+cd Quants_Learn
 ```
 
 ### 2. Backend Setup
@@ -77,32 +52,30 @@ cd quant-learning-platform
 ```bash
 cd backend
 
-# Create virtual environment
+# Create and activate virtual environment
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
 
-# Configure environment variables
+# Configure environment
 cp .env.example .env
-# Edit .env with your API keys:
-#   - PINECONE_API_KEY
-#   - OPENAI_API_KEY
-#   - DATABASE_URL
+# Edit .env and add your API keys:
+#   OPENAI_API_KEY=sk-your-key
+#   PINECONE_API_KEY=your-key
+#   DATABASE_URL=postgresql://user:pass@localhost:5432/quant_learn
 
-# Initialize database
+# Initialize database and index content
 python -c "from app.models.database import init_db; init_db()"
-
-# Index sample content
 python scripts/index_content.py --init-db --content-dir ../content
 
-# Start backend server
+# Start server
 python -m app.main
 ```
 
-The backend will be available at `http://localhost:8000`
-API documentation: `http://localhost:8000/docs`
+Backend runs at: **http://localhost:8000**
+API docs at: **http://localhost:8000/docs**
 
 ### 3. Frontend Setup
 
@@ -116,273 +89,270 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at `http://localhost:3000`
+Frontend runs at: **http://localhost:3000**
 
-### 4. Access the Platform
+## 📖 User Guide
 
-Open your browser and navigate to `http://localhost:3000`
+### Setting Your Learning Level
 
-## 📖 Detailed Setup Guide
+1. Click **⚙️ Settings** in the top navigation
+2. Select your level:
+   - **🌱 Undergraduate - New to Quant Finance**: Simple explanations, minimal equations
+   - **📚 Undergraduate - Foundation**: Balanced intuition and formalism
+   - **🎓 Graduate Student**: Strong math background, rigorous approach
+   - **🔬 PhD Researcher**: Research-level examples, cutting-edge applications
+   - **⭐ Experienced Researcher**: Technical depth, production implementations
+3. Click **Save Preferences**
 
-### Database Configuration
+### Learning a Topic
 
-1. **Install PostgreSQL**:
-   ```bash
-   # macOS
-   brew install postgresql
-   brew services start postgresql
+1. **Choose a category** (Linear Algebra, Calculus, Probability, Statistics)
+2. **Switch between views**:
+   - **Study Mode**: Structured learning with explanations
+   - **Explore Mode**: Visual mind map navigation
+3. **Click a topic** to view content
+4. **First-time load**: May take 30-60 seconds (LLM generation)
+5. **Subsequent loads**: Instant (cached)
+6. **Mark as complete** when finished
 
-   # Ubuntu
-   sudo apt install postgresql postgresql-contrib
-   sudo systemctl start postgresql
-   ```
+### Switching Levels
 
-2. **Create Database**:
-   ```bash
-   createdb quant_learn
-   ```
+- Progress is tracked **separately per level**
+- Completing "Eigenvalues" at Level 3 ≠ complete at Level 5
+- Try the same topic at different levels to see adapted content!
 
-3. **Update DATABASE_URL** in `.env`:
-   ```
-   DATABASE_URL=postgresql://username:password@localhost:5432/quant_learn
-   ```
-
-### Pinecone Setup
-
-1. Sign up at [https://www.pinecone.io/](https://www.pinecone.io/)
-2. Create a new index:
-   - **Name**: `quant-learning`
-   - **Dimensions**: `1536` (for text-embedding-3-small)
-   - **Metric**: `cosine`
-   - **Cloud**: AWS or GCP (free tier)
-3. Copy your API key to `.env`:
-   ```
-   PINECONE_API_KEY=your-api-key-here
-   ```
-
-### OpenAI Setup
-
-1. Get API key from [https://platform.openai.com/](https://platform.openai.com/)
-2. Add to `.env`:
-   ```
-   OPENAI_API_KEY=sk-your-key-here
-   ```
-
-## 🎨 Usage
-
-### Exploring Topics
-
-1. **Select a Category**: Choose from Linear Algebra, Calculus, Probability, or Statistics
-2. **Navigate the Mind Map**: Click on nodes to explore topics
-3. **View Content**: Each node offers:
-   - 🧠 **Explanation**: Conceptual understanding
-   - 💡 **Examples**: Applied use cases in quant finance
-   - 🧩 **Quiz**: Test your knowledge
-   - 📊 **Visualization**: Interactive experiments
-
-### Adding Custom Content
-
-1. **Create Markdown File** in `content/` directory:
-   ```markdown
-   ---
-   title: Your Topic
-   category: linear_algebra
-   subcategory: advanced
-   difficulty: 3
-   ---
-
-   # Your Topic
-
-   Content here...
-   ```
-
-2. **Update Indexing Script** in `backend/scripts/index_content.py`:
-   ```python
-   node_id = indexer.index_node(
-       title="Your Topic",
-       category="linear_algebra",
-       subcategory="advanced",
-       content_path="path/to/your/file.md",
-       difficulty=3,
-       x_pos=0,
-       y_pos=0,
-       parent_ids=[parent_node_id]
-   )
-   ```
-
-3. **Re-index Content**:
-   ```bash
-   python scripts/index_content.py
-   ```
-
-## 🔧 API Endpoints
-
-### Nodes
-
-- `GET /api/nodes/mindmap?category={category}` - Get mind map structure
-- `GET /api/nodes/{node_id}` - Get node details
-- `POST /api/nodes` - Create new node (admin)
-
-### Content
-
-- `POST /api/content/query` - Query content with LLM generation
-  ```json
-  {
-    "node_id": 1,
-    "query_type": "explanation|example|quiz|visualization",
-    "user_context": "optional context"
-  }
-  ```
-
-- `GET /api/content/search?query={query}&category={category}` - Semantic search
-
-### Progress
-
-- `GET /api/progress/user/{user_id}` - Get user progress
-- `POST /api/progress/update` - Update progress
-- `GET /api/progress/user/{user_id}/recommendations` - Get personalized recommendations
-
-## 🏛️ Project Structure
+## 🏗️ Architecture
 
 ```
-quant-learning-platform/
-├── backend/
-│   ├── app/
-│   │   ├── config/          # Settings and configuration
-│   │   ├── models/          # Database models and schemas
-│   │   ├── routes/          # API endpoints
-│   │   ├── services/        # Business logic (LLM, vector store)
-│   │   └── main.py          # FastAPI application
-│   ├── scripts/
-│   │   └── index_content.py # Content indexing pipeline
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/      # React components
-│   │   ├── services/        # API client
-│   │   ├── styles/          # CSS
-│   │   ├── App.jsx          # Main app
-│   │   └── main.jsx         # Entry point
-│   ├── package.json
-│   └── vite.config.js
-├── content/
-│   ├── linear_algebra/      # Learning content (markdown)
-│   ├── calculus/
-│   ├── probability/
-│   └── statistics/
-└── README.md
+┌─────────────────────────────────────────────────────────────┐
+│             Frontend (React + Vite)                         │
+│  • Interactive Mind Map (react-force-graph-2d)              │
+│  • LaTeX Rendering (KaTeX)                                  │
+│  • Code Highlighting (react-syntax-highlighter)             │
+│  • State Management (Zustand)                               │
+└──────────────────┬──────────────────────────────────────────┘
+                   │ REST API (Axios)
+┌──────────────────▼──────────────────────────────────────────┐
+│              Backend (FastAPI + Python)                     │
+│  • Content Generation (OpenAI GPT-4o-mini)                  │
+│  • Caching (PostgreSQL)                                     │
+│  • RAG Pipeline (Pinecone + embeddings)                     │
+│  • User Management & Progress                               │
+└───┬──────────────────────────────────────┬─────────────────┘
+    │                                       │
+    ▼                                       ▼
+┌──────────────────┐            ┌────────────────────────────┐
+│   PostgreSQL     │            │   Pinecone Vector DB       │
+│ • Nodes/topics   │            │ • Content embeddings       │
+│ • Users          │            │ • Semantic search          │
+│ • Progress       │            │ • Context chunks           │
+│ • Cache          │            └────────────────────────────┘
+└──────────────────┘                        │
+                                            ▼
+                                ┌────────────────────────┐
+                                │   OpenAI API           │
+                                │ • text-embedding-3-small│
+                                │ • gpt-4o-mini          │
+                                └────────────────────────┘
 ```
+
+## 🎯 MVP Highlights
+
+### Intelligent Content Caching
+- **First load**: 30-60 seconds (LLM generation)
+- **Cache hit**: <1 second (database retrieval)
+- **Cache keys**: `node_id + content_type + difficulty_level`
+- **Smart invalidation**: Clear cache script for testing
+
+### Enhanced Educational Prompts
+- **No filler content**: Directly starts with concepts
+- **Structured format**: Consistent sections across all topics
+- **Level-appropriate**: Mathematical rigor matches user expertise
+- **Practical focus**: Every topic includes quant finance applications
+- **Code examples**: Working Python snippets for implementation
+
+### Professional Math Rendering
+- **Inline math**: `$E[X] = \mu$`
+- **Display math**: `$$\int_{-\infty}^{\infty} f(x)dx = 1$$`
+- **Responsive**: Adapts to screen size
+- **Copy-friendly**: Can select and copy formulas
 
 ## 🛠️ Development
 
-### Running Tests
+### Project Structure
+
+```
+Quants_Learn/
+├── backend/
+│   ├── app/
+│   │   ├── config/         # Settings
+│   │   ├── models/         # Database models & schemas
+│   │   ├── routes/         # API endpoints
+│   │   ├── services/       # LLM & vector store logic
+│   │   └── main.py         # FastAPI app
+│   ├── scripts/
+│   │   ├── index_content.py    # Content indexing
+│   │   └── clear_cache.py      # Cache management
+│   └── requirements.txt
+├── frontend/
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   │   ├── study/      # Study mode
+│   │   │   ├── explore/    # Mind map
+│   │   │   ├── discovery/  # Landing page
+│   │   │   └── layout/     # Header, sidebar
+│   │   ├── services/       # API client
+│   │   ├── store/          # Zustand state
+│   │   ├── styles/         # CSS
+│   │   └── App.jsx
+│   └── package.json
+└── content/                # Learning materials (markdown)
+```
+
+### Clearing Cache (For Testing)
 
 ```bash
-# Backend tests
 cd backend
-pytest
 
-# Frontend tests
-cd frontend
-npm test
+# View cache statistics
+python scripts/clear_cache.py stats
+
+# Clear all cached content
+python scripts/clear_cache.py clear-all
+
+# Clear specific difficulty level
+python scripts/clear_cache.py clear-difficulty --difficulty 3
+
+# Clear specific topic
+python scripts/clear_cache.py clear-node --node-id 5
 ```
 
-### Code Formatting
+### API Endpoints
 
+#### Content Generation
 ```bash
-# Backend
-black app/
-isort app/
-
-# Frontend
-npm run lint
-npm run format
+POST /api/content/query
+{
+  "node_id": 1,
+  "query_type": "explanation",
+  "user_id": "demo_user",
+  "force_regenerate": false
+}
 ```
 
-### Building for Production
-
+#### Mind Map
 ```bash
-# Backend
-pip install -r requirements.txt
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-
-# Frontend
-npm run build
-npm run preview
+GET /api/nodes/mindmap?category=linear_algebra
 ```
 
-## 🎯 Technology Choices & Rationale
+#### User Settings
+```bash
+GET /api/users/{user_id}
+PATCH /api/users/{user_id}
+{
+  "learning_level": 3,
+  "background": "Physics PhD"
+}
+```
 
-### Backend: FastAPI
-- **Why**: Modern, fast, automatic API docs, excellent async support
-- **Alternatives**: Flask (simpler but less features), Django (overkill for this use case)
+## 🔧 Configuration
 
-### Frontend: React + Vite
-- **Why**: Component-based, large ecosystem, fast dev experience with Vite
-- **Alternatives**: Vue (simpler learning curve), Svelte (smaller bundle)
+### Environment Variables
 
-### Mind Map: react-force-graph-2d
-- **Why**: Physics-based layout, interactive, customizable rendering
-- **Alternatives**: D3.js (more control but complex), vis.js (heavier)
+**Backend** (`.env`):
+```env
+# Database
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/quant_learn
 
-### Vector Database: Pinecone
-- **Why**: Managed, scalable, excellent for RAG applications
-- **Alternatives**: Weaviate, Qdrant, Milvus (self-hosted options)
+# Pinecone
+PINECONE_API_KEY=your-key
+PINECONE_INDEX_NAME=quant-learning
 
-### LLM: OpenAI GPT-4
-- **Why**: State-of-the-art reasoning, good for educational content
-- **Alternatives**: Claude (Anthropic), open-source models via Ollama
+# OpenAI
+OPENAI_API_KEY=sk-your-key
+OPENAI_MODEL=gpt-4o-mini
 
-### Visualizations: Plotly.js
-- **Why**: Interactive, publication-quality, supports 2D/3D
-- **Alternatives**: D3.js (more control), Chart.js (simpler)
+# App
+APP_NAME=Quant Learning Platform
+DEBUG=True
+```
 
-## 📈 Roadmap
+**Frontend**: No env vars required (uses `http://localhost:8000` by default)
 
-### Phase 1: MVP (Current)
-- [x] Core architecture
-- [x] Linear Algebra content
+## 🐛 Troubleshooting
+
+### "timeout of 60000ms exceeded"
+- **Cause**: LLM taking too long to generate content
+- **Solution**: Wait up to 60 seconds. Subsequent loads are instant.
+- **Note**: First generation for new topics/levels is always slower
+
+### "Cache MISS" in backend logs
+- **Normal behavior**: Content not yet generated for this topic + level
+- **Expected**: Shows cache generation progress
+- **Solution**: Wait for "Content cached" message
+
+### Math formulas not rendering
+- **Cause**: Missing LaTeX packages
+- **Solution**: Run `npm install` in frontend directory
+- **Check**: Verify `katex`, `remark-math`, `rehype-katex` installed
+
+### Code blocks not highlighted
+- **Cause**: Missing syntax highlighter
+- **Solution**: Run `npm install react-syntax-highlighter`
+
+## 📊 MVP Metrics
+
+- **Content Categories**: 4 (Linear Algebra, Calculus, Probability, Statistics)
+- **Topics**: 19 total
+- **Difficulty Levels**: 5 (fully implemented)
+- **Content Types**: Explanations (examples, quizzes, visualizations in roadmap)
+- **Average Generation Time**: 15-30 seconds (first time)
+- **Average Load Time**: <1 second (cached)
+
+## 🗺️ Roadmap
+
+### ✅ MVP v1.0 (Current)
+- [x] Level-specific content generation
+- [x] LaTeX math rendering
+- [x] Python code highlighting
+- [x] Independent progress tracking
+- [x] Smart caching
 - [x] Mind map visualization
-- [x] AI-powered explanations
-- [x] Interactive quizzes
-- [x] Basic visualizations
 
-### Phase 2: Enhancement
-- [ ] More learning modules (ML, DL)
+### 📅 v1.1 (Next)
+- [ ] Examples mode (applied finance examples)
+- [ ] Quiz mode (interactive quizzes)
+- [ ] Visualization mode (interactive plots)
 - [ ] User authentication
-- [ ] Advanced visualizations
-- [ ] Code execution environment (Jupyter integration)
+- [ ] More content topics
+
+### 🔮 v2.0 (Future)
+- [ ] Machine Learning content
+- [ ] Code execution environment
 - [ ] Collaborative features
-
-### Phase 3: Scale
-- [ ] Mobile app
+- [ ] Mobile responsive design
 - [ ] Offline mode
-- [ ] Community contributions
-- [ ] Certification system
-
-## 🤝 Contributing
-
-Contributions are welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch
-3. Add your content or features
-4. Submit a pull request
 
 ## 📄 License
 
-MIT License - feel free to use this for your learning journey!
+MIT License - Use freely for your learning journey!
 
 ## 🙏 Acknowledgments
 
-- OpenAI for GPT-4 and embeddings
-- Pinecone for vector database
-- The quantitative finance community
+- **OpenAI** for GPT-4o-mini and embeddings
+- **Pinecone** for vector database
+- **KaTeX** for beautiful math rendering
+- **FastAPI** for excellent API framework
+- **React** and the amazing frontend ecosystem
 
 ## 📧 Contact
 
-For questions or suggestions, please open an issue on GitHub.
+For questions, feature requests, or bug reports:
+- **GitHub Issues**: [Create an issue](https://github.com/ImenAlSamarai/Quants_Learn/issues)
+- **Email**: Your contact info here
 
 ---
 
-**Happy Learning! 🚀📊**
+**MVP v1.0 - Ready for Testing** 🚀
+
+*Built with ❤️ for aspiring quants*

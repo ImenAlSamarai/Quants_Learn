@@ -56,3 +56,10 @@ Thumbs.db
 # Build outputs
 build/
 *.tar.gz
+
+# Books and large content files (keep locally, don't push to public repo)
+*.pdf
+*.epub
+*.mobi
+content/machine_learning/*.pdf
+content/*/books/*.pdf

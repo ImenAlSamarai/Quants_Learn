@@ -47,6 +47,13 @@ function App() {
       description: 'Statistical inference, hypothesis testing, and regression analysis',
       difficulty: 2,
     },
+    {
+      id: 'machine_learning',
+      name: 'Machine Learning',
+      icon: '🤖',
+      description: 'Advanced regression methods and statistical learning from Elements of Statistical Learning',
+      difficulty: 4,
+    },
   ];
 
   useEffect(() => {

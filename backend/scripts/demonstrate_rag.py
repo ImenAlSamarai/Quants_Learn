@@ -85,9 +85,9 @@ def demonstrate_rag():
         book_chunks = [r['text'] for r in results]
 
         explanation_with_book = llm.generate_explanation(
-            node_title=node.title,
+            topic=node.title,
             context_chunks=book_chunks,
-            difficulty_level=3,
+            difficulty=3,
             user_context="Explain ridge regression and why the penalty term helps"
         )
 

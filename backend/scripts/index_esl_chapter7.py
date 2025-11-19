@@ -34,21 +34,52 @@ class Chapter7Indexer:
         self.chunk_overlap = settings.CHUNK_OVERLAP
 
     def split_text(self, text: str) -> list:
-        """Split text into overlapping chunks"""
+        """
+        Split text into overlapping chunks with hard token limit
+
+        OpenAI embeddings have 8192 token limit, so we ensure chunks stay well below that.
+        Using ~2000 characters per chunk (roughly 500 tokens) to be safe.
+        """
+        # Clean up text
         text = re.sub(r'\n\s*\n', '\n\n', text)
+
+        # Maximum characters per chunk (roughly 500-700 tokens)
+        max_chunk_chars = 2000
+
+        # Split by paragraphs first
         paragraphs = text.split('\n\n')
 
         chunks = []
         current_chunk = ""
 
         for para in paragraphs:
-            if len(current_chunk) + len(para) > self.chunk_size and current_chunk:
-                chunks.append(current_chunk.strip())
-                words = current_chunk.split()
-                overlap_words = words[-self.chunk_overlap:] if len(words) > self.chunk_overlap else words
-                current_chunk = ' '.join(overlap_words) + '\n\n' + para
+            # If single paragraph is too long, split it by sentences
+            if len(para) > max_chunk_chars:
+                # Split long paragraph into sentences
+                sentences = re.split(r'(?<=[.!?])\s+', para)
+                for sentence in sentences:
+                    if len(current_chunk) + len(sentence) > max_chunk_chars and current_chunk:
+                        chunks.append(current_chunk.strip())
+                        # Add overlap
+                        words = current_chunk.split()
+                        overlap_words = words[-self.chunk_overlap:] if len(words) > self.chunk_overlap else words
+                        current_chunk = ' '.join(overlap_words) + ' ' + sentence
+                    else:
+                        current_chunk += ' ' + sentence if current_chunk else sentence
+
+                    # Hard limit: if current chunk exceeds max, force save it
+                    if len(current_chunk) > max_chunk_chars:
+                        chunks.append(current_chunk.strip())
+                        current_chunk = ""
             else:
-                current_chunk += '\n\n' + para if current_chunk else para
+                # Normal paragraph processing
+                if len(current_chunk) + len(para) > max_chunk_chars and current_chunk:
+                    chunks.append(current_chunk.strip())
+                    words = current_chunk.split()
+                    overlap_words = words[-self.chunk_overlap:] if len(words) > self.chunk_overlap else words
+                    current_chunk = ' '.join(overlap_words) + '\n\n' + para
+                else:
+                    current_chunk += '\n\n' + para if current_chunk else para
 
         if current_chunk:
             chunks.append(current_chunk.strip())

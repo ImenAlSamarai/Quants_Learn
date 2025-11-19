@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import settings
 from app.models.database import init_db
-from app.routes import nodes, content, progress, users, admin
+from app.routes import nodes, content, progress, users, admin, insights
 import uvicorn
 
 # Initialize FastAPI app
@@ -27,6 +27,7 @@ app.include_router(content.router)
 app.include_router(progress.router)
 app.include_router(users.router)
 app.include_router(admin.router)
+app.include_router(insights.router)
 
 
 @app.on_event("startup")

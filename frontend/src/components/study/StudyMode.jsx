@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle, ArrowRight, BookOpen, Clock, Star, Loader2 } from 'lucide-react';
+import { CheckCircle, ArrowRight, BookOpen, Clock, Star, Loader2, Lightbulb } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAppStore from '../../store/useAppStore';
 import { queryContent } from '../../services/api';
 import MarkdownContent from '../MarkdownContent';
+import InsightsModal from './InsightsModal';
 
 const StudyMode = ({ topic, categoryId }) => {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ const StudyMode = ({ topic, categoryId }) => {
   const [content, setContent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [insightsModalOpen, setInsightsModalOpen] = useState(false);
 
   const isCompleted = isTopicCompleted(topic.id);
   const relatedTopics = getRelatedTopics(topic.id);
@@ -141,6 +143,16 @@ const StudyMode = ({ topic, categoryId }) => {
               <span>Completed</span>
             </div>
           )}
+
+          <motion.button
+            className="btn-insights"
+            onClick={() => setInsightsModalOpen(true)}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Lightbulb size={18} />
+            <span>Insights</span>
+          </motion.button>
         </div>
       </div>
 
@@ -263,6 +275,14 @@ const StudyMode = ({ topic, categoryId }) => {
           </motion.button>
         </div>
       )}
+
+      {/* Insights Modal */}
+      <InsightsModal
+        isOpen={insightsModalOpen}
+        onClose={() => setInsightsModalOpen(false)}
+        topicId={topic.id}
+        topicName={topic.name}
+      />
     </motion.div>
   );
 };

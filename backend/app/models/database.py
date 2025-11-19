@@ -115,6 +115,30 @@ class GeneratedContent(Base):
     node = relationship('Node')
 
 
+class TopicInsights(Base):
+    """Practitioner insights extracted from ESL book discussions and bibliographic notes"""
+    __tablename__ = 'topic_insights'
+
+    id = Column(Integer, primary_key=True, index=True)
+    node_id = Column(Integer, ForeignKey('nodes.id'), nullable=False, unique=True, index=True)
+
+    # Structured insights (JSON arrays)
+    when_to_use = Column(JSON)  # [{"scenario": "...", "rationale": "..."}]
+    limitations = Column(JSON)  # [{"issue": "...", "explanation": "...", "mitigation": "..."}]
+    practical_tips = Column(JSON)  # ["tip1", "tip2", ...]
+    method_comparisons = Column(JSON)  # [{"method_a": "...", "method_b": "...", "difference": "...", "when_to_prefer": "..."}]
+    computational_notes = Column(Text)
+
+    # Raw content from book
+    bibliographic_notes = Column(Text)
+    discussion_sections = Column(JSON)  # Array of discussion text
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    node = relationship('Node', backref='insights')
+
+
 # Database setup
 engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

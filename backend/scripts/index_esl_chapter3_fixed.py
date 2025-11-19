@@ -43,31 +43,48 @@ class Chapter3IndexerFixed:
         # Maximum characters per chunk (roughly 500-700 tokens)
         max_chunk_chars = 2000
 
-        # Split by paragraphs first
-        paragraphs = text.split('\n\n')
-
         chunks = []
         current_chunk = ""
 
+        # Split by paragraphs first
+        paragraphs = text.split('\n\n')
+
         for para in paragraphs:
-            # If single paragraph is too long, split it by sentences
+            # If paragraph is extremely long (table, equation, etc), force split it
+            if len(para) > max_chunk_chars * 2:
+                # Save current chunk first
+                if current_chunk:
+                    chunks.append(current_chunk.strip())
+                    current_chunk = ""
+
+                # Split long paragraph by character chunks
+                for i in range(0, len(para), max_chunk_chars):
+                    chunk = para[i:i + max_chunk_chars]
+                    chunks.append(chunk.strip())
+                continue
+
+            # If paragraph is long but manageable, try splitting by sentences
             if len(para) > max_chunk_chars:
-                # Split long paragraph into sentences
                 sentences = re.split(r'(?<=[.!?])\s+', para)
                 for sentence in sentences:
+                    # If single sentence is too long, force split it
+                    if len(sentence) > max_chunk_chars:
+                        if current_chunk:
+                            chunks.append(current_chunk.strip())
+                            current_chunk = ""
+                        # Split long sentence by characters
+                        for i in range(0, len(sentence), max_chunk_chars):
+                            chunks.append(sentence[i:i + max_chunk_chars].strip())
+                        continue
+
+                    # Normal sentence processing
                     if len(current_chunk) + len(sentence) > max_chunk_chars and current_chunk:
                         chunks.append(current_chunk.strip())
-                        # Add overlap
                         words = current_chunk.split()
                         overlap_words = words[-self.chunk_overlap:] if len(words) > self.chunk_overlap else words
                         current_chunk = ' '.join(overlap_words) + ' ' + sentence
                     else:
                         current_chunk += ' ' + sentence if current_chunk else sentence
-
-                    # Hard limit: if current chunk exceeds max, force save it
-                    if len(current_chunk) > max_chunk_chars:
-                        chunks.append(current_chunk.strip())
-                        current_chunk = ""
             else:
                 # Normal paragraph processing
                 if len(current_chunk) + len(para) > max_chunk_chars and current_chunk:
@@ -78,6 +95,7 @@ class Chapter3IndexerFixed:
                 else:
                     current_chunk += '\n\n' + para if current_chunk else para
 
+        # Save any remaining chunk
         if current_chunk:
             chunks.append(current_chunk.strip())
 

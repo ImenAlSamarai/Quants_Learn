@@ -50,11 +50,29 @@ class DeepLearningBookExtractor:
         Returns:
             Tuple of (start_page, end_page) or None if not found
         """
-        # This will need to be determined by analyzing the actual PDF
-        # Placeholder mapping - update after PDF analysis
+        # Chapter mapping determined from PDF structure analysis
+        # Format: chapter_num: (start_page, end_page)
         chapter_mapping = {
-            # To be filled after analyzing the PDF structure
-            # Format: chapter_num: (start_page, end_page)
+            1: (21, 44),    # THE DEEP LEARNING REVOLUTION
+            2: (45, 85),    # PROBABILITIES
+            3: (86, 129),   # STANDARD DISTRIBUTIONS
+            4: (130, 149),  # SINGLE-LAYER NETWORKS: REGRESSION
+            5: (150, 188),  # SINGLE-LAYER NETWORKS: CLASSIFICATION
+            6: (189, 225),  # DEEP NEURAL NETWORKS
+            7: (226, 249),  # GRADIENT DESCENT
+            8: (250, 295),  # BACKPROPAGATION
+            9: (296, 302),  # REGULARIZATION
+            10: (303, 340), # CONVOLUTIONAL NETWORKS
+            11: (341, 394), # STRUCTURED DISTRIBUTIONS
+            12: (395, 440), # TRANSFORMERS
+            13: (441, 443), # GRAPH NEURAL NETWORKS
+            14: (444, 495), # SAMPLING
+            15: (496, 508), # DISCRETE LATENT VARIABLES
+            16: (509, 545), # CONTINUOUS LATENT VARIABLES
+            17: (546, 558), # GENERATIVE ADVERSARIAL NETWORKS
+            18: (559, 573), # NORMALIZING FLOWS
+            19: (574, 590), # AUTOENCODERS
+            20: (591, 655), # DIFFUSION MODELS
         }
 
         return chapter_mapping.get(chapter_num)
@@ -133,16 +151,28 @@ class DeepLearningBookExtractor:
                     if title:
                         return title
 
-        # Fallback titles based on common DL book structure
+        # Fallback titles based on actual DL book structure
         common_titles = {
-            1: "Introduction",
-            2: "Neural Networks",
-            3: "Training Neural Networks",
-            4: "Convolutional Networks",
-            5: "Recurrent Networks",
-            6: "Transformers and Attention",
-            7: "Generative Models",
-            8: "Reinforcement Learning",
+            1: "The Deep Learning Revolution",
+            2: "Probabilities",
+            3: "Standard Distributions",
+            4: "Single-Layer Networks: Regression",
+            5: "Single-Layer Networks: Classification",
+            6: "Deep Neural Networks",
+            7: "Gradient Descent",
+            8: "Backpropagation",
+            9: "Regularization",
+            10: "Convolutional Networks",
+            11: "Structured Distributions",
+            12: "Transformers",
+            13: "Graph Neural Networks",
+            14: "Sampling",
+            15: "Discrete Latent Variables",
+            16: "Continuous Latent Variables",
+            17: "Generative Adversarial Networks",
+            18: "Normalizing Flows",
+            19: "Autoencoders",
+            20: "Diffusion Models",
         }
 
         return common_titles.get(chapter_num, f"Chapter {chapter_num}")

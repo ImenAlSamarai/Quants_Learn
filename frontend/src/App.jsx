@@ -88,6 +88,7 @@ function App() {
             difficulty: node.difficulty_level || node.difficulty || 1, // Fix: API returns 'difficulty_level'
             prerequisites: node.parent_ids || node.prerequisites || [], // Fix: API returns 'parent_ids'
             content: node.content || '',
+            extra_metadata: node.extra_metadata || null, // Include learning path metadata
           }));
 
           console.log(`🔵 [App] Transformed ${categoryTopics.length} topics for ${category.id}:`, categoryTopics);

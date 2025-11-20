@@ -51,7 +51,7 @@ function App() {
       id: 'machine_learning',
       name: 'Machine Learning',
       icon: '🤖',
-      description: 'Advanced regression methods and statistical learning from Elements of Statistical Learning',
+      description: 'Classical statistical learning (ESL) and modern deep learning (Bishop & Bishop). Covers regression, classification, tree methods, neural networks, CNNs, and transformers with book-grounded content',
       difficulty: 4,
     },
   ];

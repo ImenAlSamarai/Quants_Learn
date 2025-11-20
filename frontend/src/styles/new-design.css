@@ -869,6 +869,15 @@
   cursor: not-allowed;
 }
 
+.topic-item.greyed {
+  opacity: 0.5;
+  color: var(--text-muted);
+}
+
+.topic-item.greyed .topic-item-label {
+  color: var(--text-muted);
+}
+
 .topic-item-icon {
   display: flex;
   align-items: center;

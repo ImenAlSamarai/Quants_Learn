@@ -46,6 +46,63 @@ class Node(Base):
 
     content_chunks = relationship('ContentChunk', back_populates='node', cascade='all, delete-orphan')
 
+    # Learning path helper properties (stored in extra_metadata)
+    @property
+    def learning_path(self):
+        """Get learning path from metadata"""
+        if not self.extra_metadata:
+            return None
+        return self.extra_metadata.get('learning_path')
+
+    @learning_path.setter
+    def learning_path(self, value):
+        """Set learning path in metadata"""
+        if not self.extra_metadata:
+            self.extra_metadata = {}
+        self.extra_metadata['learning_path'] = value
+
+    @property
+    def sequence_order(self):
+        """Get sequence order within learning path"""
+        if not self.extra_metadata:
+            return None
+        return self.extra_metadata.get('sequence_order')
+
+    @sequence_order.setter
+    def sequence_order(self, value):
+        """Set sequence order in metadata"""
+        if not self.extra_metadata:
+            self.extra_metadata = {}
+        self.extra_metadata['sequence_order'] = value
+
+    @property
+    def prerequisites_ids(self):
+        """Get list of prerequisite node IDs"""
+        if not self.extra_metadata:
+            return []
+        return self.extra_metadata.get('prerequisites_ids', [])
+
+    @prerequisites_ids.setter
+    def prerequisites_ids(self, value):
+        """Set prerequisite node IDs"""
+        if not self.extra_metadata:
+            self.extra_metadata = {}
+        self.extra_metadata['prerequisites_ids'] = value if value else []
+
+    @property
+    def tags(self):
+        """Get topic tags"""
+        if not self.extra_metadata:
+            return []
+        return self.extra_metadata.get('tags', [])
+
+    @tags.setter
+    def tags(self, value):
+        """Set topic tags"""
+        if not self.extra_metadata:
+            self.extra_metadata = {}
+        self.extra_metadata['tags'] = value if value else []
+
 
 class ContentChunk(Base):
     """Represents indexed content chunks for RAG"""

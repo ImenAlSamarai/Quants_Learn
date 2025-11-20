@@ -24,11 +24,25 @@ def get_all_nodes(
     # Format response with relationships
     response = []
     for node in nodes:
-        response.append({
-            **node.__dict__,
+        node_dict = {
+            "id": node.id,
+            "title": node.title,
+            "slug": node.slug,
+            "category": node.category,
+            "subcategory": node.subcategory,
+            "description": node.description,
+            "difficulty_level": node.difficulty_level,
+            "estimated_time_minutes": node.estimated_time_minutes,
+            "x_position": node.x_position,
+            "y_position": node.y_position,
+            "color": node.color,
+            "icon": node.icon,
+            "content_path": node.content_path,
+            "extra_metadata": node.extra_metadata,  # Explicitly include this!
             "children_ids": [child.id for child in node.children],
             "parent_ids": [parent.id for parent in node.parents]
-        })
+        }
+        response.append(node_dict)
 
     return response
 
@@ -53,11 +67,25 @@ def get_mindmap(
     edges = []
 
     for node in nodes:
-        nodes_response.append({
-            **node.__dict__,
+        node_dict = {
+            "id": node.id,
+            "title": node.title,
+            "slug": node.slug,
+            "category": node.category,
+            "subcategory": node.subcategory,
+            "description": node.description,
+            "difficulty_level": node.difficulty_level,
+            "estimated_time_minutes": node.estimated_time_minutes,
+            "x_position": node.x_position,
+            "y_position": node.y_position,
+            "color": node.color,
+            "icon": node.icon,
+            "content_path": node.content_path,
+            "extra_metadata": node.extra_metadata,
             "children_ids": [child.id for child in node.children],
             "parent_ids": [parent.id for parent in node.parents]
-        })
+        }
+        nodes_response.append(node_dict)
 
         # Build edges
         for child in node.children:
@@ -85,7 +113,20 @@ def get_node(
         raise HTTPException(status_code=404, detail="Node not found")
 
     return {
-        **node.__dict__,
+        "id": node.id,
+        "title": node.title,
+        "slug": node.slug,
+        "category": node.category,
+        "subcategory": node.subcategory,
+        "description": node.description,
+        "difficulty_level": node.difficulty_level,
+        "estimated_time_minutes": node.estimated_time_minutes,
+        "x_position": node.x_position,
+        "y_position": node.y_position,
+        "color": node.color,
+        "icon": node.icon,
+        "content_path": node.content_path,
+        "extra_metadata": node.extra_metadata,
         "children_ids": [child.id for child in node.children],
         "parent_ids": [parent.id for parent in node.parents]
     }
@@ -119,7 +160,20 @@ def create_node(
     db.refresh(node)
 
     return {
-        **node.__dict__,
+        "id": node.id,
+        "title": node.title,
+        "slug": node.slug,
+        "category": node.category,
+        "subcategory": node.subcategory,
+        "description": node.description,
+        "difficulty_level": node.difficulty_level,
+        "estimated_time_minutes": node.estimated_time_minutes,
+        "x_position": node.x_position,
+        "y_position": node.y_position,
+        "color": node.color,
+        "icon": node.icon,
+        "content_path": node.content_path,
+        "extra_metadata": node.extra_metadata,
         "children_ids": [child.id for child in node.children],
         "parent_ids": [parent.id for parent in node.parents]
     }
@@ -151,7 +205,20 @@ def update_node(
     db.refresh(node)
 
     return {
-        **node.__dict__,
+        "id": node.id,
+        "title": node.title,
+        "slug": node.slug,
+        "category": node.category,
+        "subcategory": node.subcategory,
+        "description": node.description,
+        "difficulty_level": node.difficulty_level,
+        "estimated_time_minutes": node.estimated_time_minutes,
+        "x_position": node.x_position,
+        "y_position": node.y_position,
+        "color": node.color,
+        "icon": node.icon,
+        "content_path": node.content_path,
+        "extra_metadata": node.extra_metadata,
         "children_ids": [child.id for child in node.children],
         "parent_ids": [parent.id for parent in node.parents]
     }
@@ -184,10 +251,24 @@ def get_nodes_by_category(
 
     response = []
     for node in nodes:
-        response.append({
-            **node.__dict__,
+        node_dict = {
+            "id": node.id,
+            "title": node.title,
+            "slug": node.slug,
+            "category": node.category,
+            "subcategory": node.subcategory,
+            "description": node.description,
+            "difficulty_level": node.difficulty_level,
+            "estimated_time_minutes": node.estimated_time_minutes,
+            "x_position": node.x_position,
+            "y_position": node.y_position,
+            "color": node.color,
+            "icon": node.icon,
+            "content_path": node.content_path,
+            "extra_metadata": node.extra_metadata,
             "children_ids": [child.id for child in node.children],
             "parent_ids": [parent.id for parent in node.parents]
-        })
+        }
+        response.append(node_dict)
 
     return response

@@ -1,0 +1,372 @@
+# Learning Paths Configuration for Machine Learning Category
+#
+# Edit this file to add new topics or modify relationships
+# Run: python scripts/update_learning_paths.py to apply changes
+#
+# Structure:
+#   - learning_path: identifier (e.g., "classical_ml_linear")
+#   - name: Display name shown in UI
+#   - color: Hex color for visual grouping
+#   - icon: Optional emoji/icon
+#   - topics: List of topics in this path
+#     - title: Must match Node.title exactly
+#     - sequence: Order within path (1, 2, 3...)
+#     - prerequisites: List of topic titles needed before this one
+#     - tags: Additional metadata (foundational, advanced, cross-cutting, etc.)
+
+paths:
+  # ========================================================================
+  # CLASSICAL MACHINE LEARNING (Elements of Statistical Learning)
+  # ========================================================================
+
+  classical_ml_linear:
+    name: "Classical ML - Linear Models"
+    description: "Foundation: Linear regression and regularization methods"
+    color: "#22c55e"
+    icon: "📈"
+    topics:
+      - title: "Linear Regression"
+        sequence: 1
+        prerequisites: []
+        tags: ["foundational", "regression"]
+
+      - title: "Ridge Regression"
+        sequence: 2
+        prerequisites: ["Linear Regression"]
+        tags: ["regularization", "regression"]
+
+      - title: "Lasso Regression"
+        sequence: 3
+        prerequisites: ["Linear Regression"]
+        tags: ["regularization", "regression", "feature-selection"]
+
+      - title: "Elastic Net"
+        sequence: 4
+        prerequisites: ["Ridge Regression", "Lasso Regression"]
+        tags: ["regularization", "regression"]
+
+  classical_ml_classification:
+    name: "Classical ML - Classification"
+    description: "Linear classification methods"
+    color: "#22c55e"
+    icon: "🎯"
+    topics:
+      - title: "Logistic Regression"
+        sequence: 1
+        prerequisites: ["Linear Regression"]
+        tags: ["foundational", "classification"]
+
+      - title: "Linear Discriminant Analysis"
+        sequence: 2
+        prerequisites: []
+        tags: ["foundational", "classification"]
+
+      - title: "Quadratic Discriminant Analysis"
+        sequence: 3
+        prerequisites: ["Linear Discriminant Analysis"]
+        tags: ["classification"]
+
+  classical_ml_trees:
+    name: "Classical ML - Tree Methods"
+    description: "Decision trees and ensemble methods"
+    color: "#22c55e"
+    icon: "🌳"
+    topics:
+      - title: "Decision Trees"
+        sequence: 1
+        prerequisites: []
+        tags: ["foundational", "trees"]
+
+      - title: "Random Forests Algorithm"
+        sequence: 2
+        prerequisites: ["Decision Trees"]
+        tags: ["ensemble", "bagging"]
+
+      - title: "Out-of-Bag Error Estimation"
+        sequence: 3
+        prerequisites: ["Random Forests Algorithm"]
+        tags: ["ensemble", "validation"]
+
+      - title: "Feature Importance in Random Forests"
+        sequence: 4
+        prerequisites: ["Random Forests Algorithm"]
+        tags: ["ensemble", "interpretation"]
+
+      - title: "AdaBoost"
+        sequence: 5
+        prerequisites: ["Decision Trees"]
+        tags: ["ensemble", "boosting"]
+
+      - title: "Gradient Boosting Machines"
+        sequence: 6
+        prerequisites: ["AdaBoost"]
+        tags: ["ensemble", "boosting"]
+
+      - title: "XGBoost Implementation"
+        sequence: 7
+        prerequisites: ["Gradient Boosting Machines"]
+        tags: ["ensemble", "boosting", "advanced"]
+
+      - title: "Random Forests vs Boosting"
+        sequence: 8
+        prerequisites: ["Random Forests Algorithm", "Gradient Boosting Machines"]
+        tags: ["ensemble", "comparison"]
+
+  classical_ml_unsupervised:
+    name: "Classical ML - Unsupervised Learning"
+    description: "Dimensionality reduction and clustering"
+    color: "#22c55e"
+    icon: "🔍"
+    topics:
+      - title: "Principal Component Analysis (PCA)"
+        sequence: 1
+        prerequisites: []
+        tags: ["foundational", "dimensionality-reduction"]
+
+      - title: "K-Means Clustering"
+        sequence: 2
+        prerequisites: []
+        tags: ["foundational", "clustering"]
+
+      - title: "Hierarchical Clustering"
+        sequence: 3
+        prerequisites: []
+        tags: ["clustering"]
+
+      - title: "Gaussian Mixture Models"
+        sequence: 4
+        prerequisites: ["K-Means Clustering"]
+        tags: ["clustering", "probabilistic"]
+
+      - title: "Cluster Validation Methods"
+        sequence: 5
+        prerequisites: ["K-Means Clustering"]
+        tags: ["clustering", "validation"]
+
+  classical_ml_assessment:
+    name: "Classical ML - Model Assessment"
+    description: "Cross-cutting concepts for model evaluation"
+    color: "#f59e0b"
+    icon: "📊"
+    topics:
+      - title: "Cross-Validation Techniques"
+        sequence: 1
+        prerequisites: []
+        tags: ["cross-cutting", "validation", "foundational"]
+
+      - title: "Bootstrap Methods"
+        sequence: 2
+        prerequisites: []
+        tags: ["cross-cutting", "validation"]
+
+      - title: "Model Selection (AIC, BIC, Cp)"
+        sequence: 3
+        prerequisites: []
+        tags: ["cross-cutting", "validation"]
+
+      - title: "Bias-Variance Tradeoff"
+        sequence: 4
+        prerequisites: []
+        tags: ["cross-cutting", "theory", "foundational"]
+
+  # ========================================================================
+  # DEEP LEARNING FOUNDATIONS (Required for all DL paths)
+  # ========================================================================
+
+  dl_foundations:
+    name: "Deep Learning - Foundations"
+    description: "⭐ Start here for Deep Learning - Core neural network concepts"
+    color: "#8b5cf6"
+    icon: "⭐"
+    topics:
+      - title: "Feedforward Neural Networks"
+        sequence: 1
+        prerequisites: []
+        tags: ["foundational", "dl-required", "start-here"]
+
+      - title: "Activation Functions"
+        sequence: 2
+        prerequisites: ["Feedforward Neural Networks"]
+        tags: ["foundational", "dl-required"]
+
+      - title: "Output Units and Loss Functions"
+        sequence: 3
+        prerequisites: ["Feedforward Neural Networks"]
+        tags: ["foundational", "dl-required"]
+
+      - title: "Universal Approximation"
+        sequence: 4
+        prerequisites: ["Feedforward Neural Networks"]
+        tags: ["theory", "advanced"]
+
+  dl_training:
+    name: "Deep Learning - Training & Optimization"
+    description: "How neural networks learn (do after Foundations)"
+    color: "#8b5cf6"
+    icon: "🎓"
+    topics:
+      - title: "Gradient Descent and Optimization"
+        sequence: 1
+        prerequisites: ["Feedforward Neural Networks", "Output Units and Loss Functions"]
+        tags: ["foundational", "dl-required", "optimization"]
+
+      - title: "Backpropagation Algorithm"
+        sequence: 2
+        prerequisites: ["Gradient Descent and Optimization"]
+        tags: ["foundational", "dl-required", "optimization"]
+
+      - title: "Advanced Optimizers (Adam, RMSprop, Momentum)"
+        sequence: 3
+        prerequisites: ["Gradient Descent and Optimization"]
+        tags: ["optimization", "advanced"]
+
+      - title: "Batch Normalization and Layer Normalization"
+        sequence: 4
+        prerequisites: ["Backpropagation Algorithm"]
+        tags: ["optimization", "regularization"]
+
+  # ========================================================================
+  # DEEP LEARNING SPECIALIZATIONS (Parallel tracks after Foundations)
+  # ========================================================================
+
+  dl_cnns:
+    name: "Deep Learning - CNNs"
+    description: "Convolutional Neural Networks for images and spatial data"
+    color: "#8b5cf6"
+    icon: "🖼️"
+    topics:
+      - title: "Convolutional Neural Networks (CNNs)"
+        sequence: 1
+        prerequisites: ["Feedforward Neural Networks", "Backpropagation Algorithm"]
+        tags: ["specialized", "vision"]
+
+      - title: "Pooling and Subsampling"
+        sequence: 2
+        prerequisites: ["Convolutional Neural Networks (CNNs)"]
+        tags: ["specialized", "vision"]
+
+      - title: "CNN Architectures (LeNet, AlexNet, VGG, ResNet)"
+        sequence: 3
+        prerequisites: ["Pooling and Subsampling"]
+        tags: ["specialized", "vision", "architectures"]
+
+      - title: "Transfer Learning and Fine-Tuning"
+        sequence: 4
+        prerequisites: ["CNN Architectures (LeNet, AlexNet, VGG, ResNet)"]
+        tags: ["specialized", "vision", "practical"]
+
+  dl_transformers:
+    name: "Deep Learning - Transformers"
+    description: "Attention mechanisms and modern NLP architectures"
+    color: "#8b5cf6"
+    icon: "💬"
+    topics:
+      - title: "Attention Mechanisms"
+        sequence: 1
+        prerequisites: ["Feedforward Neural Networks", "Backpropagation Algorithm"]
+        tags: ["specialized", "nlp", "attention"]
+
+      - title: "Self-Attention and Multi-Head Attention"
+        sequence: 2
+        prerequisites: ["Attention Mechanisms"]
+        tags: ["specialized", "nlp", "attention"]
+
+      - title: "Transformer Architecture"
+        sequence: 3
+        prerequisites: ["Self-Attention and Multi-Head Attention"]
+        tags: ["specialized", "nlp", "architectures"]
+
+      - title: "Transformer Language Models (BERT, GPT)"
+        sequence: 4
+        prerequisites: ["Transformer Architecture"]
+        tags: ["specialized", "nlp", "advanced"]
+
+  # ========================================================================
+  # STATISTICS (Enhanced with Bouchaud Book)
+  # ========================================================================
+
+  stats_inference_distributions:
+    name: "Statistical Inference & Distributions"
+    description: "⭐ Start here - Core statistical methods including heavy-tailed distributions"
+    color: "#10b981"
+    icon: "📊"
+    topics:
+      - title: "Statistics"
+        sequence: 1
+        prerequisites: []
+        tags: ["overview", "start-here", "foundational"]
+
+      - title: "Statistical Inference"
+        sequence: 2
+        prerequisites: ["Statistics"]
+        tags: ["foundational", "distributions", "heavy-tails", "levy", "students-t", "enhanced-bouchaud"]
+
+  stats_modeling_prediction:
+    name: "Modeling & Prediction"
+    description: "Regression and time series for forecasting"
+    color: "#3b82f6"
+    icon: "📈"
+    topics:
+      - title: "Regression Analysis"
+        sequence: 1
+        prerequisites: ["Statistical Inference"]
+        tags: ["regression", "linear-models", "ols"]
+
+      - title: "Time Series Analysis"
+        sequence: 2
+        prerequisites: ["Regression Analysis", "Statistical Inference"]
+        tags: ["time-series", "arma", "garch", "forecasting"]
+
+# ========================================================================
+# METADATA FOR UI DISPLAY
+# ========================================================================
+
+path_order:
+  # Order in which paths appear in Study Mode
+  # Statistics
+  - stats_inference_distributions
+  - stats_modeling_prediction
+  # Classical ML
+  - classical_ml_linear
+  - classical_ml_classification
+  - classical_ml_trees
+  - classical_ml_unsupervised
+  - classical_ml_assessment
+  # Deep Learning
+  - dl_foundations
+  - dl_training
+  - dl_cnns
+  - dl_transformers
+
+section_headers:
+  # Group paths under section headers in UI
+  statistics:
+    title: "📊 Statistics"
+    subtitle: "Statistical inference and modeling (enhanced with Bouchaud)"
+    paths:
+      - stats_inference_distributions
+      - stats_modeling_prediction
+
+  classical:
+    title: "📚 Classical Machine Learning"
+    subtitle: "Statistical learning methods from Elements of Statistical Learning"
+    paths:
+      - classical_ml_linear
+      - classical_ml_classification
+      - classical_ml_trees
+      - classical_ml_unsupervised
+
+  cross_cutting_classical:
+    title: "📊 Model Assessment & Validation"
+    subtitle: "Cross-cutting concepts for evaluating models"
+    paths:
+      - classical_ml_assessment
+
+  deep_learning:
+    title: "🧠 Deep Learning"
+    subtitle: "Modern neural networks from Deep Learning: Foundations and Concepts"
+    paths:
+      - dl_foundations
+      - dl_training
+      - dl_cnns
+      - dl_transformers

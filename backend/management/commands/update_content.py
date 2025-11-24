@@ -157,7 +157,6 @@ class UpdateContentCommand:
             }
 
             vector_store.upsert_chunks(chunks_data, node.id, node_metadata)
-            print(f"  ✓ Uploaded to Pinecone")
 
         print(f"  ✓ Indexed {len(chunks)} new chunks")
 

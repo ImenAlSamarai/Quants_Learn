@@ -17,11 +17,20 @@ class VectorStoreService:
         self.available = False
         self._initialize_index()
 
+    def _create_openai_client_with_timeout(self):
+        """Create OpenAI client with timeout settings"""
+        import httpx
+        return OpenAI(
+            api_key=settings.OPENAI_API_KEY,
+            timeout=httpx.Timeout(60.0, connect=10.0),  # 60s total, 10s connect
+            max_retries=2
+        )
+
     def _initialize_index(self):
         """Create index if it doesn't exist and connect to it"""
         try:
             self.pc = Pinecone(api_key=settings.PINECONE_API_KEY)
-            self.openai_client = OpenAI(api_key=settings.OPENAI_API_KEY)
+            self.openai_client = self._create_openai_client_with_timeout()
 
             # Check if index exists
             existing_indexes = [idx.name for idx in self.pc.list_indexes()]
@@ -89,13 +98,16 @@ class VectorStoreService:
 
         vectors = []
         vector_ids = []
+        total_chunks = len(chunks)
 
-        for chunk in chunks:
+        print(f"  Generating embeddings for {total_chunks} chunks...")
+        for i, chunk in enumerate(chunks, 1):
             text = chunk['text']
             chunk_index = chunk['chunk_index']
             chunk_metadata = chunk.get('metadata', {})
 
-            # Generate embedding
+            # Generate embedding with progress
+            print(f"    Processing chunk {i}/{total_chunks}...", end='\r')
             embedding = self.generate_embedding(text)
 
             # Create vector ID
@@ -122,10 +134,14 @@ class VectorStoreService:
                 'metadata': metadata
             })
 
+        print()  # New line after progress
+        print(f"  ✓ Generated {len(vectors)} embeddings")
+
         # Upsert to Pinecone
         if vectors:
+            print(f"  Uploading to Pinecone...")
             self.index.upsert(vectors=vectors)
-            print(f"Upserted {len(vectors)} vectors for node {node_id}")
+            print(f"  ✓ Upserted {len(vectors)} vectors for node {node_id}")
 
         return vector_ids
 

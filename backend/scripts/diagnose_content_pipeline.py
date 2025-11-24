@@ -78,7 +78,7 @@ def diagnose_cache(db, nodes):
         print(f"  Difficulty: {entry.difficulty_level}")
         print(f"  Created: {entry.created_at}")
         print(f"  Valid: {entry.is_valid}")
-        print(f"  Preview: {entry.content[:100]}...")
+        print(f"  Preview: {entry.generated_content[:100]}...")
         print()
 
 def diagnose_chunks(db):

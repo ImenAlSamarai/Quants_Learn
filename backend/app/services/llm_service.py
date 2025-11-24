@@ -77,17 +77,19 @@ CRITICAL REQUIREMENTS:
 3. Include at least one worked example with step-by-step calculations
 4. Provide a Python code snippet demonstrating the concept (unless purely theoretical)
 5. Focus on real-world quantitative finance applications
+6. **INCORPORATE ALL concepts, examples, and theories from the provided context chunks**
+7. **If context mentions specific authors, books, or advanced theories (e.g., Bouchaud, heavy-tailed distributions, Lévy distributions, power laws), you MUST include and explain these concepts**
 
 STRUCTURE YOUR RESPONSE AS FOLLOWS:
 
 ## Core Concept
-[2-3 paragraphs explaining the fundamental idea with appropriate mathematical formulas using LaTeX]
+[2-3 paragraphs explaining the fundamental idea with appropriate mathematical formulas using LaTeX. MUST integrate concepts from the provided context.]
 
 ## Mathematical Formulation
-[Key equations with LaTeX. For example: The expectation is defined as $E[X] = \\sum_{{i}} x_{{i}} p(x_{{i}})$ for discrete variables.]
+[Key equations with LaTeX. For example: The expectation is defined as $E[X] = \\sum_{{i}} x_{{i}} p(x_{{i}})$ for discrete variables. Include any specialized distributions or formulations mentioned in context.]
 
 ## Quantitative Finance Application
-[Concrete example showing how this is used in trading, risk management, or portfolio optimization]
+[Concrete example showing how this is used in trading, risk management, or portfolio optimization. Draw from context examples.]
 
 ## Python Implementation
 ```python
@@ -113,12 +115,14 @@ FORMATTING RULES:
 
         user_prompt = f"""Topic: {topic}
 
-Context from learning materials:
+Context from learning materials (YOU MUST INCORPORATE THESE CONCEPTS AND THEORIES):
 {context_text}
 
 {f"Additional context: {user_context}" if user_context else ""}
 
-Create educational content following the structure above. Ensure all math uses LaTeX notation and include practical Python code."""
+Create educational content following the structure above. Ensure all math uses LaTeX notation and include practical Python code.
+
+IMPORTANT: Draw extensively from the context above. If specific distributions, theories, or authors are mentioned (e.g., heavy-tailed distributions, Lévy distributions, Pareto distributions, power laws, Bouchaud), these MUST appear in your explanation with proper mathematical treatment."""
 
         response = self.client.chat.completions.create(
             model=self.model,

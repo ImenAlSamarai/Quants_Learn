@@ -82,13 +82,10 @@ def main():
 
         # Delete old chunks
         print(f"1. Deleting {current_chunks} old chunks from database...")
-        old_chunks = db.query(ContentChunk).filter(ContentChunk.node_id == node.id).all()
 
-        # Delete from Pinecone
-        vector_ids_to_delete = [chunk.vector_id for chunk in old_chunks if chunk.vector_id]
-        if vector_ids_to_delete:
-            print(f"   Deleting {len(vector_ids_to_delete)} vectors from Pinecone...")
-            vector_store.delete_vectors(vector_ids_to_delete)
+        # Delete from Pinecone (all vectors for this node)
+        print(f"   Deleting vectors from Pinecone...")
+        vector_store.delete_node_vectors(node.id)
 
         # Delete from database
         db.query(ContentChunk).filter(ContentChunk.node_id == node.id).delete()

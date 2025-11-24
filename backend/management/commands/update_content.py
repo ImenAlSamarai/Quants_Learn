@@ -11,8 +11,9 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(
 
 from app.models.database import SessionLocal, Node, ContentChunk, GeneratedContent
 from app.services.vector_store import VectorStoreService
-from app.services.content_indexer import ContentIndexer
+from scripts.index_content import ContentIndexer
 from datetime import datetime
+from pathlib import Path
 
 
 class UpdateContentCommand:
@@ -108,22 +109,57 @@ class UpdateContentCommand:
 
     def _reindex_content(self, node):
         """Reindex content from markdown file"""
-        from app.services.content_indexer import ContentIndexer
-
         indexer = ContentIndexer()
+        vector_store = VectorStoreService()
 
-        # Read and parse markdown
-        try:
-            chunks = indexer.index_node_content(
+        # Check if content file exists
+        content_path = Path(node.content_path)
+        if not content_path.exists():
+            print(f"  ❌ Content file not found: {content_path}")
+            raise FileNotFoundError(f"Content file not found: {content_path}")
+
+        # Process markdown
+        parsed = indexer.process_markdown(str(content_path))
+        text = parsed['text']
+
+        # Split into chunks
+        chunks = indexer.split_text(text)
+        print(f"  ✓ Split into {len(chunks)} chunks")
+
+        # Create chunk records
+        chunk_records = []
+        for idx, chunk_text in enumerate(chunks):
+            chunk_record = ContentChunk(
                 node_id=node.id,
-                markdown_path=node.content_path
+                chunk_text=chunk_text,
+                chunk_index=idx
             )
+            chunk_records.append(chunk_record)
+            self.db.add(chunk_record)
 
-            print(f"  ✓ Indexed {len(chunks)} new chunks")
+        self.db.commit()
 
-        except Exception as e:
-            print(f"  ❌ Reindexing failed: {e}")
-            raise
+        # Upload to Pinecone
+        if vector_store.available:
+            chunks_data = [
+                {
+                    'text': chunk_text,
+                    'chunk_index': idx,
+                    'metadata': {}
+                }
+                for idx, chunk_text in enumerate(chunks)
+            ]
+
+            node_metadata = {
+                'title': node.title,
+                'category': node.category,
+                'difficulty': node.difficulty_level
+            }
+
+            vector_store.upsert_chunks(chunks_data, node.id, node_metadata)
+            print(f"  ✓ Uploaded to Pinecone")
+
+        print(f"  ✓ Indexed {len(chunks)} new chunks")
 
     def _increment_version(self, node):
         """Increment content version (invalidates cache automatically)"""

@@ -49,12 +49,18 @@ def query_content(
     user = get_or_create_user(request.user_id, db)
     difficulty_level = user.learning_level
 
+    # Get current content version for automatic cache invalidation
+    node_version = 1
+    if node.extra_metadata and isinstance(node.extra_metadata, dict):
+        node_version = node.extra_metadata.get('content_version', 1)
+
     # Check cache first (unless force_regenerate is True)
     if not request.force_regenerate:
         cached = db.query(GeneratedContent).filter(
             GeneratedContent.node_id == request.node_id,
             GeneratedContent.content_type == request.query_type,
             GeneratedContent.difficulty_level == difficulty_level,
+            GeneratedContent.content_version == node_version,  # ← VERSION CHECK
             GeneratedContent.is_valid == True
         ).first()
 
@@ -63,7 +69,7 @@ def query_content(
             cached.access_count += 1
             db.commit()
 
-            print(f"✓ Cache HIT: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}")
+            print(f"✓ Cache HIT: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}, version={node_version}")
 
             return QueryResponse(
                 node_title=node.title,
@@ -175,14 +181,14 @@ def query_content(
         interactive_component=interactive_component,
         source_chunks=source_chunks,
         related_topics=related_topics[:5],
-        content_version=1,
+        content_version=node_version,  # ← Store current version
         access_count=1,
         is_valid=True
     )
     db.add(cached_content)
     db.commit()
 
-    print(f"✓ Content cached: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}")
+    print(f"✓ Content cached: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}, version={node_version}")
 
     return QueryResponse(
         node_title=node.title,

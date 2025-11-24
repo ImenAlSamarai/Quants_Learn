@@ -99,7 +99,7 @@ def main():
         explanation = llm_service.generate_explanation(
             topic=node.title,
             context_chunks=context_chunks,
-            difficulty_level=2
+            difficulty=2
         )
 
         print(f"   ✓ Generated {len(explanation)} characters")

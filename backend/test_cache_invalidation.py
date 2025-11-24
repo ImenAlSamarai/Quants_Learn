@@ -6,10 +6,10 @@ Verifies that updating content automatically invalidates old cache.
 """
 
 import sys
-sys.path.insert(0, '/home/user/Quants_Learn/backend')
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from app.database import SessionLocal
-from app.models.node import Node, GeneratedContent
+from app.models.database import SessionLocal, Node, GeneratedContent
 
 def test_cache_invalidation():
     """Test that cache invalidation works via version mechanism"""

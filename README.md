@@ -70,6 +70,9 @@ cp .env.example .env
 python -c "from app.models.database import init_db; init_db()"
 python scripts/index_content.py --init-db --content-dir ../content
 
+# Verify system health
+python manage.py health-check
+
 # Start server
 python -m app.main
 ```
@@ -161,8 +164,9 @@ Frontend runs at: **http://localhost:3000**
 ### Intelligent Content Caching
 - **First load**: 30-60 seconds (LLM generation)
 - **Cache hit**: <1 second (database retrieval)
-- **Cache keys**: `node_id + content_type + difficulty_level`
-- **Smart invalidation**: Clear cache script for testing
+- **Cache keys**: `node_id + content_type + difficulty_level + content_version`
+- **Automatic invalidation**: Cache auto-invalidates when content is updated (version tracking)
+- **No manual clearing needed**: Update content with `manage.py update-content`
 
 ### Enhanced Educational Prompts
 - **No filler content**: Directly starts with concepts
@@ -190,9 +194,11 @@ Quants_Learn/
 │   │   ├── routes/         # API endpoints
 │   │   ├── services/       # LLM & vector store logic
 │   │   └── main.py         # FastAPI app
+│   ├── management/
+│   │   └── commands/       # CLI commands (health-check, update-content, etc.)
 │   ├── scripts/
-│   │   ├── index_content.py    # Content indexing
-│   │   └── clear_cache.py      # Cache management
+│   │   └── index_content.py    # Initial content indexing
+│   ├── manage.py           # Management CLI entry point
 │   └── requirements.txt
 ├── frontend/
 │   ├── src/
@@ -209,23 +215,35 @@ Quants_Learn/
 └── content/                # Learning materials (markdown)
 ```
 
-### Clearing Cache (For Testing)
+### Management CLI
+
+The platform includes a unified management CLI for all operational tasks:
 
 ```bash
 cd backend
 
-# View cache statistics
-python scripts/clear_cache.py stats
+# Check system health (database, Pinecone, content indexing)
+python manage.py health-check
+python manage.py health-check --verbose  # Detailed output
 
-# Clear all cached content
-python scripts/clear_cache.py clear-all
+# Update content (automatic cache invalidation)
+python manage.py update-content --node-id 17
+python manage.py update-content --node-id 17 --verify  # With verification
 
-# Clear specific difficulty level
-python scripts/clear_cache.py clear-difficulty --difficulty 3
+# Inspect cache (debug)
+python manage.py clear-cache --node-id 17 --inspect
 
-# Clear specific topic
-python scripts/clear_cache.py clear-node --node-id 5
+# Clear cache (rarely needed - cache auto-invalidates on content update)
+python manage.py clear-cache --node-id 17
+python manage.py clear-cache --category statistics
+python manage.py clear-cache --all
+
+# Generate missing insights
+python manage.py generate-insights --category statistics
+python manage.py generate-insights --all
 ```
+
+**Note:** Cache automatically invalidates when content is updated via `update-content`. Manual cache clearing is rarely needed.
 
 ### API Endpoints
 

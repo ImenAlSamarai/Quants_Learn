@@ -104,42 +104,86 @@ class HealthCheckCommand:
             print(f"❌ Vector store error: {e}")
 
     def check_content(self):
-        """Check content indexing"""
+        """Check content indexing for all categories"""
         self.print_section("3. CONTENT INDEXING")
 
         try:
-            # Check Statistics content (with Bouchaud)
-            stats_nodes = self.db.query(Node).filter(Node.category == 'statistics').all()
+            # Get all nodes grouped by category
+            all_nodes = self.db.query(Node).all()
 
-            if not stats_nodes:
-                self.warnings.append("No Statistics nodes found")
-                print("⚠️  No Statistics nodes found")
+            if not all_nodes:
+                self.issues.append("No nodes in database")
+                print("❌ No nodes found in database")
                 return
 
-            print(f"✓ Found {len(stats_nodes)} Statistics nodes")
+            # Group by category
+            by_category = {}
+            for node in all_nodes:
+                cat = node.category or 'uncategorized'
+                if cat not in by_category:
+                    by_category[cat] = []
+                by_category[cat].append(node)
 
-            # Check Statistical Inference specifically
-            inference_node = next((n for n in stats_nodes if n.title == 'Statistical Inference'), None)
+            print(f"✓ Found {len(all_nodes)} total nodes across {len(by_category)} categories\n")
 
-            if not inference_node:
-                self.warnings.append("Statistical Inference node not found")
-                return
+            # Check each category
+            unindexed_nodes = []
+            poorly_indexed = []  # Less than 5 chunks
 
-            chunks = self.db.query(ContentChunk).filter(
-                ContentChunk.node_id == inference_node.id
-            ).all()
+            for category, nodes in sorted(by_category.items()):
+                total_chunks = 0
+                unindexed_count = 0
 
-            print(f"  Statistical Inference (ID: {inference_node.id}): {len(chunks)} chunks")
+                for node in nodes:
+                    chunk_count = self.db.query(ContentChunk).filter(
+                        ContentChunk.node_id == node.id
+                    ).count()
 
-            # Check for Bouchaud content
-            bouchaud_chunks = [c for c in chunks if 'bouchaud' in c.chunk_text.lower()]
-            heavy_tail_chunks = [c for c in chunks if 'heavy-tailed' in c.chunk_text.lower()]
+                    total_chunks += chunk_count
 
-            print(f"    Bouchaud content: {len(bouchaud_chunks)} chunks")
-            print(f"    Heavy-tailed content: {len(heavy_tail_chunks)} chunks")
+                    if chunk_count == 0:
+                        unindexed_nodes.append(f"{node.title} (ID: {node.id})")
+                        unindexed_count += 1
+                    elif chunk_count < 5:
+                        poorly_indexed.append(f"{node.title} ({chunk_count} chunks)")
 
-            if len(bouchaud_chunks) == 0:
-                self.warnings.append("Bouchaud content not found in Statistical Inference")
+                status = "✓" if unindexed_count == 0 else "⚠️"
+                print(f"{status} {category.upper()}: {len(nodes)} nodes, {total_chunks} chunks")
+
+                if unindexed_count > 0:
+                    print(f"    ⚠️  {unindexed_count} nodes not indexed")
+
+            # Report issues
+            if unindexed_nodes:
+                print(f"\n⚠️  {len(unindexed_nodes)} nodes with NO chunks:")
+                for node_info in unindexed_nodes[:5]:  # Show first 5
+                    print(f"    • {node_info}")
+                if len(unindexed_nodes) > 5:
+                    print(f"    ... and {len(unindexed_nodes) - 5} more")
+                self.warnings.append(f"{len(unindexed_nodes)} nodes not indexed")
+
+            if poorly_indexed:
+                print(f"\n⚠️  {len(poorly_indexed)} nodes with < 5 chunks:")
+                for node_info in poorly_indexed[:5]:
+                    print(f"    • {node_info}")
+                if len(poorly_indexed) > 5:
+                    print(f"    ... and {len(poorly_indexed) - 5} more")
+                self.warnings.append(f"{len(poorly_indexed)} nodes poorly indexed")
+
+            # Special check: Bouchaud content in Statistical Inference
+            if self.verbose:
+                print("\n📚 Bouchaud Content Check:")
+                inference_node = next((n for n in all_nodes if n.title == 'Statistical Inference'), None)
+                if inference_node:
+                    chunks = self.db.query(ContentChunk).filter(
+                        ContentChunk.node_id == inference_node.id
+                    ).all()
+                    bouchaud_chunks = [c for c in chunks if 'bouchaud' in c.chunk_text.lower()]
+                    heavy_tail_chunks = [c for c in chunks if 'heavy-tailed' in c.chunk_text.lower()]
+
+                    print(f"  Statistical Inference: {len(chunks)} total chunks")
+                    print(f"    Bouchaud mentions: {len(bouchaud_chunks)} chunks")
+                    print(f"    Heavy-tailed mentions: {len(heavy_tail_chunks)} chunks")
 
         except Exception as e:
             self.issues.append(f"Content check error: {e}")

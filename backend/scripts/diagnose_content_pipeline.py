@@ -44,9 +44,11 @@ def diagnose_nodes(db):
     for node in nodes:
         print(f"  ID: {node.id}")
         print(f"  Title: {node.title}")
-        print(f"  Path: {node.path}")
+        print(f"  Category: {node.category}")
+        print(f"  Content Path: {node.content_path}")
         print(f"  Learning Path: {node.learning_path}")
         print(f"  Sequence: {node.sequence_order}")
+        print(f"  Tags: {node.tags}")
         print()
 
     return nodes
@@ -91,7 +93,8 @@ def diagnose_chunks(db):
 
     print(f"✓ Node ID: {node.id}")
     print(f"  Category: {node.category}")
-    print(f"  Path: {node.path}")
+    print(f"  Content Path: {node.content_path}")
+    print(f"  Learning Path: {node.learning_path}")
     print()
 
     chunks = db.query(ContentChunk).filter(

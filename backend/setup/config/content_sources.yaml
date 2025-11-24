@@ -1,0 +1,124 @@
+# Content Sources Configuration
+# Define all books and content that should be indexed in the platform
+
+version: "1.0"
+
+# Book sources with their processing requirements
+books:
+  # Elements of Statistical Learning - Main ML textbook
+  esl:
+    name: "Elements of Statistical Learning"
+    path: "content/machine_learning/elements_of_statistical_learning.pdf"
+    category: "machine_learning"
+    requires_indexing: true
+    requires_insights: true
+    chapters:
+      - number: 3
+        title: "Linear Methods for Regression"
+        topics: ["Linear Regression", "Ridge Regression", "Lasso", "Subset Selection"]
+      - number: 4
+        title: "Linear Methods for Classification"
+        topics: ["Logistic Regression", "LDA", "QDA"]
+      - number: 7
+        title: "Model Assessment and Selection"
+        topics: ["Cross-Validation", "Bootstrap", "AIC/BIC"]
+      - number: 9
+        title: "Additive Models, Trees, and Related Methods"
+        topics: ["Decision Trees", "CART", "Boosting"]
+      - number: 10
+        title: "Boosting and Additive Trees"
+        topics: ["AdaBoost", "Gradient Boosting"]
+      - number: 14
+        title: "Unsupervised Learning"
+        topics: ["PCA", "K-Means", "Hierarchical Clustering"]
+      - number: 15
+        title: "Random Forests"
+        topics: ["Random Forests", "Variable Importance"]
+    status: "indexed"  # indexed | partial | missing
+
+  # Deep Learning: Foundations and Concepts
+  deep_learning:
+    name: "Deep Learning: Foundations and Concepts"
+    path: "content/machine_learning/deep_learning_foundations_and_concepts.pdf"
+    category: "machine_learning"
+    requires_indexing: true
+    requires_insights: true
+    chapters:
+      - number: 6
+        title: "Deep Neural Networks"
+      - number: 10
+        title: "Convolutional Networks"
+      - number: 12
+        title: "Transformers"
+    status: "partial"  # Some chapters indexed
+
+  # Bouchaud - Theory of Financial Risk
+  bouchaud:
+    name: "Theory of Financial Risk and Market Liquidity"
+    path: "content/statistics/bouchaud_book.pdf"
+    category: "statistics"
+    requires_indexing: true
+    requires_insights: false  # Different structure, manual integration
+    chapters:
+      - number: 1
+        title: "Probability Theory: Basic Notions"
+        topics: ["Heavy-Tailed Distributions", "Lévy Distributions", "Diverging Moments"]
+        enhancement_target: "content/statistics/inference_enhanced.md"
+        status: "enhanced"  # Content written, needs indexing
+      - number: 2
+        title: "Extreme Risks and Optimal Portfolio"
+        topics: ["Extreme Value Theory", "Large Deviations"]
+        status: "planned"
+      - number: 4
+        title: "Statistics of Real Prices"
+        topics: ["Empirical Analysis", "Tail Estimation"]
+        status: "planned"
+      - number: 10
+        title: "Risk Measures"
+        topics: ["VaR", "Expected Shortfall", "Drawdown"]
+        status: "planned"
+    status: "partial"  # Ch1 done, others planned
+
+# Markdown content files (non-book content)
+markdown_content:
+  linear_algebra:
+    category: "linear_algebra"
+    files:
+      - "content/linear_algebra/vectors.md"
+      - "content/linear_algebra/matrices.md"
+      - "content/linear_algebra/eigenvalues.md"
+      - "content/linear_algebra/svd.md"
+      - "content/linear_algebra/transformations.md"
+    status: "indexed"
+
+  calculus:
+    category: "calculus"
+    files:
+      - "content/calculus/limits.md"
+      - "content/calculus/derivatives.md"
+      - "content/calculus/integrals.md"
+      - "content/calculus/multivariable.md"
+    status: "indexed"
+
+  probability:
+    category: "probability"
+    files:
+      - "content/probability/foundations.md"
+      - "content/probability/random_variables.md"
+      - "content/probability/expectation.md"
+    status: "indexed"
+
+  statistics:
+    category: "statistics"
+    files:
+      - "content/statistics/overview.md"
+      - "content/statistics/inference_enhanced.md"  # Uses Bouchaud content
+      - "content/statistics/regression.md"
+      - "content/statistics/time_series.md"
+    status: "partial"  # inference_enhanced needs reindexing
+
+# Expected data counts (for verification)
+expected_counts:
+  nodes: 50  # Approximate number of topic nodes
+  insights: 26  # ESL chapters 3,4,7,9,10,14,15
+  content_chunks_min: 500  # Minimum chunks expected

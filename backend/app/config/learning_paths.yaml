@@ -281,17 +281,58 @@ paths:
         prerequisites: ["Transformer Architecture"]
         tags: ["specialized", "nlp", "advanced"]
 
+  # ========================================================================
+  # STATISTICS (Theory of Financial Risk - Bouchaud & Potters)
+  # ========================================================================
+
+  statistics_foundations:
+    name: "Statistics - Foundations"
+    description: "⭐ Start here - Core statistical concepts and inference"
+    color: "#06b6d4"
+    icon: "📊"
+    topics:
+      - title: "Statistics"
+        sequence: 1
+        prerequisites: []
+        tags: ["foundational", "start-here", "overview"]
+
+      - title: "Statistical Inference"
+        sequence: 2
+        prerequisites: ["Statistics"]
+        tags: ["foundational", "distributions", "bouchaud-ch1"]
+
+  statistics_modeling:
+    name: "Statistics - Regression & Time Series"
+    description: "Statistical models for data analysis"
+    color: "#06b6d4"
+    icon: "📈"
+    topics:
+      - title: "Regression Analysis"
+        sequence: 1
+        prerequisites: ["Statistical Inference"]
+        tags: ["modeling", "regression"]
+
+      - title: "Time Series Analysis"
+        sequence: 2
+        prerequisites: ["Statistical Inference"]
+        tags: ["modeling", "time-series"]
+
 # ========================================================================
 # METADATA FOR UI DISPLAY
 # ========================================================================
 
 path_order:
   # Order in which paths appear in Study Mode
+  # Statistics
+  - statistics_foundations
+  - statistics_modeling
+  # Classical ML
   - classical_ml_linear
   - classical_ml_classification
   - classical_ml_trees
   - classical_ml_unsupervised
   - classical_ml_assessment
+  # Deep Learning
   - dl_foundations
   - dl_training
   - dl_cnns
@@ -299,6 +340,13 @@ path_order:
 
 section_headers:
   # Group paths under section headers in UI
+  statistics:
+    title: "📊 Statistics"
+    subtitle: "Statistical theory and inference from Bouchaud & Potters"
+    paths:
+      - statistics_foundations
+      - statistics_modeling
+
   classical:
     title: "📚 Classical Machine Learning"
     subtitle: "Statistical learning methods from Elements of Statistical Learning"

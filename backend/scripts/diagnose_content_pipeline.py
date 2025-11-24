@@ -104,9 +104,9 @@ def diagnose_chunks(db):
     print(f"✓ Found {len(chunks)} chunks\n")
 
     # Search for Bouchaud-related content
-    bouchaud_chunks = [c for c in chunks if 'bouchaud' in c.content.lower()]
-    heavy_tail_chunks = [c for c in chunks if 'heavy-tailed' in c.content.lower() or 'heavy tail' in c.content.lower()]
-    levy_chunks = [c for c in chunks if 'lévy' in c.content.lower() or 'levy' in c.content.lower()]
+    bouchaud_chunks = [c for c in chunks if 'bouchaud' in c.chunk_text.lower()]
+    heavy_tail_chunks = [c for c in chunks if 'heavy-tailed' in c.chunk_text.lower() or 'heavy tail' in c.chunk_text.lower()]
+    levy_chunks = [c for c in chunks if 'lévy' in c.chunk_text.lower() or 'levy' in c.chunk_text.lower()]
 
     print(f"  Bouchaud mentions: {len(bouchaud_chunks)} chunks")
     print(f"  Heavy-tailed mentions: {len(heavy_tail_chunks)} chunks")
@@ -116,7 +116,7 @@ def diagnose_chunks(db):
     if bouchaud_chunks:
         print("Sample Bouchaud chunk:")
         print("-" * 80)
-        print(bouchaud_chunks[0].content[:500])
+        print(bouchaud_chunks[0].chunk_text[:500])
         print("-" * 80)
         print()
 

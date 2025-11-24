@@ -54,6 +54,7 @@ Examples:
     cache_group.add_argument('--node-id', type=int, help='Clear cache for specific node')
     cache_group.add_argument('--category', type=str, help='Clear cache for category')
     cache_group.add_argument('--all', action='store_true', help='Clear all cache')
+    cache_parser.add_argument('--inspect', action='store_true', help='Inspect cache without clearing')
 
     # Generate insights command
     insights_parser = subparsers.add_parser('generate-insights', help='Generate missing insights')
@@ -80,7 +81,7 @@ Examples:
         elif args.command == 'clear-cache':
             cmd = ClearCacheCommand()
             if args.node_id:
-                return cmd.run(node_id=args.node_id)
+                return cmd.run(node_id=args.node_id, inspect=args.inspect)
             elif args.category:
                 return cmd.run(category=args.category)
             else:

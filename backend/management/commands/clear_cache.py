@@ -18,11 +18,14 @@ class ClearCacheCommand:
     def __init__(self):
         self.db = None
 
-    def run(self, node_id=None, category=None, clear_all=False):
+    def run(self, node_id=None, category=None, clear_all=False, inspect=False):
         """Clear cache for node, category, or all"""
         self.db = SessionLocal()
 
         try:
+            if inspect and node_id:
+                return self._inspect_node(node_id)
+
             print("=" * 80)
             print(" CLEAR CACHE")
             print("=" * 80)
@@ -38,6 +41,46 @@ class ClearCacheCommand:
         finally:
             if self.db:
                 self.db.close()
+
+    def _inspect_node(self, node_id):
+        """Inspect cached content for specific node"""
+        node = self.db.query(Node).filter(Node.id == node_id).first()
+        if not node:
+            print(f"❌ Node {node_id} not found")
+            return 1
+
+        print("=" * 80)
+        print(f" CACHE INSPECTION: {node.title} (ID: {node_id})")
+        print("=" * 80)
+        print()
+
+        cached = self.db.query(GeneratedContent).filter(
+            GeneratedContent.node_id == node_id
+        ).order_by(GeneratedContent.created_at).all()
+
+        if not cached:
+            print("  No cached content")
+            return 0
+
+        print(f"Type            Difficulty   Version    Created")
+        print("-" * 80)
+        for c in cached:
+            version = c.content_version if c.content_version is not None else 'None'
+            print(f"{c.content_type:<15} {c.difficulty_level:<12} {version:<10} {str(c.created_at)[:19]}")
+
+        print()
+        print(f"Total cached entries: {len(cached)}")
+
+        # Version breakdown
+        old_cache = [c for c in cached if c.content_version is None or c.content_version == 0]
+        new_cache = [c for c in cached if c.content_version == 1]
+
+        print()
+        print("Version breakdown:")
+        print(f"  Version 0/None: {len(old_cache)}")
+        print(f"  Version 1: {len(new_cache)}")
+
+        return 0
 
     def _clear_node(self, node_id):
         """Clear cache for specific node"""

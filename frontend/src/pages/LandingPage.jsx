@@ -1,24 +1,21 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CategoryCard from '../components/discovery/CategoryCard';
-import CompetencyCard from '../components/dashboard/CompetencyCard';
 import useAppStore from '../store/useAppStore';
 import { getUserDashboard } from '../services/api';
 
 const LandingPage = () => {
   const categories = useAppStore((state) => state.categories);
   const learningLevel = useAppStore((state) => state.learningLevel);
-  const [competencies, setCompetencies] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [recommendedTopics, setRecommendedTopics] = useState([]);
   const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    // Fetch dashboard data for competencies and activity
+    // Fetch dashboard data for activity and recommendations
     const fetchDashboardData = async () => {
       try {
         const data = await getUserDashboard('demo_user');
-        setCompetencies(data.competencies || []);
         setRecentActivity(data.recent_activity || []);
         setRecommendedTopics(data.recommended_topics || []);
         setUserName(data.profile?.name || 'demo_user');
@@ -66,28 +63,6 @@ const LandingPage = () => {
           <span className="user-level">{getLevelLabel()}</span>
         </div>
       </motion.div>
-
-      {/* Competencies Grid */}
-      {competencies.length > 0 && (
-        <motion.section
-          className="competencies-section"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
-          <div className="section-header">
-            <h2 className="section-title">Your Competencies</h2>
-            <p className="section-subtitle">
-              Track your mastery across different categories
-            </p>
-          </div>
-          <div className="competencies-grid">
-            {competencies.map((comp) => (
-              <CompetencyCard key={comp.category} competency={comp} />
-            ))}
-          </div>
-        </motion.section>
-      )}
 
       {/* Categories Grid */}
       <section className="categories-section">

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Brain, Search, Settings, BarChart3, Home } from 'lucide-react';
+import { Brain, Search, Settings, BarChart3, Home, LayoutDashboard } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const Header = ({ onShowSettings, onShowAdmin }) => {
@@ -76,6 +76,16 @@ const Header = ({ onShowSettings, onShowAdmin }) => {
               <span className="action-label">Home</span>
             </motion.button>
           )}
+
+          <motion.button
+            onClick={() => navigate('/dashboard')}
+            className="header-action-btn"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <LayoutDashboard size={18} />
+            <span className="action-label">Dashboard</span>
+          </motion.button>
 
           <motion.button
             onClick={onShowSettings}

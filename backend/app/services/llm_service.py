@@ -55,6 +55,24 @@ Examples: {profile['example_level']}
 Mathematical Level: {profile['math_level']}
 """
 
+    def _get_job_context(self, job_profile: Dict[str, Any]) -> str:
+        """Get job-appropriate context for prompts"""
+        role_type = job_profile.get('role_type', 'quantitative professional')
+        seniority = job_profile.get('seniority', 'mid')
+        teaching_approach = job_profile.get('teaching_approach', 'Balance theory and practice')
+        domain_focus = job_profile.get('domain_focus', 'quantitative finance')
+
+        return f"""
+Target Role: {role_type} ({seniority} level)
+Domain Focus: {domain_focus}
+Teaching Approach: {teaching_approach}
+
+IMPORTANT: Frame all explanations for someone preparing to interview for this specific role.
+- Use examples relevant to {domain_focus}
+- Highlight concepts frequently tested in {role_type} interviews
+- Show practical applications in their target domain
+"""
+
     def generate_explanation(
         self,
         topic: str,
@@ -132,6 +150,95 @@ IMPORTANT: Draw extensively from the context above. If specific distributions, t
             ],
             temperature=0.7,
             max_tokens=2000  # Increased for comprehensive content
+        )
+
+        return response.choices[0].message.content
+
+    def generate_explanation_for_job(
+        self,
+        topic: str,
+        context_chunks: List[str],
+        job_profile: Dict[str, Any],
+        user_context: Optional[str] = None
+    ) -> str:
+        """Generate educational explanation tailored to specific job target"""
+
+        job_context = self._get_job_context(job_profile)
+
+        system_prompt = f"""You are an expert educator specializing in quantitative finance, mathematics, and physics.
+Create educational content for interview preparation. Your content must be direct, information-dense, and practical.
+
+{job_context}
+
+CRITICAL REQUIREMENTS:
+1. NO filler phrases like "Given your expertise..." or "It's clear that..." - start directly with content
+2. Use LaTeX for ALL mathematical formulas: inline math with $...$ and display math with $$...$$
+3. Include at least one worked example with step-by-step calculations
+4. Provide a Python code snippet demonstrating the concept (unless purely theoretical)
+5. Focus on how this topic appears in {job_profile.get('role_type', 'quantitative finance')} interviews
+6. **INCORPORATE ALL concepts, examples, and theories from the provided context chunks**
+7. **If context mentions specific authors, books, or advanced theories (e.g., Bouchaud, heavy-tailed distributions, Lévy distributions, power laws), you MUST include and explain these concepts**
+
+STRUCTURE YOUR RESPONSE AS FOLLOWS:
+
+## Core Concept
+[2-3 paragraphs explaining the fundamental idea with appropriate mathematical formulas using LaTeX. MUST integrate concepts from the provided context.]
+
+## Mathematical Formulation
+[Key equations with LaTeX. For example: The expectation is defined as $E[X] = \\sum_{{i}} x_{{i}} p(x_{{i}})$ for discrete variables. Include any specialized distributions or formulations mentioned in context.]
+
+## Application in {job_profile.get('role_type', 'Quantitative Finance')}
+[Concrete example showing how this is used in the target role. Draw from context examples and tailor to {job_profile.get('domain_focus', 'quantitative finance')}.]
+
+## Python Implementation
+```python
+# Working code example relevant to the role
+import numpy as np
+
+# ... implementation ...
+```
+
+## Interview Preparation Notes
+- Common interview questions about this topic
+- Key points interviewers look for
+- Pitfalls to avoid
+
+## Key Takeaways
+- [Bullet point 1 - role-specific]
+- [Bullet point 2 - role-specific]
+- [Bullet point 3 - role-specific]
+
+FORMATTING RULES:
+- Use proper markdown headers (##, ###)
+- Use LaTeX: $x^2$ for inline, $$\\frac{{a}}{{b}}$$ for display equations
+- Use ```python for code blocks
+- Use **bold** for key terms
+- Be concise but complete (500-800 words total)"""
+
+        context_text = "\n\n".join(context_chunks) if context_chunks else "No additional context available."
+
+        user_prompt = f"""Topic: {topic}
+
+Context from learning materials (YOU MUST INCORPORATE THESE CONCEPTS AND THEORIES):
+{context_text}
+
+{f"Additional context: {user_context}" if user_context else ""}
+
+Create educational content following the structure above, tailored for someone targeting a {job_profile.get('role_type', 'quantitative finance')} role.
+
+IMPORTANT:
+- Draw extensively from the context above
+- Frame everything through the lens of interview preparation
+- If specific distributions, theories, or authors are mentioned in context, these MUST appear in your explanation"""
+
+        response = self.client.chat.completions.create(
+            model=self.model,  # GPT-4 for quality content
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000
         )
 
         return response.choices[0].message.content

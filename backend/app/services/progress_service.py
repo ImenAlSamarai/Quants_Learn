@@ -46,7 +46,7 @@ class ProgressService:
                 'name': user.name,
                 'email': user.email,
                 'education_level': user.education_level,
-                'current_role': user.current_role,
+                'job_role': user.job_role,
                 'target_roles': user.target_roles or [],
                 'completion_percent': profile_completion
             },

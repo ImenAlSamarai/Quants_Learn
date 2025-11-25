@@ -2,7 +2,7 @@ import React from 'react';
 import '../../styles/dashboard.css';
 
 const ProfileSummary = ({ profile, interviewReadiness }) => {
-  const { name, email, education_level, current_role, completion_percent } = profile;
+  const { name, email, education_level, job_role, completion_percent } = profile;
 
   // Format education level for display
   const formatEducationLevel = (level) => {
@@ -37,10 +37,10 @@ const ProfileSummary = ({ profile, interviewReadiness }) => {
           <p className="profile-email">{email || 'No email provided'}</p>
           <div className="profile-details">
             <span className="profile-education">{formatEducationLevel(education_level)}</span>
-            {current_role && (
+            {job_role && (
               <>
                 <span className="profile-separator">•</span>
-                <span className="profile-role">{current_role}</span>
+                <span className="profile-role">{job_role}</span>
               </>
             )}
           </div>

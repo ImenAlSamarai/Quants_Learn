@@ -56,7 +56,7 @@ class MigrateDatabaseCommand:
                 user_columns = [col['name'] for col in inspector.get_columns('users')]
 
                 new_columns = ['email', 'phone', 'cv_url', 'linkedin_url',
-                               'education_level', 'current_role', 'years_experience', 'target_roles']
+                               'education_level', 'job_role', 'years_experience', 'target_roles']
 
                 for col in new_columns:
                     if col not in user_columns:

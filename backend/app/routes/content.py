@@ -5,8 +5,10 @@ from app.models.database import get_db, Node, GeneratedContent, User
 from app.models.schemas import QueryRequest, QueryResponse, ContentGenerationRequest
 from app.services.vector_store import vector_store
 from app.services.llm_service import llm_service
-from typing import Dict, Any
+from app.services.learning_path_service import learning_path_service, COMMON_ROLE_TEMPLATES
+from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
+import hashlib
 
 router = APIRouter(prefix="/api/content", tags=["content"])
 
@@ -15,7 +17,7 @@ def get_or_create_user(user_id: str, db: Session) -> User:
     """Get existing user or create new one with default settings"""
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
-        user = User(user_id=user_id, learning_level=3)
+        user = User(user_id=user_id)  # No default learning_level
         db.add(user)
         db.commit()
         db.refresh(user)
@@ -45,9 +47,41 @@ def query_content(
     if not node:
         raise HTTPException(status_code=404, detail="Node not found")
 
-    # Get or create user to determine difficulty level
+    # Get or create user
     user = get_or_create_user(request.user_id, db)
-    difficulty_level = user.learning_level
+
+    # Determine cache key strategy based on user's job profile
+    job_profile: Optional[Dict[str, Any]] = None
+    cache_key: Optional[str] = None
+    use_job_based = False
+
+    if user.job_description and len(user.job_description) > 20:
+        # User has job profile - use job-based personalization
+        use_job_based = True
+
+        # Parse job if not already in user.job_role_type
+        if not user.job_role_type or user.job_role_type == 'other':
+            job_profile = learning_path_service.analyze_job_description(user.job_description)
+            user.job_role_type = job_profile.get('role_type', 'other')
+            db.commit()
+        else:
+            # Use cached role type
+            job_profile = {
+                'role_type': user.job_role_type,
+                'seniority': user.job_seniority or 'mid',
+                'domain_focus': 'quantitative finance',
+                'teaching_approach': 'Balance theory and practice for interview prep'
+            }
+
+        # Determine cache strategy
+        if user.job_role_type in COMMON_ROLE_TEMPLATES:
+            cache_key = user.job_role_type  # Template-based caching
+        else:
+            cache_key = hashlib.md5(user.job_description.encode()).hexdigest()[:16]  # Custom job hash
+    else:
+        # Fallback: use old difficulty-based system for backward compat
+        difficulty_level = user.learning_level or 3
+        cache_key = f"difficulty_{difficulty_level}"
 
     # Get current content version for automatic cache invalidation
     node_version = 1
@@ -56,20 +90,40 @@ def query_content(
 
     # Check cache first (unless force_regenerate is True)
     if not request.force_regenerate:
-        cached = db.query(GeneratedContent).filter(
-            GeneratedContent.node_id == request.node_id,
-            GeneratedContent.content_type == request.query_type,
-            GeneratedContent.difficulty_level == difficulty_level,
-            GeneratedContent.content_version == node_version,  # ← VERSION CHECK
-            GeneratedContent.is_valid == True
-        ).first()
+        if use_job_based:
+            # Job-based cache lookup
+            if user.job_role_type in COMMON_ROLE_TEMPLATES:
+                cached = db.query(GeneratedContent).filter(
+                    GeneratedContent.node_id == request.node_id,
+                    GeneratedContent.content_type == request.query_type,
+                    GeneratedContent.role_template_id == cache_key,
+                    GeneratedContent.content_version == node_version,
+                    GeneratedContent.is_valid == True
+                ).first()
+            else:
+                cached = db.query(GeneratedContent).filter(
+                    GeneratedContent.node_id == request.node_id,
+                    GeneratedContent.content_type == request.query_type,
+                    GeneratedContent.job_profile_hash == cache_key,
+                    GeneratedContent.content_version == node_version,
+                    GeneratedContent.is_valid == True
+                ).first()
+        else:
+            # Old difficulty-based cache lookup
+            cached = db.query(GeneratedContent).filter(
+                GeneratedContent.node_id == request.node_id,
+                GeneratedContent.content_type == request.query_type,
+                GeneratedContent.difficulty_level == difficulty_level,
+                GeneratedContent.content_version == node_version,
+                GeneratedContent.is_valid == True
+            ).first()
 
         if cached:
             # Cache hit! Increment access count and return cached content
             cached.access_count += 1
             db.commit()
 
-            print(f"✓ Cache HIT: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}, version={node_version}")
+            print(f"✓ Cache HIT: node={request.node_id}, type={request.query_type}, cache_key={cache_key}, version={node_version}")
 
             return QueryResponse(
                 node_title=node.title,
@@ -81,7 +135,7 @@ def query_content(
             )
 
     # Cache miss - generate new content
-    print(f"✗ Cache MISS: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}")
+    print(f"✗ Cache MISS: node={request.node_id}, type={request.query_type}, cache_key={cache_key}")
 
     # Retrieve relevant chunks from vector store
     search_query = f"{node.title} {node.description or ''}"
@@ -103,19 +157,31 @@ def query_content(
     interactive_component = None
 
     if request.query_type == "explanation":
-        generated_content = llm_service.generate_explanation(
-            topic=node.title,
-            context_chunks=context_chunks,
-            difficulty=difficulty_level,
-            user_context=request.user_context
-        )
+        if use_job_based and job_profile:
+            # Job-based personalized content
+            generated_content = llm_service.generate_explanation_for_job(
+                topic=node.title,
+                context_chunks=context_chunks,
+                job_profile=job_profile,
+                user_context=request.user_context
+            )
+        else:
+            # Fallback to difficulty-based
+            generated_content = llm_service.generate_explanation(
+                topic=node.title,
+                context_chunks=context_chunks,
+                difficulty=difficulty_level,
+                user_context=request.user_context
+            )
 
     elif request.query_type == "example":
+        # Note: example generation still uses difficulty for now
+        # TODO: Add job-based example generation in future
         example_data = llm_service.generate_applied_example(
             topic=node.title,
             context_chunks=context_chunks,
             domain="quant_finance",
-            difficulty=difficulty_level
+            difficulty=difficulty_level if not use_job_based else 3
         )
         generated_content = f"## {example_data.get('title', 'Applied Example')}\n\n"
         generated_content += f"**Scenario:** {example_data.get('scenario', '')}\n\n"
@@ -173,22 +239,53 @@ def query_content(
     )
 
     # Save to cache for future requests
-    cached_content = GeneratedContent(
-        node_id=request.node_id,
-        content_type=request.query_type,
-        difficulty_level=difficulty_level,
-        generated_content=generated_content,
-        interactive_component=interactive_component,
-        source_chunks=source_chunks,
-        related_topics=related_topics[:5],
-        content_version=node_version,  # ← Store current version
-        access_count=1,
-        is_valid=True
-    )
+    if use_job_based:
+        # Job-based cache
+        if user.job_role_type in COMMON_ROLE_TEMPLATES:
+            cached_content = GeneratedContent(
+                node_id=request.node_id,
+                content_type=request.query_type,
+                role_template_id=cache_key,
+                generated_content=generated_content,
+                interactive_component=interactive_component,
+                source_chunks=source_chunks,
+                related_topics=related_topics[:5],
+                content_version=node_version,
+                access_count=1,
+                is_valid=True
+            )
+        else:
+            cached_content = GeneratedContent(
+                node_id=request.node_id,
+                content_type=request.query_type,
+                job_profile_hash=cache_key,
+                generated_content=generated_content,
+                interactive_component=interactive_component,
+                source_chunks=source_chunks,
+                related_topics=related_topics[:5],
+                content_version=node_version,
+                access_count=1,
+                is_valid=True
+            )
+    else:
+        # Old difficulty-based cache
+        cached_content = GeneratedContent(
+            node_id=request.node_id,
+            content_type=request.query_type,
+            difficulty_level=difficulty_level,
+            generated_content=generated_content,
+            interactive_component=interactive_component,
+            source_chunks=source_chunks,
+            related_topics=related_topics[:5],
+            content_version=node_version,
+            access_count=1,
+            is_valid=True
+        )
+
     db.add(cached_content)
     db.commit()
 
-    print(f"✓ Content cached: node={request.node_id}, type={request.query_type}, difficulty={difficulty_level}, version={node_version}")
+    print(f"✓ Content cached: node={request.node_id}, type={request.query_type}, cache_key={cache_key}, version={node_version}")
 
     return QueryResponse(
         node_title=node.title,

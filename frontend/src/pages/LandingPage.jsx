@@ -50,7 +50,8 @@ const LandingPage = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        <h1 className="page-title">Quant Learning Dashboard</h1>
+        <h1 className="page-title">Master Quantitative Finance</h1>
+        <p className="page-subtitle">Your personalized learning journey</p>
       </motion.div>
 
       {/* User Info - Top Right */}

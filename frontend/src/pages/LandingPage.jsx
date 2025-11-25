@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Brain } from 'lucide-react';
 import CategoryCard from '../components/discovery/CategoryCard';
 import ProgressStats from '../components/discovery/ProgressStats';
 import CompetencyCard from '../components/dashboard/CompetencyCard';
@@ -9,9 +8,11 @@ import { getUserDashboard } from '../services/api';
 
 const LandingPage = () => {
   const categories = useAppStore((state) => state.categories);
+  const learningLevel = useAppStore((state) => state.learningLevel);
   const [competencies, setCompetencies] = useState([]);
   const [recentActivity, setRecentActivity] = useState([]);
   const [recommendedTopics, setRecommendedTopics] = useState([]);
+  const [userName, setUserName] = useState('');
 
   useEffect(() => {
     // Fetch dashboard data for competencies and activity
@@ -21,6 +22,7 @@ const LandingPage = () => {
         setCompetencies(data.competencies || []);
         setRecentActivity(data.recent_activity || []);
         setRecommendedTopics(data.recommended_topics || []);
+        setUserName(data.profile?.name || 'demo_user');
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       }
@@ -28,33 +30,32 @@ const LandingPage = () => {
     fetchDashboardData();
   }, []);
 
+  // Get level label based on learningLevel
+  const getLevelLabel = () => {
+    const levels = {
+      1: '🌱 Beginner',
+      2: '📚 Foundation',
+      3: '🎓 Graduate',
+      4: '🔬 Researcher',
+      5: '⭐ Expert',
+    };
+    return levels[learningLevel] || '🎓 Graduate';
+  };
+
   return (
     <div className="landing-page">
-      {/* Hero Section */}
-      <motion.section
-        className="hero-section"
-        initial={{ opacity: 0, y: 20 }}
+      {/* User Info - Top Right */}
+      <motion.div
+        className="user-info-bar"
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="hero-content">
-          <motion.div
-            className="hero-icon"
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-          >
-            <Brain size={48} strokeWidth={1.5} />
-          </motion.div>
-          <h1 className="hero-title">
-            Master Quantitative Finance
-          </h1>
-          <p className="hero-subtitle">
-            Explore interconnected topics, build deep understanding, and advance your quant skills
-            through interactive learning paths
-          </p>
+        <div className="user-info-content">
+          <span className="user-name">{userName}</span>
+          <span className="user-level">{getLevelLabel()}</span>
         </div>
-      </motion.section>
+      </motion.div>
 
       {/* Progress Stats */}
       <section className="stats-section">

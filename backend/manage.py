@@ -22,6 +22,7 @@ from management.commands.health_check import HealthCheckCommand
 from management.commands.update_content import UpdateContentCommand
 from management.commands.clear_cache import ClearCacheCommand
 from management.commands.generate_insights import GenerateInsightsCommand
+from management.commands.migrate_db import MigrateDatabaseCommand
 
 
 def main():
@@ -62,6 +63,10 @@ Examples:
     insights_group.add_argument('--category', type=str, help='Generate for category')
     insights_group.add_argument('--all', action='store_true', help='Generate for all categories')
 
+    # Database migration command
+    migrate_parser = subparsers.add_parser('migrate-db', help='Migrate database to latest schema')
+    migrate_parser.add_argument('--dry-run', action='store_true', help='Show migration plan without applying')
+
     args = parser.parse_args()
 
     if not args.command:
@@ -93,6 +98,10 @@ Examples:
                 return cmd.run(category=args.category)
             else:
                 return cmd.run(all_categories=True)
+
+        elif args.command == 'migrate-db':
+            cmd = MigrateDatabaseCommand()
+            return cmd.run(dry_run=args.dry_run)
 
     except KeyboardInterrupt:
         print("\n\nInterrupted by user")

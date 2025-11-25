@@ -119,7 +119,7 @@ class ContentChunk(Base):
 
 
 class User(Base):
-    """User accounts with learning preferences"""
+    """User accounts with learning preferences and professional profile"""
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True, index=True)
@@ -131,7 +131,48 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active = Column(DateTime, default=datetime.utcnow)
 
+    # Phase 2: Professional Profile Fields
+    email = Column(String(200))
+    phone = Column(String(50))
+    cv_url = Column(String(500))  # URL to CV/resume
+    linkedin_url = Column(String(500))
+    education_level = Column(String(50))  # 'undergraduate', 'masters', 'phd', 'postdoc'
+    current_role = Column(String(200))  # Current job title/role
+    years_experience = Column(Integer)  # Years of professional experience
+    target_roles = Column(JSON)  # Array of target roles: ["quant researcher", "quant trader", etc.]
+
     progress = relationship('UserProgress', back_populates='user')
+    competencies = relationship('UserCompetency', back_populates='user', cascade='all, delete-orphan')
+    study_sessions = relationship('StudySession', back_populates='user', cascade='all, delete-orphan')
+
+    @property
+    def profile_completion_percent(self):
+        """Calculate profile completion percentage"""
+        total_fields = 4  # name, email, education_level, learning_level
+        completed = 0
+
+        if self.name:
+            completed += 1
+        if self.email:
+            completed += 1
+        if self.education_level:
+            completed += 1
+        if self.learning_level:
+            completed += 1
+
+        # Bonus fields (don't count toward base 100%)
+        bonus = 0
+        if self.cv_url:
+            bonus += 5
+        if self.linkedin_url:
+            bonus += 5
+        if self.current_role:
+            bonus += 5
+        if self.target_roles and len(self.target_roles) > 0:
+            bonus += 5
+
+        base_percent = int((completed / total_fields) * 100)
+        return min(base_percent + bonus, 100)
 
 
 class UserProgress(Base):
@@ -194,6 +235,53 @@ class TopicInsights(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     node = relationship('Node', backref='insights')
+
+
+class UserCompetency(Base):
+    """Track user competency/mastery level per category"""
+    __tablename__ = 'user_competencies'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(100), ForeignKey('users.user_id'), index=True)
+    category = Column(String(100), nullable=False, index=True)  # statistics, probability, etc.
+    topics_completed = Column(Integer, default=0)  # Number of topics completed in this category
+    topics_total = Column(Integer, default=0)  # Total topics in this category at user's level
+    level = Column(String(50))  # 'beginner', 'intermediate', 'advanced'
+    last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship('User', back_populates='competencies')
+
+    @property
+    def completion_percent(self):
+        """Calculate completion percentage for this category"""
+        if self.topics_total == 0:
+            return 0
+        return int((self.topics_completed / self.topics_total) * 100)
+
+    @property
+    def level_name(self):
+        """Determine competency level based on completion"""
+        percent = self.completion_percent
+        if percent < 34:
+            return 'beginner'
+        elif percent < 67:
+            return 'intermediate'
+        else:
+            return 'advanced'
+
+
+class StudySession(Base):
+    """Track individual study sessions for time analytics"""
+    __tablename__ = 'study_sessions'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(100), ForeignKey('users.user_id'), index=True)
+    node_id = Column(Integer, ForeignKey('nodes.id'))
+    duration_seconds = Column(Integer, default=0)  # Time spent in seconds
+    completed_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    user = relationship('User', back_populates='study_sessions')
+    node = relationship('Node')
 
 
 # Database setup

@@ -150,6 +150,19 @@
   position: relative;
 }
 
+/* Page Header */
+.page-header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
 /* User Info Bar - Top Right */
 .user-info-bar {
   position: absolute;

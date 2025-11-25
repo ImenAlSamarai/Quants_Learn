@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CategoryCard from '../components/discovery/CategoryCard';
-import ProgressStats from '../components/discovery/ProgressStats';
 import CompetencyCard from '../components/dashboard/CompetencyCard';
 import useAppStore from '../store/useAppStore';
 import { getUserDashboard } from '../services/api';
@@ -44,23 +43,28 @@ const LandingPage = () => {
 
   return (
     <div className="landing-page">
+      {/* Page Title */}
+      <motion.div
+        className="page-header"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <h1 className="page-title">Quant Learning Dashboard</h1>
+      </motion.div>
+
       {/* User Info - Top Right */}
       <motion.div
         className="user-info-bar"
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.3, delay: 0.1 }}
       >
         <div className="user-info-content">
-          <span className="user-name">{userName}</span>
+          <span className="user-name">{userName || 'Loading...'}</span>
           <span className="user-level">{getLevelLabel()}</span>
         </div>
       </motion.div>
-
-      {/* Progress Stats */}
-      <section className="stats-section">
-        <ProgressStats />
-      </section>
 
       {/* Competencies Grid */}
       {competencies.length > 0 && (

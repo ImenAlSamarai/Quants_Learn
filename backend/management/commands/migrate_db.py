@@ -1,19 +1,23 @@
 """
 Database Migration Command
 
-Safely applies Phase 2 schema changes (new User fields, UserCompetency, StudySession tables).
+Safely applies Phase 2 + 2.5 schema changes:
+- Phase 2: User profile fields (email, phone, cv_url, linkedin_url, education_level, job_role, years_experience, target_roles)
+- Phase 2.5: Job-based personalization (job_title, job_description, job_seniority, firm, job_role_type)
+- New tables: UserCompetency, StudySession, LearningPath
+- GeneratedContent cache updates: role_template_id, job_profile_hash
 """
 
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from app.models.database import SessionLocal, engine, Base, User, UserCompetency, StudySession
+from app.models.database import SessionLocal, engine, Base, User, UserCompetency, StudySession, LearningPath, GeneratedContent
 from sqlalchemy import inspect, text
 
 
 class MigrateDatabaseCommand:
-    """Migrate database to Phase 2 schema"""
+    """Migrate database to Phase 2.5 schema (job-based personalization)"""
 
     def __init__(self):
         self.db = None
@@ -24,7 +28,7 @@ class MigrateDatabaseCommand:
 
         try:
             print("=" * 80)
-            print(" DATABASE MIGRATION: Phase 2 Schema")
+            print(" DATABASE MIGRATION: Phase 2.5 Job-Based Personalization")
             print("=" * 80)
             print()
 
@@ -41,7 +45,7 @@ class MigrateDatabaseCommand:
                 print(f"  ✓ {table}")
             print()
 
-            # Phase 2 changes needed
+            # Phase 2 + 2.5 changes needed
             changes_needed = []
 
             # Check if new tables exist
@@ -51,16 +55,37 @@ class MigrateDatabaseCommand:
             if 'study_sessions' not in existing_tables:
                 changes_needed.append("Create study_sessions table")
 
+            if 'learning_paths' not in existing_tables:
+                changes_needed.append("Create learning_paths table (Phase 2.5)")
+
             # Check if new User columns exist
             if 'users' in existing_tables:
                 user_columns = [col['name'] for col in inspector.get_columns('users')]
 
-                new_columns = ['email', 'phone', 'cv_url', 'linkedin_url',
-                               'education_level', 'job_role', 'years_experience', 'target_roles']
+                # Phase 2 columns
+                phase2_columns = ['email', 'phone', 'cv_url', 'linkedin_url',
+                                  'education_level', 'job_role', 'years_experience', 'target_roles']
 
-                for col in new_columns:
+                for col in phase2_columns:
                     if col not in user_columns:
-                        changes_needed.append(f"Add users.{col} column")
+                        changes_needed.append(f"Add users.{col} column (Phase 2)")
+
+                # Phase 2.5 job-based personalization columns
+                phase25_columns = ['job_title', 'job_description', 'job_seniority', 'firm', 'job_role_type']
+
+                for col in phase25_columns:
+                    if col not in user_columns:
+                        changes_needed.append(f"Add users.{col} column (Phase 2.5 - Job-based)")
+
+            # Check if GeneratedContent has new cache key columns
+            if 'generated_content' in existing_tables:
+                gc_columns = [col['name'] for col in inspector.get_columns('generated_content')]
+
+                if 'role_template_id' not in gc_columns:
+                    changes_needed.append("Add generated_content.role_template_id column (Phase 2.5 cache)")
+
+                if 'job_profile_hash' not in gc_columns:
+                    changes_needed.append("Add generated_content.job_profile_hash column (Phase 2.5 cache)")
 
             if not changes_needed:
                 print("✅ Database schema is up to date!")
@@ -80,6 +105,7 @@ class MigrateDatabaseCommand:
 
             # Confirm before proceeding
             print("⚠️  WARNING: This will modify your database schema")
+            print("⚠️  NOTE: Hard cut migration - all cached content will be cleared")
             response = input("Proceed with migration? (yes/no): ")
 
             if response.lower() != 'yes':
@@ -91,13 +117,27 @@ class MigrateDatabaseCommand:
             print("Applying migration...")
             print()
 
-            # Create new tables (SQLAlchemy will only create missing tables)
+            # Create new tables and columns (SQLAlchemy will only create missing ones)
             Base.metadata.create_all(bind=engine)
+
+            print("✓ Schema updated")
+
+            # Clear all cached content (Hard cut migration)
+            print()
+            print("Clearing cached content (hard cut migration)...")
+            try:
+                deleted_count = self.db.query(GeneratedContent).delete()
+                self.db.commit()
+                print(f"✓ Cleared {deleted_count} cached content entries")
+            except Exception as e:
+                print(f"⚠️  Warning: Could not clear cache - {e}")
+                self.db.rollback()
 
             # Verify migration
             inspector = inspect(engine)
             new_tables = inspector.get_table_names()
 
+            print()
             print("✅ Migration complete!")
             print()
             print("Tables after migration:")
@@ -114,14 +154,28 @@ class MigrateDatabaseCommand:
                     print(f"    • {col}")
                 print()
 
+            # Verify LearningPath table was created
+            if 'learning_paths' in new_tables:
+                lp_columns = [col['name'] for col in inspector.get_columns('learning_paths')]
+                print("✓ LearningPath table created with columns:")
+                for col in lp_columns:
+                    print(f"    • {col}")
+                print()
+
             print("=" * 80)
             print(" MIGRATION SUCCESSFUL")
             print("=" * 80)
             print()
+            print("Phase 2.5 Job-Based Personalization is now active!")
+            print()
             print("Next steps:")
-            print("  1. Verify migration: python manage.py health-check")
-            print("  2. Test user profile updates")
-            print("  3. Verify no errors in application logs")
+            print("  1. Restart your server: uvicorn app.main:app --reload")
+            print("  2. Test new endpoints:")
+            print("     POST /api/users/{user_id}/job-profile")
+            print("     GET  /api/users/{user_id}/learning-path")
+            print("     POST /api/users/check-coverage")
+            print("  3. Users will need to set their job profiles in settings")
+            print("  4. Content will be regenerated with job-based personalization")
             print()
 
             return 0

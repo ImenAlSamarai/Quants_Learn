@@ -137,7 +137,7 @@ class User(Base):
     cv_url = Column(String(500))  # URL to CV/resume
     linkedin_url = Column(String(500))
     education_level = Column(String(50))  # 'undergraduate', 'masters', 'phd', 'postdoc'
-    current_role = Column(String(200))  # Current job title/role
+    job_role = Column(String(200))  # Current job title/role
     years_experience = Column(Integer)  # Years of professional experience
     target_roles = Column(JSON)  # Array of target roles: ["quant researcher", "quant trader", etc.]
 
@@ -166,7 +166,7 @@ class User(Base):
             bonus += 5
         if self.linkedin_url:
             bonus += 5
-        if self.current_role:
+        if self.job_role:
             bonus += 5
         if self.target_roles and len(self.target_roles) > 0:
             bonus += 5

@@ -27,7 +27,6 @@ try:
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS cv_url VARCHAR(500)',
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS linkedin_url VARCHAR(500)',
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS education_level VARCHAR(50)',
-            'ALTER TABLE users ADD COLUMN IF NOT EXISTS "current_role" VARCHAR(200)',  # Quoted: reserved keyword
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS years_experience INTEGER',
             'ALTER TABLE users ADD COLUMN IF NOT EXISTS target_roles JSON',
         ]

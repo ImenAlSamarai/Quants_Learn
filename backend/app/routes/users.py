@@ -112,7 +112,7 @@ def update_user_profile(user_id: str, updates: dict, db: Session = Depends(get_d
     # Allowed profile fields
     allowed_fields = [
         'name', 'email', 'phone', 'cv_url', 'linkedin_url',
-        'education_level', 'current_role', 'years_experience', 'target_roles'
+        'education_level', 'job_role', 'years_experience', 'target_roles'
     ]
 
     # Update only allowed fields
@@ -129,7 +129,7 @@ def update_user_profile(user_id: str, updates: dict, db: Session = Depends(get_d
         "name": user.name,
         "email": user.email,
         "education_level": user.education_level,
-        "current_role": user.current_role,
+        "job_role": user.job_role,
         "profile_completion_percent": user.profile_completion_percent
     }
 

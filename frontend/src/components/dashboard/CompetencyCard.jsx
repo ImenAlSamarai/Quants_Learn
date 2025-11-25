@@ -35,12 +35,6 @@ const CompetencyCard = ({ competency }) => {
     <div className="competency-card">
       <div className="competency-card-header">
         <h3 className="competency-card-title">{category_display}</h3>
-        <span
-          className="competency-level-badge"
-          style={{ backgroundColor: getLevelColor(level) }}
-        >
-          {getLevelLabel(level)}
-        </span>
       </div>
 
       <div className="competency-progress">

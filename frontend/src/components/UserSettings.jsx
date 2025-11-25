@@ -5,6 +5,7 @@ import '../styles/UserSettings.css';
 const UserSettings = ({ userId, onClose }) => {
   const setLearningLevel = useAppStore((state) => state.setLearningLevel);
   const storedLevel = useAppStore((state) => state.learningLevel);
+  const [userName, setUserName] = useState('');
   const [userLevel, setUserLevel] = useState(storedLevel || 3);
   const [background, setBackground] = useState('');
   const [loading, setLoading] = useState(true);
@@ -57,6 +58,7 @@ const UserSettings = ({ userId, onClose }) => {
       const response = await fetch(`http://localhost:8000/api/users/${userId}`);
       if (response.ok) {
         const data = await response.json();
+        setUserName(data.name || '');
         setUserLevel(data.learning_level);
         setBackground(data.background || '');
       }
@@ -81,6 +83,7 @@ const UserSettings = ({ userId, onClose }) => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             user_id: userId,
+            name: userName,
             learning_level: userLevel,
             background: background
           })
@@ -91,6 +94,7 @@ const UserSettings = ({ userId, onClose }) => {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            name: userName,
             learning_level: userLevel,
             background: background
           })
@@ -135,6 +139,20 @@ const UserSettings = ({ userId, onClose }) => {
         </div>
 
         <div className="settings-body">
+          <div className="setting-section">
+            <h3>Your Name</h3>
+            <p className="section-description">
+              Enter your name to personalize your learning experience.
+            </p>
+            <input
+              type="text"
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="Enter your name"
+              className="name-input"
+            />
+          </div>
+
           <div className="setting-section">
             <h3>Your Learning Level</h3>
             <p className="section-description">

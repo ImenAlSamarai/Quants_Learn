@@ -1,0 +1,468 @@
+/**
+ * Professional Progress Dashboard Styles
+ *
+ * Design: Bloomberg Terminal meets Coursera
+ * - Professional color palette (blues, grays, greens)
+ * - Clean, data-focused layout
+ * - No gamification (no bright colors, no confetti)
+ * - Clear progress indicators
+ */
+
+/* ========== Dashboard Container ========== */
+.progress-dashboard {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #f8fafc;
+  min-height: 100vh;
+}
+
+.dashboard-section {
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-half {
+  flex: 1;
+  min-width: 300px;
+}
+
+.dashboard-row {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 1rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+/* ========== Loading & Error States ========== */
+.dashboard-loading,
+.dashboard-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  text-align: center;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-retry {
+  margin-top: 1rem;
+  padding: 0.5rem 1.5rem;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-retry:hover {
+  background: #2563eb;
+}
+
+/* ========== Profile Summary ========== */
+.profile-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-summary-header {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 0.25rem 0;
+}
+
+.profile-email {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0 0 0.5rem 0;
+}
+
+.profile-details {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  color: #475569;
+}
+
+.profile-separator {
+  color: #cbd5e1;
+}
+
+/* ========== Metrics (Circular Progress) ========== */
+.profile-metrics {
+  display: flex;
+  gap: 2rem;
+  justify-content: flex-start;
+}
+
+.profile-metric {
+  flex: 0 0 auto;
+}
+
+.profile-metric-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+}
+
+.profile-metric-value-container {
+  display: flex;
+  justify-content: center;
+}
+
+.circular-progress {
+  width: 120px;
+  height: 120px;
+}
+
+.circular-chart {
+  display: block;
+  margin: 0 auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+.circle-bg {
+  fill: none;
+  stroke: #e2e8f0;
+  stroke-width: 2.8;
+}
+
+.circle {
+  fill: none;
+  stroke-width: 2.8;
+  stroke-linecap: round;
+  animation: progress 1s ease-out forwards;
+}
+
+@keyframes progress {
+  0% {
+    stroke-dasharray: 0 100;
+  }
+}
+
+.percentage {
+  fill: #1e293b;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 0.5em;
+  font-weight: 600;
+  text-anchor: middle;
+}
+
+/* ========== Competency Cards ========== */
+.competencies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.competency-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 1.25rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.competency-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.competency-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.competency-card-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.competency-level-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: white;
+}
+
+.competency-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.competency-progress-bar-container {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.competency-progress-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.8s ease-out;
+}
+
+.competency-progress-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.competency-percent {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.competency-topics {
+  color: #64748b;
+}
+
+/* ========== Study Streak ========== */
+.study-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #fef3c7, #fde68a);
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  color: #92400e;
+}
+
+.streak-icon {
+  font-size: 1.25rem;
+}
+
+.streak-text {
+  font-size: 0.875rem;
+}
+
+/* ========== Activity List ========== */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.activity-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.activity-item:hover {
+  background: #f1f5f9;
+}
+
+.activity-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.activity-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.activity-category {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.activity-progress {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.progress-mini-bar {
+  width: 60px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-mini-fill {
+  height: 100%;
+  background: #3b82f6;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+.progress-mini-text {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #475569;
+  min-width: 35px;
+  text-align: right;
+}
+
+/* ========== Recommendations ========== */
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recommendation-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid #3b82f6;
+  border-radius: 6px;
+  transition: background 0.2s, border-left-color 0.2s;
+  cursor: pointer;
+}
+
+.recommendation-item:hover {
+  background: #f1f5f9;
+  border-left-color: #2563eb;
+}
+
+.recommendation-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.recommendation-title {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.recommendation-category {
+  font-size: 0.75rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.recommendation-time {
+  font-size: 0.75rem;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* ========== No Data States ========== */
+.no-data {
+  text-align: center;
+  color: #64748b;
+  font-size: 0.875rem;
+  padding: 2rem;
+  margin: 0;
+}
+
+/* ========== Responsive Design ========== */
+@media (max-width: 768px) {
+  .progress-dashboard {
+    padding: 1rem;
+  }
+
+  .dashboard-section {
+    padding: 1rem;
+  }
+
+  .profile-summary-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-details {
+    justify-content: center;
+  }
+
+  .profile-metrics {
+    justify-content: center;
+  }
+
+  .competencies-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-row {
+    flex-direction: column;
+  }
+}

@@ -141,4 +141,24 @@ export const getRecommendations = async (userId) => {
   return response.data;
 };
 
+// Phase 2: Progress Dashboard APIs
+export const getUserDashboard = async (userId) => {
+  const response = await api.get(`/api/users/${userId}/dashboard`);
+  return response.data;
+};
+
+export const updateUserProfile = async (userId, profileData) => {
+  const response = await api.patch(`/api/users/${userId}/profile`, profileData);
+  return response.data;
+};
+
+export const logStudySession = async (userId, nodeId, durationSeconds) => {
+  const response = await api.post('/api/progress/session', {
+    user_id: userId,
+    node_id: nodeId,
+    duration_seconds: durationSeconds,
+  });
+  return response.data;
+};
+
 export default api;

@@ -6,7 +6,6 @@ import LandingPage from './pages/LandingPage';
 import CategoryView from './pages/CategoryView';
 import AdminPanel from './components/AdminPanel';
 import UserSettings from './components/UserSettings';
-import ProgressDashboard from './components/dashboard/ProgressDashboard';
 import useAppStore from './store/useAppStore';
 import { fetchMindMap } from './services/api';
 
@@ -162,7 +161,6 @@ function App() {
         <main className="main-content-new">
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/dashboard" element={<ProgressDashboard userId={userId} />} />
             <Route path="/category/:categoryId" element={<CategoryView />} />
             <Route
               path="/category/:categoryId/topic/:topicId"

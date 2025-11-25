@@ -320,18 +320,42 @@ git log --oneline -3
 ## Testing Checklist for User
 
 ### Step 1: Database Migration
+
+**First, check what will be migrated (dry run):**
 ```bash
 cd /home/user/Quants_Learn/backend
-python manage.py migrate_to_job_based
+python manage.py migrate-db --dry-run
+```
+
+**Then run the actual migration:**
+```bash
+python manage.py migrate-db
 ```
 
 **Expected Output**:
 ```
-=== JOB-BASED PERSONALIZATION MIGRATION ===
-✓ Added job columns to users table
-✓ Modified generated_content cache keys
-✓ Created learning_paths table
-✓ Cleared old cached content (HARD CUT)
+============================================================
+DATABASE MIGRATION: Phase 2.5 Job-Based Personalization
+============================================================
+
+⚠️  Migration needed: X changes
+   1. Add users.job_title column (Phase 2.5 - Job-based)
+   2. Add users.job_description column (Phase 2.5 - Job-based)
+   3. Add users.job_seniority column (Phase 2.5 - Job-based)
+   4. Add users.firm column (Phase 2.5 - Job-based)
+   5. Add users.job_role_type column (Phase 2.5 - Job-based)
+   6. Add generated_content.role_template_id column (Phase 2.5 cache)
+   7. Add generated_content.job_profile_hash column (Phase 2.5 cache)
+   8. Create learning_paths table (Phase 2.5)
+
+⚠️  WARNING: This will modify your database schema
+⚠️  NOTE: Hard cut migration - all cached content will be cleared
+Proceed with migration? (yes/no): yes
+
+Applying migration...
+✓ Schema updated
+✓ Cleared XX cached content entries
+
 ✅ Migration complete!
 ```
 

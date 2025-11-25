@@ -4,7 +4,13 @@ Add Phase 2 columns to users table
 This script bypasses the Pydantic settings to avoid requiring API keys
 """
 import os
+from pathlib import Path
 from sqlalchemy import create_engine, text
+from dotenv import load_dotenv
+
+# Load .env file from backend directory
+env_path = Path(__file__).parent / '.env'
+load_dotenv(env_path)
 
 # Get database URL from environment or use default
 DATABASE_URL = os.getenv(

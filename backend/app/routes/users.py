@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.models.database import get_db, User, UserProgress
 from app.models.schemas import UserCreate, UserResponse, UserUpdate, ContentRating
 from app.models.database import GeneratedContent
+from app.services.progress_service import ProgressService
 from typing import List
 
 router = APIRouter(prefix="/api/users", tags=["users"])
@@ -72,6 +73,64 @@ def get_user_progress(user_id: str, db: Session = Depends(get_db)):
             }
             for p in progress
         ]
+    }
+
+
+@router.get("/{user_id}/dashboard")
+def get_user_dashboard(user_id: str, db: Session = Depends(get_db)):
+    """
+    Get comprehensive dashboard data for user
+
+    Returns:
+    - Profile completion %
+    - Interview readiness score
+    - Competencies breakdown by category
+    - Recent activity
+    - Recommended next topics
+    - Study streak
+    """
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    progress_service = ProgressService(db)
+    dashboard_data = progress_service.get_dashboard_data(user_id)
+
+    if not dashboard_data:
+        raise HTTPException(status_code=404, detail="Dashboard data not available")
+
+    return dashboard_data
+
+
+@router.patch("/{user_id}/profile")
+def update_user_profile(user_id: str, updates: dict, db: Session = Depends(get_db)):
+    """Update user professional profile fields"""
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Allowed profile fields
+    allowed_fields = [
+        'name', 'email', 'phone', 'cv_url', 'linkedin_url',
+        'education_level', 'current_role', 'years_experience', 'target_roles'
+    ]
+
+    # Update only allowed fields
+    for key, value in updates.items():
+        if key in allowed_fields:
+            setattr(user, key, value)
+
+    db.commit()
+    db.refresh(user)
+
+    # Return updated profile with completion %
+    return {
+        "user_id": user.user_id,
+        "name": user.name,
+        "email": user.email,
+        "education_level": user.education_level,
+        "current_role": user.current_role,
+        "profile_completion_percent": user.profile_completion_percent
     }
 
 

@@ -2,10 +2,19 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.models.database import get_db, UserProgress, Node
 from app.models.schemas import ProgressUpdate
+from app.services.progress_service import ProgressService
 from typing import List
 from sqlalchemy import func
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/progress", tags=["progress"])
+
+
+class StudySessionLog(BaseModel):
+    """Schema for logging study sessions"""
+    user_id: str
+    node_id: int
+    duration_seconds: int
 
 
 @router.get("/user/{user_id}")
@@ -191,3 +200,37 @@ def get_leaderboard(
     return {
         "leaderboard": leaderboard[:limit]
     }
+
+
+@router.post("/session")
+def log_study_session(
+    session: StudySessionLog,
+    db: Session = Depends(get_db)
+):
+    """
+    Log a study session
+
+    Tracks time spent on topics and updates user's last_active timestamp.
+    Used for calculating study streaks and consistency bonuses.
+    """
+    progress_service = ProgressService(db)
+
+    try:
+        progress_service.log_study_session(
+            user_id=session.user_id,
+            node_id=session.node_id,
+            duration_seconds=session.duration_seconds
+        )
+
+        # Update competencies
+        progress_service.update_competencies(session.user_id)
+
+        return {
+            "message": "Study session logged successfully",
+            "user_id": session.user_id,
+            "node_id": session.node_id,
+            "duration_seconds": session.duration_seconds
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to log session: {str(e)}")

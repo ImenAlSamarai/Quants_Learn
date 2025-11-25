@@ -1,9 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.models.database import get_db, User, UserProgress
-from app.models.schemas import UserCreate, UserResponse, UserUpdate, ContentRating
+from app.models.database import get_db, User, UserProgress, LearningPath
+from app.models.schemas import (
+    UserCreate, UserResponse, UserUpdate, ContentRating,
+    JobProfileUpdate, LearningPathResponse, TopicCoverageCheck
+)
 from app.models.database import GeneratedContent
 from app.services.progress_service import ProgressService
+from app.services.learning_path_service import learning_path_service
 from typing import List
 
 router = APIRouter(prefix="/api/users", tags=["users"])
@@ -152,3 +156,112 @@ def rate_content(rating: ContentRating, db: Session = Depends(get_db)):
         "content_id": rating.generated_content_id,
         "rating": rating.rating
     }
+
+
+# ============ JOB-BASED PERSONALIZATION ENDPOINTS ============
+
+@router.post("/{user_id}/job-profile")
+def update_job_profile(
+    user_id: str,
+    job_data: JobProfileUpdate,
+    db: Session = Depends(get_db)
+):
+    """
+    Update user's job target and generate personalized learning path
+
+    This endpoint:
+    1. Saves job profile fields (title, description, seniority, firm)
+    2. Analyzes job description to extract role type
+    3. Generates complete learning path based on job requirements
+    4. Checks topic coverage (Tier 3)
+    5. Returns learning path with covered/uncovered topics
+    """
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Update job fields
+    user.job_title = job_data.job_title
+    user.job_description = job_data.job_description
+    user.job_seniority = job_data.job_seniority
+    user.firm = job_data.firm
+
+    # Analyze job to extract role type (using GPT-4o-mini)
+    print(f"Analyzing job description for user {user_id}...")
+    job_profile = learning_path_service.analyze_job_description(job_data.job_description)
+    user.job_role_type = job_profile.get('role_type', 'other')
+
+    db.commit()
+    db.refresh(user)
+
+    # Generate learning path (Tier 3 coverage check included)
+    print(f"Generating learning path for {user.job_role_type}...")
+    try:
+        learning_path = learning_path_service.generate_path_for_job(
+            job_description=job_data.job_description,
+            user_id=user_id,
+            db=db
+        )
+    except Exception as e:
+        print(f"Error generating learning path: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to generate learning path: {str(e)}")
+
+    return {
+        "message": "Job profile updated and learning path generated",
+        "user": {
+            "user_id": user.user_id,
+            "job_title": user.job_title,
+            "job_role_type": user.job_role_type,
+            "profile_completion_percent": user.profile_completion_percent
+        },
+        "learning_path": {
+            "id": learning_path.id,
+            "role_type": learning_path.role_type,
+            "stages": learning_path.stages,
+            "covered_topics": learning_path.covered_topics,
+            "uncovered_topics": learning_path.uncovered_topics,
+            "coverage_percentage": learning_path.coverage_percentage
+        }
+    }
+
+
+@router.get("/{user_id}/learning-path", response_model=LearningPathResponse)
+def get_learning_path(user_id: str, db: Session = Depends(get_db)):
+    """
+    Get user's current learning path
+
+    Returns the most recent learning path generated for this user.
+    If no path exists, returns 404.
+    """
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Get most recent learning path
+    learning_path = db.query(LearningPath).filter(
+        LearningPath.user_id == user_id
+    ).order_by(LearningPath.created_at.desc()).first()
+
+    if not learning_path:
+        raise HTTPException(
+            status_code=404,
+            detail="No learning path found. Please set your job profile first."
+        )
+
+    return learning_path
+
+
+@router.post("/check-coverage", response_model=TopicCoverageCheck)
+def check_topic_coverage(topic: str, db: Session = Depends(get_db)):
+    """
+    Check if a specific topic is covered in our books (Tier 3)
+
+    Returns:
+    - covered: bool (whether topic is in books)
+    - confidence: float (similarity score)
+    - source: str (which book, if covered)
+    - external_resources: list (if not covered)
+    """
+    coverage = learning_path_service.check_topic_coverage(topic)
+
+    return TopicCoverageCheck(**coverage)

@@ -118,3 +118,47 @@ class UsageStats(BaseModel):
     most_accessed_nodes: List[Dict[str, Any]]
     popular_content_types: Dict[str, int]
     avg_rating_by_difficulty: Dict[int, float]
+
+
+# Job-Based Personalization Schemas
+
+class JobProfileUpdate(BaseModel):
+    """Update user's job target profile"""
+    job_title: Optional[str] = None
+    job_description: str  # Required for path generation
+    job_seniority: Optional[str] = Field(None, description="junior, mid, senior, not_specified")
+    firm: Optional[str] = None
+
+
+class LearningPathStage(BaseModel):
+    """Single stage in learning path"""
+    stage_name: str
+    duration_weeks: int
+    description: str
+    topics: List[Dict[str, Any]]
+
+
+class LearningPathResponse(BaseModel):
+    """Complete learning path for user"""
+    id: int
+    user_id: str
+    job_description: str
+    role_type: str
+    stages: List[Dict[str, Any]]
+    covered_topics: List[Dict[str, Any]]
+    uncovered_topics: List[Dict[str, Any]]
+    coverage_percentage: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TopicCoverageCheck(BaseModel):
+    """Check if topic is covered in books"""
+    topic: str
+    covered: bool
+    confidence: float
+    source: Optional[str] = None
+    external_resources: Optional[List[Dict[str, str]]] = None

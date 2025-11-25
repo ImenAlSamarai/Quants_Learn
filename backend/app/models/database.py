@@ -125,8 +125,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String(100), unique=True, nullable=False, index=True)  # Username or email
     name = Column(String(200))
-    learning_level = Column(Integer, default=3)  # 1-5: undergrad to researcher
-    background = Column(Text)  # "physics PhD", "finance undergrad", etc.
+    learning_level = Column(Integer, default=3)  # DEPRECATED: Keep for backward compat with scripts
+    background = Column(Text)  # DEPRECATED: Replaced by job_description
     preferences = Column(JSON)  # Custom preferences
     created_at = Column(DateTime, default=datetime.utcnow)
     last_active = Column(DateTime, default=datetime.utcnow)
@@ -141,6 +141,13 @@ class User(Base):
     years_experience = Column(Integer)  # Years of professional experience
     target_roles = Column(JSON)  # Array of target roles: ["quant researcher", "quant trader", etc.]
 
+    # Job-Based Personalization Fields (Phase 2.5)
+    job_title = Column(String(200))  # e.g., "Quantitative Researcher"
+    job_description = Column(Text)  # Full job posting text
+    job_seniority = Column(String(50))  # 'junior', 'mid', 'senior', 'not_specified'
+    firm = Column(String(200))  # e.g., "Citadel", "Two Sigma" (optional)
+    job_role_type = Column(String(100))  # 'quant_researcher', 'quant_trader', 'risk_quant', 'ml_engineer'
+
     progress = relationship('UserProgress', back_populates='user')
     competencies = relationship('UserCompetency', back_populates='user', cascade='all, delete-orphan')
     study_sessions = relationship('StudySession', back_populates='user', cascade='all, delete-orphan')
@@ -148,7 +155,7 @@ class User(Base):
     @property
     def profile_completion_percent(self):
         """Calculate profile completion percentage"""
-        total_fields = 4  # name, email, education_level, learning_level
+        total_fields = 4  # name, email, education_level, job_description
         completed = 0
 
         if self.name:
@@ -157,7 +164,7 @@ class User(Base):
             completed += 1
         if self.education_level:
             completed += 1
-        if self.learning_level:
+        if self.job_description and len(self.job_description) > 20:
             completed += 1
 
         # Bonus fields (don't count toward base 100%)
@@ -199,7 +206,7 @@ class GeneratedContent(Base):
     id = Column(Integer, primary_key=True, index=True)
     node_id = Column(Integer, ForeignKey('nodes.id'), nullable=False, index=True)
     content_type = Column(String(50), nullable=False, index=True)  # explanation, example, quiz, visualization
-    difficulty_level = Column(Integer, nullable=False, index=True)  # 1-5
+    difficulty_level = Column(Integer, index=True)  # DEPRECATED: Keep for backward compat, nullable now
     generated_content = Column(Text, nullable=False)
     interactive_component = Column(JSON)  # For quizzes, visualizations, etc.
     source_chunks = Column(JSON)  # Track which chunks were used
@@ -209,6 +216,10 @@ class GeneratedContent(Base):
     access_count = Column(Integer, default=0)  # Track usage
     rating = Column(Float)  # Student feedback rating
     is_valid = Column(Boolean, default=True)  # For cache invalidation
+
+    # Job-Based Cache Keys (Phase 2.5)
+    role_template_id = Column(String(50), index=True)  # For common roles: 'quant_researcher', 'quant_trader'
+    job_profile_hash = Column(String(32), index=True)  # MD5 hash of custom job description
 
     node = relationship('Node')
 
@@ -282,6 +293,29 @@ class StudySession(Base):
 
     user = relationship('User', back_populates='study_sessions')
     node = relationship('Node')
+
+
+class LearningPath(Base):
+    """Auto-generated learning paths based on job requirements"""
+    __tablename__ = 'learning_paths'
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(String(100), ForeignKey('users.user_id'), index=True)
+    job_description = Column(Text)
+    role_type = Column(String(100))  # Extracted role type: 'quant_researcher', 'quant_trader', etc.
+
+    # Path structure (JSON)
+    stages = Column(JSON)  # [{"stage_name": "...", "topics": [...], "duration_weeks": 2, ...}]
+
+    # Coverage analysis (Tier 3)
+    covered_topics = Column(JSON)  # Topics available in our books: [{"topic": "...", "source": "ESL", ...}]
+    uncovered_topics = Column(JSON)  # Topics not in books: [{"topic": "...", "external_resources": [...]}]
+    coverage_percentage = Column(Integer)  # 0-100: % of job requirements covered by our books
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    user = relationship('User', backref='learning_paths')
 
 
 # Database setup

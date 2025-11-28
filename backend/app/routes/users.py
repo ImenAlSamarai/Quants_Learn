@@ -186,8 +186,22 @@ def update_job_profile(
     user.job_seniority = job_data.job_seniority
     user.firm = job_data.firm
 
+    # ============ DEBUG: Print User Input ============
+    print("\n" + "="*80)
+    print("📥 USER INPUT RECEIVED")
+    print("="*80)
+    print(f"User ID: {user_id}")
+    print(f"Job Title: {job_data.job_title or 'Not provided'}")
+    print(f"Seniority: {job_data.job_seniority or 'Not specified'}")
+    print(f"Firm: {job_data.firm or 'Not provided'}")
+    print(f"\nJob Description ({len(job_data.job_description)} characters):")
+    print("-" * 80)
+    print(job_data.job_description)
+    print("-" * 80)
+    print("="*80 + "\n")
+
     # Analyze job to extract role type (using GPT-4o-mini)
-    print(f"Analyzing job description for user {user_id}...")
+    print(f"🔍 Analyzing job description for user {user_id}...")
     job_profile = learning_path_service.analyze_job_description(job_data.job_description)
     user.job_role_type = job_profile.get('role_type', 'other')
 

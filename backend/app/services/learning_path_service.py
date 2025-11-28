@@ -148,9 +148,35 @@ Focus on technical topics relevant to learning. Include implicit requirements li
 
         try:
             job_profile = json.loads(response.choices[0].message.content)
+
+            # ============ DEBUG: Print Extracted Job Profile ============
+            print("\n" + "="*80)
+            print("🤖 GPT-4o-mini JOB ANALYSIS RESULT")
+            print("="*80)
+            print(f"Role Type: {job_profile.get('role_type', 'unknown')}")
+            print(f"Seniority: {job_profile.get('seniority', 'unknown')}")
+            print(f"Firm Type: {job_profile.get('firm_type', 'unknown')}")
+            print(f"Domain Focus: {job_profile.get('domain_focus', 'unknown')}")
+            print(f"Programming Languages: {', '.join(job_profile.get('programming_languages', []))}")
+
+            print("\n📋 REQUIRED TOPICS (must-have skills):")
+            for i, topic in enumerate(job_profile.get('required_topics', []), 1):
+                print(f"  {i}. {topic}")
+
+            print("\n✨ PREFERRED TOPICS (nice-to-have):")
+            for i, topic in enumerate(job_profile.get('preferred_topics', []), 1):
+                print(f"  {i}. {topic}")
+
+            print("\n🧠 IMPLICIT TOPICS (likely tested but not mentioned):")
+            for i, topic in enumerate(job_profile.get('implicit_topics', []), 1):
+                print(f"  {i}. {topic}")
+
+            print(f"\n💡 Teaching Approach: {job_profile.get('teaching_approach', 'N/A')}")
+            print("="*80 + "\n")
+
             return job_profile
         except json.JSONDecodeError as e:
-            print(f"Error parsing job analysis: {e}")
+            print(f"❌ Error parsing job analysis: {e}")
             # Fallback to generic profile
             return {
                 "role_type": "other",
@@ -196,11 +222,36 @@ Focus on technical topics relevant to learning. Include implicit requirements li
             print(f"⚠️  Error searching for topic '{topic}': {e}")
             matches = []
 
-        # Log search results for debugging
+        # ============ DEBUG: Detailed Match Information ============
         if matches:
-            print(f"  Topic '{topic}': best match score = {matches[0]['score']:.3f} (threshold={min_score})")
+            best_match = matches[0]
+            print(f"\n  📚 Topic '{topic}': best match score = {best_match['score']:.3f} (threshold={min_score})")
+
+            # Show book/chapter source
+            metadata = best_match.get('metadata', {})
+            source = metadata.get('source', 'Unknown')
+            chapter = metadata.get('chapter', 'N/A')
+            section = metadata.get('section', '')
+
+            print(f"     └─ Source: {source}")
+            if chapter != 'N/A':
+                print(f"     └─ Chapter: {chapter}")
+            if section:
+                print(f"     └─ Section: {section}")
+
+            # Show matching text snippet
+            text_preview = best_match.get('text', '')[:150].replace('\n', ' ')
+            print(f"     └─ Matching Text: \"{text_preview}...\"")
+
+            # Show top 3 matches for comparison
+            if len(matches) > 1:
+                print(f"     └─ Top 3 matches:")
+                for i, match in enumerate(matches[:3], 1):
+                    m_source = match.get('metadata', {}).get('source', 'Unknown')
+                    m_chapter = match.get('metadata', {}).get('chapter', 'N/A')
+                    print(f"        {i}. Score: {match['score']:.3f} | {m_source} Ch.{m_chapter}")
         else:
-            print(f"  Topic '{topic}': no matches found in vector store")
+            print(f"\n  ❌ Topic '{topic}': no matches found in vector store")
 
         if not matches or matches[0]['score'] < min_score:
             # NOT COVERED - provide external resources
@@ -254,7 +305,7 @@ Focus on technical topics relevant to learning. Include implicit requirements li
         """
 
         # Step 1: Analyze job
-        print(f"Analyzing job description for user {user_id}...")
+        print(f"\n🔍 Step 1: Analyzing job description for user {user_id}...")
         job_profile = self.analyze_job_description(job_description)
 
         # Combine required, preferred, and implicit topics
@@ -267,8 +318,29 @@ Focus on technical topics relevant to learning. Include implicit requirements li
         # Remove duplicates while preserving order
         unique_topics = list(dict.fromkeys(all_topics))
 
+        # ============ DEBUG: Show Topic Breakdown ============
+        print("\n" + "="*80)
+        print("📝 TOPIC EXTRACTION SUMMARY")
+        print("="*80)
+        print(f"Total Unique Topics to Check: {len(unique_topics)}")
+        print(f"  • Required: {len(job_profile.get('required_topics', []))}")
+        print(f"  • Preferred: {len(job_profile.get('preferred_topics', []))}")
+        print(f"  • Implicit: {len(job_profile.get('implicit_topics', []))}")
+        print("\nAll Topics (in order):")
+        for i, topic in enumerate(unique_topics, 1):
+            # Determine topic type
+            if topic in job_profile.get('required_topics', []):
+                topic_type = "REQUIRED"
+            elif topic in job_profile.get('preferred_topics', []):
+                topic_type = "PREFERRED"
+            else:
+                topic_type = "IMPLICIT"
+            print(f"  {i}. [{topic_type}] {topic}")
+        print("="*80 + "\n")
+
         # Step 2: Check coverage for each topic
-        print(f"Checking coverage for {len(unique_topics)} topics...")
+        print(f"🔍 Step 2: Checking coverage for {len(unique_topics)} topics against our book database...")
+        print("="*80)
         coverage_map = {}
         for topic in unique_topics:
             coverage_map[topic] = self.check_topic_coverage(topic)
@@ -295,13 +367,26 @@ Focus on technical topics relevant to learning. Include implicit requirements li
 
         coverage_percentage = int((len(covered_topics) / len(unique_topics) * 100)) if unique_topics else 0
 
-        print(f"Coverage: {coverage_percentage}% ({len(covered_topics)}/{len(unique_topics)} topics)")
+        # ============ DEBUG: Final Coverage Summary ============
+        print("\n" + "="*80)
+        print("📊 COVERAGE ANALYSIS COMPLETE")
+        print("="*80)
+        print(f"Overall Coverage: {coverage_percentage}% ({len(covered_topics)}/{len(unique_topics)} topics)")
+
         if covered_topics:
-            print(f"  ✓ Covered topics: {', '.join([t['topic'] for t in covered_topics[:5]])}" +
-                  (f" (+{len(covered_topics)-5} more)" if len(covered_topics) > 5 else ""))
+            print(f"\n✅ COVERED TOPICS ({len(covered_topics)}):")
+            for i, t in enumerate(covered_topics, 1):
+                print(f"  {i}. {t['topic']}")
+                print(f"     └─ Source: {t['source']} | Confidence: {t['confidence']:.1%}")
+
         if uncovered_topics:
-            print(f"  ✗ Uncovered topics: {', '.join([t['topic'] for t in uncovered_topics[:5]])}" +
-                  (f" (+{len(uncovered_topics)-5} more)" if len(uncovered_topics) > 5 else ""))
+            print(f"\n❌ UNCOVERED TOPICS ({len(uncovered_topics)}):")
+            for i, t in enumerate(uncovered_topics, 1):
+                print(f"  {i}. {t['topic']}")
+                print(f"     └─ Best Score: {t['confidence']:.1%} (below {TOPIC_COVERAGE_THRESHOLD:.1%} threshold)")
+                print(f"     └─ External Resources: {len(t['external_resources'])} recommendations")
+
+        print("="*80 + "\n")
 
         # Step 3: Sequence covered topics into learning stages
         if covered_topics:

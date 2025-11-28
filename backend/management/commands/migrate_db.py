@@ -59,8 +59,12 @@ class MigrateDatabaseCommand:
                 changes_needed.append("Create learning_paths table (Phase 2.5)")
 
             # Check if new User columns exist
+            # CRITICAL: Query information_schema directly to avoid SQLAlchemy cache
             if 'users' in existing_tables:
-                user_columns = [col['name'] for col in inspector.get_columns('users')]
+                result = self.db.execute(text(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = 'users'"
+                ))
+                user_columns = [row[0] for row in result.fetchall()]
 
                 # Phase 2 columns
                 phase2_columns = ['email', 'phone', 'cv_url', 'linkedin_url',
@@ -78,8 +82,12 @@ class MigrateDatabaseCommand:
                         changes_needed.append(f"Add users.{col} column (Phase 2.5 - Job-based)")
 
             # Check if GeneratedContent has new cache key columns
+            # CRITICAL: Query information_schema directly to avoid SQLAlchemy cache
             if 'generated_content' in existing_tables:
-                gc_columns = [col['name'] for col in inspector.get_columns('generated_content')]
+                result = self.db.execute(text(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = 'generated_content'"
+                ))
+                gc_columns = [row[0] for row in result.fetchall()]
 
                 if 'role_template_id' not in gc_columns:
                     changes_needed.append("Add generated_content.role_template_id column (Phase 2.5 cache)")

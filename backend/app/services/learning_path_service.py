@@ -19,7 +19,10 @@ import os
 
 # Configuration: Topic coverage threshold
 # For semantic search: 0.9+=identical, 0.7-0.9=very similar, 0.5-0.7=related, <0.5=unrelated
-TOPIC_COVERAGE_THRESHOLD = float(os.getenv('TOPIC_COVERAGE_THRESHOLD', '0.55'))
+# NOTE: Lowered to 0.45 due to chunking strategy - book chunks often lack explicit topic mentions
+# See diagnose_vector_store.py output: "machine learning" in DL book scores 0.48 (chunking issue)
+# TODO: Improve chunking to include chapter titles + more context, then raise to 0.55-0.6
+TOPIC_COVERAGE_THRESHOLD = float(os.getenv('TOPIC_COVERAGE_THRESHOLD', '0.45'))
 
 
 # Common role templates for caching

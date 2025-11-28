@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import useAppStore from '../store/useAppStore';
+import { updateJobProfile } from '../services/api';
 import '../styles/UserSettings.css';
 
 const UserSettings = ({ userId, onClose }) => {
@@ -8,8 +9,17 @@ const UserSettings = ({ userId, onClose }) => {
   const [userName, setUserName] = useState('');
   const [userLevel, setUserLevel] = useState(storedLevel || 3);
   const [background, setBackground] = useState('');
+
+  // Phase 2.5: Job-based personalization fields
+  const [jobTitle, setJobTitle] = useState('');
+  const [jobDescription, setJobDescription] = useState('');
+  const [jobSeniority, setJobSeniority] = useState('mid');
+  const [firm, setFirm] = useState('');
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [generatingPath, setGeneratingPath] = useState(false);
+  const [learningPath, setLearningPath] = useState(null);
 
   const levels = [
     {
@@ -61,6 +71,12 @@ const UserSettings = ({ userId, onClose }) => {
         setUserName(data.name || '');
         setUserLevel(data.learning_level);
         setBackground(data.background || '');
+
+        // Phase 2.5: Load job fields if they exist
+        setJobTitle(data.job_title || '');
+        setJobDescription(data.job_description || '');
+        setJobSeniority(data.job_seniority || 'mid');
+        setFirm(data.firm || '');
       }
     } catch (error) {
       console.error('Error fetching user profile:', error);
@@ -71,50 +87,70 @@ const UserSettings = ({ userId, onClose }) => {
 
   const handleSave = async () => {
     setSaving(true);
+    setGeneratingPath(false);
+    setLearningPath(null);
 
     try {
-      // Check if user exists, if not create
-      let response = await fetch(`http://localhost:8000/api/users/${userId}`);
+      // Phase 2.5: If job description is provided, use job-based API
+      if (jobDescription && jobDescription.trim().length > 20) {
+        setGeneratingPath(true);
 
-      if (!response.ok) {
-        // Create new user
-        response = await fetch('http://localhost:8000/api/users/', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            user_id: userId,
-            name: userName,
-            learning_level: userLevel,
-            background: background
-          })
+        const result = await updateJobProfile(userId, {
+          job_title: jobTitle,
+          job_description: jobDescription,
+          job_seniority: jobSeniority,
+          firm: firm || undefined,
         });
-      } else {
-        // Update existing user
-        response = await fetch(`http://localhost:8000/api/users/${userId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: userName,
-            learning_level: userLevel,
-            background: background
-          })
-        });
-      }
 
-      if (response.ok) {
-        // Update the Zustand store with the new learning level
-        setLearningLevel(userLevel);
-        alert('✓ Settings saved! Future content will be tailored to your level.');
-        onClose();
+        setGeneratingPath(false);
+        setLearningPath(result.learning_path);
+
+        alert(
+          `✓ Job profile saved and learning path generated!\n\n` +
+          `Coverage: ${result.learning_path.coverage_percentage}% ` +
+          `(${result.learning_path.covered_topics.length}/${result.learning_path.covered_topics.length + result.learning_path.uncovered_topics.length} topics)\n\n` +
+          `${result.learning_path.stages.length} learning stages created.`
+        );
       } else {
-        alert('Failed to save settings. Please try again.');
+        // Fallback: Use old difficulty-based API
+        let response = await fetch(`http://localhost:8000/api/users/${userId}`);
+
+        if (!response.ok) {
+          // Create new user
+          response = await fetch('http://localhost:8000/api/users/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: userId,
+              name: userName,
+              learning_level: userLevel,
+              background: background
+            })
+          });
+        } else {
+          // Update existing user
+          response = await fetch(`http://localhost:8000/api/users/${userId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: userName,
+              learning_level: userLevel,
+              background: background
+            })
+          });
+        }
+
+        if (response.ok) {
+          setLearningLevel(userLevel);
+          alert('✓ Settings saved! Future content will be tailored to your level.');
+        } else {
+          alert('Failed to save settings. Please try again.');
+        }
       }
     } catch (error) {
       console.error('Error saving settings:', error);
-      // Even if backend fails, update the store for demo mode
-      setLearningLevel(userLevel);
-      alert('✓ Settings saved locally! Future content will be tailored to your level.');
-      onClose();
+      setGeneratingPath(false);
+      alert('Error saving settings. Please check console for details.');
     } finally {
       setSaving(false);
     }
@@ -154,54 +190,88 @@ const UserSettings = ({ userId, onClose }) => {
           </div>
 
           <div className="setting-section">
-            <h3>Your Learning Level</h3>
+            <h3>🎯 Your Target Job</h3>
             <p className="section-description">
-              Select your current level. Content difficulty and explanations will be tailored accordingly.
+              Paste the full job description you're targeting. We'll generate a personalized learning path tailored to the specific requirements.
             </p>
 
-            <div className="levels-grid">
-              {levels.map((level) => (
-                <div
-                  key={level.level}
-                  className={`level-card ${userLevel === level.level ? 'selected' : ''}`}
-                  onClick={() => setUserLevel(level.level)}
-                  style={{
-                    borderColor: userLevel === level.level ? level.color : '#e2e8f0'
-                  }}
+            <label>Job Title</label>
+            <input
+              type="text"
+              value={jobTitle}
+              onChange={(e) => setJobTitle(e.target.value)}
+              placeholder="e.g., Quantitative Researcher, Quant Trader, ML Engineer..."
+              className="job-input"
+            />
+
+            <label>Job Description *</label>
+            <textarea
+              value={jobDescription}
+              onChange={(e) => setJobDescription(e.target.value)}
+              placeholder="Paste the full job posting here. Include requirements, responsibilities, and qualifications.&#10;&#10;Example:&#10;We are seeking a quantitative researcher with strong skills in statistical modeling, time series analysis, machine learning, and Python programming..."
+              rows={8}
+              className="job-description-textarea"
+              style={{ width: '100%', marginBottom: '1rem' }}
+            />
+
+            <div style={{ display: 'flex', gap: '1rem' }}>
+              <div style={{ flex: 1 }}>
+                <label>Seniority Level</label>
+                <select
+                  value={jobSeniority}
+                  onChange={(e) => setJobSeniority(e.target.value)}
+                  className="seniority-select"
                 >
-                  <div className="level-icon" style={{ color: level.color }}>
-                    {level.icon}
-                  </div>
-                  <div className="level-info">
-                    <div className="level-title">{level.title}</div>
-                    <div className="level-description">{level.description}</div>
-                  </div>
-                  {userLevel === level.level && (
-                    <div className="level-check" style={{ color: level.color }}>
-                      ✓
-                    </div>
-                  )}
-                </div>
-              ))}
+                  <option value="junior">Junior</option>
+                  <option value="mid">Mid-Level</option>
+                  <option value="senior">Senior</option>
+                  <option value="not_specified">Not Specified</option>
+                </select>
+              </div>
+
+              <div style={{ flex: 1 }}>
+                <label>Firm (Optional)</label>
+                <input
+                  type="text"
+                  value={firm}
+                  onChange={(e) => setFirm(e.target.value)}
+                  placeholder="e.g., Two Sigma, Citadel..."
+                  className="firm-input"
+                />
+              </div>
             </div>
           </div>
 
-          <div className="setting-section">
-            <h3>Background (Optional)</h3>
-            <p className="section-description">
-              Tell us about your background to get more personalized content.
-            </p>
-            <textarea
-              value={background}
-              onChange={(e) => setBackground(e.target.value)}
-              placeholder="e.g., Physics PhD, Finance undergraduate, Self-taught programmer..."
-              rows={3}
-            />
-          </div>
+          {generatingPath && (
+            <div className="generating-notice">
+              <div className="spinner"></div>
+              <strong>🤖 Analyzing job description and generating learning path...</strong>
+              <p>This may take 5-10 seconds.</p>
+            </div>
+          )}
+
+          {learningPath && (
+            <div className="success-notice">
+              <strong>✅ Learning Path Generated!</strong>
+              <p>
+                Coverage: <strong>{learningPath.coverage_percentage}%</strong>
+                ({learningPath.covered_topics.length}/{learningPath.covered_topics.length + learningPath.uncovered_topics.length} topics)
+              </p>
+              <p>
+                {learningPath.stages.length} learning stages created tailored to your target role.
+              </p>
+              <button
+                onClick={() => window.location.href = '/learning-path'}
+                className="btn-view-path"
+              >
+                View Learning Path →
+              </button>
+            </div>
+          )}
 
           <div className="cache-notice">
-            <strong>📌 Note:</strong> Changing your level will show you different explanations.
-            Previously cached content for other levels will remain available.
+            <strong>💡 Tip:</strong> Paste the complete job posting for best results.
+            The system will identify which topics are covered in our books and which require external resources.
           </div>
         </div>
 
@@ -209,8 +279,8 @@ const UserSettings = ({ userId, onClose }) => {
           <button onClick={onClose} className="btn-secondary">
             Cancel
           </button>
-          <button onClick={handleSave} disabled={saving} className="btn-primary">
-            {saving ? 'Saving...' : 'Save Preferences'}
+          <button onClick={handleSave} disabled={saving || generatingPath} className="btn-primary">
+            {generatingPath ? '🤖 Generating Path...' : saving ? 'Saving...' : 'Save Job Profile & Generate Path'}
           </button>
         </div>
       </div>

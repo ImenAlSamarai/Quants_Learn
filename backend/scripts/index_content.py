@@ -180,6 +180,10 @@ class ContentIndexer:
 
             # Index chunks
             chunk_data = []
+
+            # Determine source label based on content
+            source_label = self._get_source_label(category, subcategory, title)
+
             for i, chunk_text in enumerate(chunks):
                 chunk_data.append({
                     'text': chunk_text,
@@ -187,7 +191,8 @@ class ContentIndexer:
                     'metadata': {
                         'category': category,
                         'subcategory': subcategory,
-                        'difficulty': difficulty
+                        'difficulty': difficulty,
+                        'source': source_label  # ⭐ FIX: Add source metadata
                     }
                 })
 
@@ -198,7 +203,8 @@ class ContentIndexer:
                 node_metadata={
                     'title': title,
                     'category': category,
-                    'subcategory': subcategory
+                    'subcategory': subcategory,
+                    'source_book': self._get_short_source_name(category, subcategory)  # ⭐ FIX: Add source_book
                 }
             )
 
@@ -216,6 +222,53 @@ class ContentIndexer:
             print(f"Indexed {len(chunks)} chunks for node '{title}'")
 
         return node.id
+
+    def _get_source_label(self, category: str, subcategory: str, title: str) -> str:
+        """
+        Determine the source label based on category/subcategory/title
+
+        Returns proper book citations like:
+        - "Quant Interview Questions: Probability"
+        - "Bouchaud: Theory of Financial Risk and Derivative Pricing"
+        - "Custom Learning Materials"
+        """
+        # Interview questions / brain teasers
+        if 'brain teaser' in title.lower() or 'puzzle' in title.lower():
+            if category == 'probability':
+                return "Quant Interview Questions: Probability"
+            elif category == 'statistics':
+                return "Quant Interview Questions: Statistics"
+            else:
+                return "Quant Interview Questions"
+
+        # Bouchaud content (heavy tails, fat tails, etc.)
+        if any(keyword in title.lower() for keyword in ['heavy tail', 'fat tail', 'lévy', 'levy']):
+            return "Bouchaud: Theory of Financial Risk and Derivative Pricing"
+
+        # Default: Custom learning materials by category
+        category_names = {
+            'statistics': 'Statistics',
+            'probability': 'Probability Theory',
+            'calculus': 'Calculus',
+            'linear_algebra': 'Linear Algebra',
+            'machine_learning': 'Machine Learning'
+        }
+
+        cat_name = category_names.get(category, category.title())
+        return f"Quant Learning Materials: {cat_name}"
+
+    def _get_short_source_name(self, category: str, subcategory: str) -> str:
+        """Get short source name for filtering"""
+        # Interview questions
+        if 'teaser' in (subcategory or '') or 'puzzle' in (subcategory or ''):
+            return "Interview Questions"
+
+        # Bouchaud
+        if 'heavy' in (subcategory or '') or 'tail' in (subcategory or ''):
+            return "Bouchaud"
+
+        # Default
+        return "Learning Materials"
 
     def close(self):
         """Close database connection"""

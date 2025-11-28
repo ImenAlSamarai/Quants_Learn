@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Brain, Search, Settings, BarChart3, Home } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const Header = ({ onShowSettings, onShowAdmin }) => {
+const Header = ({ onShowAdmin }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
@@ -76,16 +76,6 @@ const Header = ({ onShowSettings, onShowAdmin }) => {
               <span className="action-label">Home</span>
             </motion.button>
           )}
-
-          <motion.button
-            onClick={onShowSettings}
-            className="header-action-btn"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Settings size={18} />
-            <span className="action-label">Settings</span>
-          </motion.button>
 
           <motion.button
             onClick={onShowAdmin}

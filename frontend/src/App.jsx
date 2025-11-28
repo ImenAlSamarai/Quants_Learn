@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
 import Header from './components/layout/Header';
+import Home from './pages/Home';
 import LandingPage from './pages/LandingPage';
 import CategoryView from './pages/CategoryView';
 import AdminPanel from './components/AdminPanel';
-import UserSettings from './components/UserSettings';
 import LearningPathView from './components/LearningPathView';
 import useAppStore from './store/useAppStore';
 import { fetchMindMap } from './services/api';
@@ -14,7 +13,6 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [userId] = useState('demo_user');
   const [showAdmin, setShowAdmin] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
 
   const { setCategories, setTopics } = useAppStore();
 
@@ -155,13 +153,13 @@ function App() {
     <Router>
       <div className="app">
         <Header
-          onShowSettings={() => setShowSettings(true)}
           onShowAdmin={() => setShowAdmin(true)}
         />
 
         <main className="main-content-new">
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<Home userId={userId} />} />
+            <Route path="/explore" element={<LandingPage />} />
             <Route path="/category/:categoryId" element={<CategoryView />} />
             <Route
               path="/category/:categoryId/topic/:topicId"
@@ -170,13 +168,6 @@ function App() {
             <Route path="/learning-path" element={<LearningPathView userId={userId} />} />
           </Routes>
         </main>
-
-        {/* Modals */}
-        <AnimatePresence>
-          {showSettings && (
-            <UserSettings userId={userId} onClose={() => setShowSettings(false)} />
-          )}
-        </AnimatePresence>
       </div>
     </Router>
   );

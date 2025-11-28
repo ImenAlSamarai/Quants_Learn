@@ -124,9 +124,16 @@ class MigrateDatabaseCommand:
             # Step 2: Add missing columns to existing tables using ALTER TABLE
             # This is the robust approach - SQLAlchemy's create_all() does NOT add columns!
 
+            # IMPORTANT: Re-query columns directly from database to avoid inspector cache
+            # SQLAlchemy inspector caches column metadata, so we query information_schema instead
+
             # Add Phase 2 columns to users table
             if 'users' in existing_tables:
-                user_columns = [col['name'] for col in inspector.get_columns('users')]
+                # Query actual columns from database (bypasses cache)
+                result = self.db.execute(text(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = 'users'"
+                ))
+                user_columns = [row[0] for row in result.fetchall()]
 
                 phase2_column_defs = {
                     'email': 'VARCHAR(255)',
@@ -162,7 +169,11 @@ class MigrateDatabaseCommand:
 
             # Add cache key columns to generated_content table
             if 'generated_content' in existing_tables:
-                gc_columns = [col['name'] for col in inspector.get_columns('generated_content')]
+                # Query actual columns from database (bypasses cache)
+                result = self.db.execute(text(
+                    "SELECT column_name FROM information_schema.columns WHERE table_name = 'generated_content'"
+                ))
+                gc_columns = [row[0] for row in result.fetchall()]
 
                 # Make difficulty_level nullable first if it exists and isn't already
                 if 'difficulty_level' in gc_columns:
@@ -206,6 +217,8 @@ class MigrateDatabaseCommand:
                 self.db.rollback()
 
             # Verify migration
+            # Force SQLAlchemy to clear its metadata cache
+            engine.dispose()
             inspector = inspect(engine)
             new_tables = inspector.get_table_names()
 

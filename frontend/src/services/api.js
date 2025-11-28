@@ -161,4 +161,20 @@ export const logStudySession = async (userId, nodeId, durationSeconds) => {
   return response.data;
 };
 
+// Phase 2.5: Job-Based Personalization APIs
+export const updateJobProfile = async (userId, jobData) => {
+  const response = await api.post(`/api/users/${userId}/job-profile`, jobData);
+  return response.data;
+};
+
+export const getLearningPath = async (userId) => {
+  const response = await api.get(`/api/users/${userId}/learning-path`);
+  return response.data;
+};
+
+export const checkTopicCoverage = async (topic) => {
+  const response = await api.post('/api/users/check-coverage', { topic });
+  return response.data;
+};
+
 export default api;

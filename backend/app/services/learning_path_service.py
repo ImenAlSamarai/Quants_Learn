@@ -15,6 +15,11 @@ from app.services.llm_service import llm_service
 from app.services.vector_store import vector_store
 import json
 import hashlib
+import os
+
+# Configuration: Topic coverage threshold
+# For semantic search: 0.9+=identical, 0.7-0.9=very similar, 0.5-0.7=related, <0.5=unrelated
+TOPIC_COVERAGE_THRESHOLD = float(os.getenv('TOPIC_COVERAGE_THRESHOLD', '0.55'))
 
 
 # Common role templates for caching
@@ -156,13 +161,15 @@ Focus on technical topics relevant to learning. Include implicit requirements li
                 "teaching_approach": "Balanced approach with theory and practice"
             }
 
-    def check_topic_coverage(self, topic: str, min_score: float = 0.75) -> Dict[str, Any]:
+    def check_topic_coverage(self, topic: str, min_score: float = None) -> Dict[str, Any]:
         """
         Tier 3: Check if topic is well-covered in our books
 
         Args:
             topic: Topic name to check
-            min_score: Minimum similarity score to consider covered
+            min_score: Minimum similarity score to consider covered (default from config)
+                      For semantic search: 0.9+=identical, 0.7-0.9=very similar,
+                      0.5-0.7=related concepts, <0.5=unrelated
 
         Returns:
             {
@@ -175,12 +182,22 @@ Focus on technical topics relevant to learning. Include implicit requirements li
             }
         """
 
+        # Use configured threshold if not specified
+        if min_score is None:
+            min_score = TOPIC_COVERAGE_THRESHOLD
+
         # Search vector store for topic
         try:
             matches = self.vector_store.search(query=topic, top_k=10)
         except Exception as e:
-            print(f"Error searching for topic '{topic}': {e}")
+            print(f"⚠️  Error searching for topic '{topic}': {e}")
             matches = []
+
+        # Log search results for debugging
+        if matches:
+            print(f"  Topic '{topic}': best match score = {matches[0]['score']:.3f} (threshold={min_score})")
+        else:
+            print(f"  Topic '{topic}': no matches found in vector store")
 
         if not matches or matches[0]['score'] < min_score:
             # NOT COVERED - provide external resources
@@ -276,6 +293,12 @@ Focus on technical topics relevant to learning. Include implicit requirements li
         coverage_percentage = int((len(covered_topics) / len(unique_topics) * 100)) if unique_topics else 0
 
         print(f"Coverage: {coverage_percentage}% ({len(covered_topics)}/{len(unique_topics)} topics)")
+        if covered_topics:
+            print(f"  ✓ Covered topics: {', '.join([t['topic'] for t in covered_topics[:5]])}" +
+                  (f" (+{len(covered_topics)-5} more)" if len(covered_topics) > 5 else ""))
+        if uncovered_topics:
+            print(f"  ✗ Uncovered topics: {', '.join([t['topic'] for t in uncovered_topics[:5]])}" +
+                  (f" (+{len(uncovered_topics)-5} more)" if len(uncovered_topics) > 5 else ""))
 
         # Step 3: Sequence covered topics into learning stages
         if covered_topics:

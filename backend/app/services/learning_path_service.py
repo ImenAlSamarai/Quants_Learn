@@ -93,6 +93,8 @@ class LearningPathService:
         """
         Use GPT-4o-mini to extract structured information from job posting
 
+        NEW: Returns hierarchical topic structure with priority levels
+
         Args:
             job_description: Full job posting text
 
@@ -100,40 +102,146 @@ class LearningPathService:
             {
                 'role_type': 'quant_researcher|quant_trader|risk_quant|ml_engineer|other',
                 'seniority': 'junior|mid|senior',
-                'required_topics': ['topic1', 'topic2', ...],
-                'preferred_topics': ['topic1', 'topic2', ...],
-                'programming_languages': ['python', 'c++', 'r'],
-                'domain_focus': 'options_pricing|market_making|portfolio_optimization|...',
                 'firm_type': 'hedge_fund|prop_trading|bank|fintech',
-                'teaching_approach': 'Description of how to tailor content'
+                'domain_focus': 'options_pricing|market_making|...',
+                'programming_languages': ['python', 'c++', 'r'],
+                'teaching_approach': 'How to tailor content',
+                'topic_hierarchy': {
+                    'explicit_topics': [
+                        {
+                            'name': 'topic name',
+                            'priority': 'HIGH',
+                            'keywords': ['synonym1', 'synonym2'],
+                            'mentioned_explicitly': True,
+                            'context': 'how it was mentioned in the job'
+                        },
+                        ...
+                    ],
+                    'implicit_topics': [
+                        {
+                            'name': 'topic name',
+                            'priority': 'MEDIUM|LOW',
+                            'keywords': ['synonym1', 'synonym2'],
+                            'reason': 'why this is needed for the role',
+                            'mentioned_explicitly': False
+                        },
+                        ...
+                    ]
+                }
             }
         """
 
         system_prompt = """You are an expert in quantitative finance recruiting and job analysis.
-Extract structured information from job descriptions with high accuracy."""
+Your task is to extract structured, hierarchical topic information from job descriptions.
 
-        user_prompt = f"""Analyze this quantitative finance job description:
+You must distinguish between:
+1. EXPLICIT topics - skills/knowledge directly mentioned in the job description
+2. IMPLICIT topics - skills commonly required for this role type, but not explicitly mentioned
+
+For each topic, provide:
+- Precise name (e.g., "statistical modeling" not just "statistics")
+- Priority level: HIGH (critical for role), MEDIUM (important), LOW (nice-to-have)
+- Keywords: related terms, synonyms, or specific techniques
+- Context or reason why it's needed"""
+
+        user_prompt = f"""Analyze this quantitative finance job description and extract a hierarchical topic structure:
 
 {job_description}
 
-Extract and return ONLY valid JSON (no markdown, no extra text):
+Return ONLY valid JSON (no markdown, no extra text) with this structure:
 {{
-    "role_type": "quant_researcher|quant_trader|risk_quant|ml_engineer|other",
+    "role_type": "quant_researcher|quant_trader|risk_quant|ml_engineer|data_scientist|other",
     "seniority": "junior|mid|senior",
-    "required_topics": ["list of required technical topics/skills"],
-    "preferred_topics": ["list of preferred/nice-to-have topics"],
-    "implicit_topics": ["topics typically tested but not mentioned: data structures, algorithms, brain teasers, etc."],
-    "programming_languages": ["python", "c++", "r", etc.],
-    "domain_focus": "brief description of domain focus",
-    "firm_type": "hedge_fund|prop_trading|bank|fintech|consulting",
-    "teaching_approach": "How to tailor explanations for this role (1-2 sentences)"
+    "firm_type": "hedge_fund|prop_trading|bank|fintech|consulting|tech",
+    "domain_focus": "brief description of primary domain (e.g., 'options pricing', 'market microstructure', 'portfolio optimization')",
+    "programming_languages": ["python", "c++", "r", "sql", etc.],
+    "teaching_approach": "1-2 sentences on how to tailor explanations for this role",
+
+    "topic_hierarchy": {{
+        "explicit_topics": [
+            {{
+                "name": "precise topic name (e.g., 'time series forecasting', not 'time series')",
+                "priority": "HIGH",
+                "keywords": ["related terms", "synonyms", "specific techniques"],
+                "mentioned_explicitly": true,
+                "context": "how/where it was mentioned in the job description"
+            }}
+        ],
+        "implicit_topics": [
+            {{
+                "name": "topic name",
+                "priority": "MEDIUM or LOW",
+                "keywords": ["related terms"],
+                "mentioned_explicitly": false,
+                "reason": "why this is typically required for this role type"
+            }}
+        ]
+    }}
 }}
 
-Focus on technical topics relevant to learning. Include implicit requirements like:
-- Data structures & algorithms (if coding interviews likely)
-- Probability brain teasers (if quant researcher)
-- Mental math (if trading role)
-- System design (if senior engineering role)
+IMPORTANT GUIDELINES:
+
+1. EXPLICIT TOPICS (directly mentioned):
+   - Must appear in the job description text
+   - Be specific (e.g., "linear regression" not "statistics")
+   - Priority is HIGH if in "Requirements", MEDIUM if in "Nice to have"
+   - Include context showing where it was mentioned
+
+2. IMPLICIT TOPICS (typical for role, but not mentioned):
+   - ONLY add if commonly tested for this role type
+   - Examples for quant researcher: probability theory, brain teasers, mental math
+   - Examples for engineering roles: data structures, algorithms, system design
+   - Priority: MEDIUM if commonly tested, LOW if just helpful background
+   - Keep this list SHORT (max 3-5 topics) - be selective!
+
+3. KEYWORDS:
+   - Include synonyms, related terms, specific techniques
+   - Example: "machine learning" → ["ML", "supervised learning", "model training", "feature engineering"]
+   - Example: "time series" → ["ARMA", "ARIMA", "forecasting", "autocorrelation"]
+
+4. AVOID:
+   - Generic terms like "statistics" or "mathematics" (be specific!)
+   - Over-adding implicit topics (only critical ones)
+   - Repeating same concept in both explicit and implicit
+
+Example for a quant researcher role mentioning "statistical modeling, backtesting strategies, Python":
+
+{{
+    "topic_hierarchy": {{
+        "explicit_topics": [
+            {{
+                "name": "statistical modeling",
+                "priority": "HIGH",
+                "keywords": ["regression", "statistical inference", "hypothesis testing", "model fitting"],
+                "mentioned_explicitly": true,
+                "context": "Listed in core requirements"
+            }},
+            {{
+                "name": "backtesting",
+                "priority": "HIGH",
+                "keywords": ["strategy testing", "historical simulation", "walk-forward analysis"],
+                "mentioned_explicitly": true,
+                "context": "Required for validating trading strategies"
+            }}
+        ],
+        "implicit_topics": [
+            {{
+                "name": "probability theory",
+                "priority": "MEDIUM",
+                "keywords": ["probability distributions", "expected value", "conditional probability"],
+                "mentioned_explicitly": false,
+                "reason": "Foundation for statistical modeling; commonly tested in quant researcher interviews"
+            }},
+            {{
+                "name": "brain teasers",
+                "priority": "LOW",
+                "keywords": ["probability puzzles", "logic problems", "mental math"],
+                "mentioned_explicitly": false,
+                "reason": "Commonly tested in quant researcher phone screens"
+            }}
+        ]
+    }}
+}}
 """
 
         response = self.llm_service.client.chat.completions.create(
@@ -151,7 +259,7 @@ Focus on technical topics relevant to learning. Include implicit requirements li
 
             # ============ DEBUG: Print Extracted Job Profile ============
             print("\n" + "="*80)
-            print("🤖 GPT-4o-mini JOB ANALYSIS RESULT")
+            print("🤖 GPT-4o-mini JOB ANALYSIS RESULT (Hierarchical Structure)")
             print("="*80)
             print(f"Role Type: {job_profile.get('role_type', 'unknown')}")
             print(f"Seniority: {job_profile.get('seniority', 'unknown')}")
@@ -159,17 +267,23 @@ Focus on technical topics relevant to learning. Include implicit requirements li
             print(f"Domain Focus: {job_profile.get('domain_focus', 'unknown')}")
             print(f"Programming Languages: {', '.join(job_profile.get('programming_languages', []))}")
 
-            print("\n📋 REQUIRED TOPICS (must-have skills):")
-            for i, topic in enumerate(job_profile.get('required_topics', []), 1):
-                print(f"  {i}. {topic}")
+            topic_hierarchy = job_profile.get('topic_hierarchy', {})
+            explicit_topics = topic_hierarchy.get('explicit_topics', [])
+            implicit_topics = topic_hierarchy.get('implicit_topics', [])
 
-            print("\n✨ PREFERRED TOPICS (nice-to-have):")
-            for i, topic in enumerate(job_profile.get('preferred_topics', []), 1):
-                print(f"  {i}. {topic}")
+            print(f"\n📋 EXPLICIT TOPICS (directly mentioned): {len(explicit_topics)}")
+            for i, topic in enumerate(explicit_topics, 1):
+                priority_emoji = "🔴" if topic.get('priority') == 'HIGH' else "🟡" if topic.get('priority') == 'MEDIUM' else "🟢"
+                print(f"  {i}. {priority_emoji} [{topic.get('priority', 'UNKNOWN')}] {topic.get('name', 'Unknown')}")
+                print(f"     Keywords: {', '.join(topic.get('keywords', []))}")
+                print(f"     Context: {topic.get('context', 'N/A')}")
 
-            print("\n🧠 IMPLICIT TOPICS (likely tested but not mentioned):")
-            for i, topic in enumerate(job_profile.get('implicit_topics', []), 1):
-                print(f"  {i}. {topic}")
+            print(f"\n🧠 IMPLICIT TOPICS (typical for role, not mentioned): {len(implicit_topics)}")
+            for i, topic in enumerate(implicit_topics, 1):
+                priority_emoji = "🔴" if topic.get('priority') == 'HIGH' else "🟡" if topic.get('priority') == 'MEDIUM' else "🟢"
+                print(f"  {i}. {priority_emoji} [{topic.get('priority', 'UNKNOWN')}] {topic.get('name', 'Unknown')}")
+                print(f"     Keywords: {', '.join(topic.get('keywords', []))}")
+                print(f"     Reason: {topic.get('reason', 'N/A')}")
 
             print(f"\n💡 Teaching Approach: {job_profile.get('teaching_approach', 'N/A')}")
             print("="*80 + "\n")
@@ -177,17 +291,19 @@ Focus on technical topics relevant to learning. Include implicit requirements li
             return job_profile
         except json.JSONDecodeError as e:
             print(f"❌ Error parsing job analysis: {e}")
-            # Fallback to generic profile
+            print(f"Response was: {response.choices[0].message.content[:500]}...")
+            # Fallback to generic profile with new structure
             return {
                 "role_type": "other",
                 "seniority": "mid",
-                "required_topics": [],
-                "preferred_topics": [],
-                "implicit_topics": [],
-                "programming_languages": ["python"],
-                "domain_focus": "general quantitative finance",
                 "firm_type": "not_specified",
-                "teaching_approach": "Balanced approach with theory and practice"
+                "domain_focus": "general quantitative finance",
+                "programming_languages": ["python"],
+                "teaching_approach": "Balanced approach with theory and practice",
+                "topic_hierarchy": {
+                    "explicit_topics": [],
+                    "implicit_topics": []
+                }
             }
 
     def check_topic_coverage(self, topic: str, min_score: float = None) -> Dict[str, Any]:
@@ -328,76 +444,132 @@ Focus on technical topics relevant to learning. Include implicit requirements li
         print(f"\n🔍 Step 1: Analyzing job description for user {user_id}...")
         job_profile = self.analyze_job_description(job_description)
 
-        # Combine required, preferred, and implicit topics
-        all_topics = (
-            job_profile.get('required_topics', []) +
-            job_profile.get('preferred_topics', []) +
-            job_profile.get('implicit_topics', [])
-        )
+        # Extract topics from new hierarchical structure
+        topic_hierarchy = job_profile.get('topic_hierarchy', {})
+        explicit_topics = topic_hierarchy.get('explicit_topics', [])
+        implicit_topics = topic_hierarchy.get('implicit_topics', [])
 
-        # Remove duplicates while preserving order
-        unique_topics = list(dict.fromkeys(all_topics))
+        # Create enriched topic list with metadata
+        all_topics_enriched = []
+
+        # Add explicit topics (HIGH/MEDIUM priority)
+        for topic in explicit_topics:
+            all_topics_enriched.append({
+                'name': topic.get('name', ''),
+                'priority': topic.get('priority', 'MEDIUM'),
+                'keywords': topic.get('keywords', []),
+                'mentioned_explicitly': True,
+                'context': topic.get('context', ''),
+                'tier': 'EXPLICIT'
+            })
+
+        # Add implicit topics (MEDIUM/LOW priority)
+        for topic in implicit_topics:
+            all_topics_enriched.append({
+                'name': topic.get('name', ''),
+                'priority': topic.get('priority', 'LOW'),
+                'keywords': topic.get('keywords', []),
+                'mentioned_explicitly': False,
+                'reason': topic.get('reason', ''),
+                'tier': 'IMPLICIT'
+            })
 
         # ============ DEBUG: Show Topic Breakdown ============
         print("\n" + "="*80)
-        print("📝 TOPIC EXTRACTION SUMMARY")
+        print("📝 TOPIC EXTRACTION SUMMARY (Hierarchical)")
         print("="*80)
-        print(f"Total Unique Topics to Check: {len(unique_topics)}")
-        print(f"  • Required: {len(job_profile.get('required_topics', []))}")
-        print(f"  • Preferred: {len(job_profile.get('preferred_topics', []))}")
-        print(f"  • Implicit: {len(job_profile.get('implicit_topics', []))}")
-        print("\nAll Topics (in order):")
-        for i, topic in enumerate(unique_topics, 1):
-            # Determine topic type
-            if topic in job_profile.get('required_topics', []):
-                topic_type = "REQUIRED"
-            elif topic in job_profile.get('preferred_topics', []):
-                topic_type = "PREFERRED"
-            else:
-                topic_type = "IMPLICIT"
-            print(f"  {i}. [{topic_type}] {topic}")
+        print(f"Total Topics to Check: {len(all_topics_enriched)}")
+        print(f"  • Explicit (directly mentioned): {len(explicit_topics)}")
+        print(f"  • Implicit (typical for role): {len(implicit_topics)}")
+
+        print("\n🎯 Topics by Priority:")
+        high_priority = [t for t in all_topics_enriched if t['priority'] == 'HIGH']
+        medium_priority = [t for t in all_topics_enriched if t['priority'] == 'MEDIUM']
+        low_priority = [t for t in all_topics_enriched if t['priority'] == 'LOW']
+
+        print(f"  • HIGH priority: {len(high_priority)}")
+        print(f"  • MEDIUM priority: {len(medium_priority)}")
+        print(f"  • LOW priority: {len(low_priority)}")
+
+        print("\n📋 All Topics (ordered by priority):")
+        priority_order = {'HIGH': 0, 'MEDIUM': 1, 'LOW': 2}
+        sorted_topics = sorted(all_topics_enriched, key=lambda x: priority_order.get(x['priority'], 3))
+
+        for i, topic in enumerate(sorted_topics, 1):
+            priority_emoji = "🔴" if topic['priority'] == 'HIGH' else "🟡" if topic['priority'] == 'MEDIUM' else "🟢"
+            tier_label = "EXPLICIT" if topic['mentioned_explicitly'] else "IMPLICIT"
+            print(f"  {i}. {priority_emoji} [{topic['priority']}] [{tier_label}] {topic['name']}")
         print("="*80 + "\n")
 
-        # Step 2: Check coverage for each topic
-        print(f"🔍 Step 2: Checking coverage for {len(unique_topics)} topics against our book database...")
+        # Step 2: Check coverage for each topic (with enriched metadata)
+        print(f"🔍 Step 2: Checking coverage for {len(all_topics_enriched)} topics against our book database...")
         print("="*80)
         coverage_map = {}
-        for topic in unique_topics:
-            coverage_map[topic] = self.check_topic_coverage(topic)
-
-        covered_topics = [
-            {
-                "topic": topic,
-                "source": info['source'],  # Primary source (best match)
-                "all_sources": info.get('all_sources', []),  # All books covering this topic
-                "confidence": info['confidence']
+        for topic_info in all_topics_enriched:
+            topic_name = topic_info['name']
+            # Search using both topic name and keywords for better matching
+            coverage_map[topic_name] = {
+                'coverage': self.check_topic_coverage(topic_name),
+                'metadata': topic_info  # Preserve priority, keywords, tier, etc.
             }
-            for topic, info in coverage_map.items()
-            if info['covered']
-        ]
 
-        uncovered_topics = [
-            {
-                "topic": topic,
-                "confidence": info['confidence'],
-                "external_resources": info['external_resources']
-            }
-            for topic, info in coverage_map.items()
-            if not info['covered']
-        ]
+        # Build covered topics with enriched metadata
+        covered_topics = []
+        for topic_name, data in coverage_map.items():
+            coverage = data['coverage']
+            metadata = data['metadata']
 
-        coverage_percentage = int((len(covered_topics) / len(unique_topics) * 100)) if unique_topics else 0
+            if coverage['covered']:
+                covered_topics.append({
+                    "topic": topic_name,
+                    "source": coverage['source'],  # Primary source (best match)
+                    "all_sources": coverage.get('all_sources', []),  # All books covering this topic
+                    "confidence": coverage['confidence'],
+                    # NEW: Include enriched metadata
+                    "priority": metadata.get('priority', 'MEDIUM'),
+                    "tier": metadata.get('tier', 'EXPLICIT'),
+                    "keywords": metadata.get('keywords', []),
+                    "mentioned_explicitly": metadata.get('mentioned_explicitly', True)
+                })
 
-        # ============ DEBUG: Final Coverage Summary ============
+        # Build uncovered topics with enriched metadata
+        uncovered_topics = []
+        for topic_name, data in coverage_map.items():
+            coverage = data['coverage']
+            metadata = data['metadata']
+
+            if not coverage['covered']:
+                uncovered_topics.append({
+                    "topic": topic_name,
+                    "confidence": coverage['confidence'],
+                    "external_resources": coverage['external_resources'],
+                    # NEW: Include enriched metadata
+                    "priority": metadata.get('priority', 'MEDIUM'),
+                    "tier": metadata.get('tier', 'EXPLICIT'),
+                    "keywords": metadata.get('keywords', []),
+                    "mentioned_explicitly": metadata.get('mentioned_explicitly', True)
+                })
+
+        total_topics = len(all_topics_enriched)
+        coverage_percentage = int((len(covered_topics) / total_topics * 100)) if total_topics else 0
+
+        # ============ DEBUG: Final Coverage Summary (with enriched metadata) ============
         print("\n" + "="*80)
-        print("📊 COVERAGE ANALYSIS COMPLETE")
+        print("📊 COVERAGE ANALYSIS COMPLETE (Hierarchical)")
         print("="*80)
-        print(f"Overall Coverage: {coverage_percentage}% ({len(covered_topics)}/{len(unique_topics)} topics)")
+        print(f"Overall Coverage: {coverage_percentage}% ({len(covered_topics)}/{total_topics} topics)")
 
         if covered_topics:
             print(f"\n✅ COVERED TOPICS ({len(covered_topics)}):")
-            for i, t in enumerate(covered_topics, 1):
-                print(f"  {i}. {t['topic']}")
+            # Sort by priority for better readability
+            priority_order = {'HIGH': 0, 'MEDIUM': 1, 'LOW': 2}
+            covered_sorted = sorted(covered_topics, key=lambda x: priority_order.get(x.get('priority', 'MEDIUM'), 3))
+
+            for i, t in enumerate(covered_sorted, 1):
+                priority_emoji = "🔴" if t.get('priority') == 'HIGH' else "🟡" if t.get('priority') == 'MEDIUM' else "🟢"
+                tier_label = t.get('tier', 'EXPLICIT')
+                print(f"  {i}. {priority_emoji} [{t.get('priority', 'MEDIUM')}] [{tier_label}] {t['topic']}")
+
                 all_sources = t.get('all_sources', [])
                 if len(all_sources) > 1:
                     print(f"     └─ Found in {len(all_sources)} books:")
@@ -413,9 +585,16 @@ Focus on technical topics relevant to learning. Include implicit requirements li
 
         if uncovered_topics:
             print(f"\n❌ UNCOVERED TOPICS ({len(uncovered_topics)}):")
-            for i, t in enumerate(uncovered_topics, 1):
-                print(f"  {i}. {t['topic']}")
+            # Sort by priority for better readability
+            priority_order = {'HIGH': 0, 'MEDIUM': 1, 'LOW': 2}
+            uncovered_sorted = sorted(uncovered_topics, key=lambda x: priority_order.get(x.get('priority', 'MEDIUM'), 3))
+
+            for i, t in enumerate(uncovered_sorted, 1):
+                priority_emoji = "🔴" if t.get('priority') == 'HIGH' else "🟡" if t.get('priority') == 'MEDIUM' else "🟢"
+                tier_label = t.get('tier', 'EXPLICIT')
+                print(f"  {i}. {priority_emoji} [{t.get('priority', 'MEDIUM')}] [{tier_label}] {t['topic']}")
                 print(f"     └─ Best Score: {t['confidence']:.1%} (below {TOPIC_COVERAGE_THRESHOLD:.1%} threshold)")
+                print(f"     └─ Keywords: {', '.join(t.get('keywords', []))}")
                 print(f"     └─ External Resources: {len(t['external_resources'])} recommendations")
 
         print("="*80 + "\n")

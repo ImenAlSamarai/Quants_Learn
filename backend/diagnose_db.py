@@ -24,31 +24,39 @@ def diagnose():
 
     if 'users' in inspector.get_table_names():
         user_columns = [col['name'] for col in inspector.get_columns('users')]
-        print(f"Total columns in users table: {len(user_columns)}")
+        print(f"Total columns via inspector: {len(user_columns)}")
         print()
 
         # Check Phase 2.5 job-based columns
         phase25_columns = ['job_title', 'job_description', 'job_seniority', 'firm', 'job_role_type']
 
-        print("Phase 2.5 Job-Based Columns:")
+        print("Phase 2.5 Columns (via SQLAlchemy inspector - MAY BE CACHED):")
         for col in phase25_columns:
             if col in user_columns:
-                print(f"  ✓ {col} EXISTS")
+                print(f"  ✓ {col} EXISTS (cached?)")
             else:
                 print(f"  ✗ {col} MISSING")
         print()
 
-        # Try direct SQL query to verify
-        print("Verifying with direct SQL query:")
+        # Try direct SQL query to verify - THIS IS THE TRUTH
+        print("ACTUAL DATABASE STATE (direct information_schema query):")
         try:
-            result = db.execute(text("SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'users' AND column_name IN ('job_title', 'job_description', 'job_seniority', 'firm', 'job_role_type') ORDER BY column_name"))
-            rows = result.fetchall()
-            if rows:
-                print("  Found in information_schema.columns:")
-                for row in rows:
-                    print(f"    • {row[0]} ({row[1]})")
-            else:
-                print("  ✗ No Phase 2.5 columns found in information_schema.columns")
+            # Get ALL columns from information_schema
+            result = db.execute(text(
+                "SELECT column_name FROM information_schema.columns WHERE table_name = 'users' ORDER BY ordinal_position"
+            ))
+            actual_columns = [row[0] for row in result.fetchall()]
+            print(f"  Total columns in database: {len(actual_columns)}")
+            print(f"  All columns: {', '.join(actual_columns)}")
+            print()
+
+            # Check Phase 2.5 specifically
+            print("  Phase 2.5 columns in ACTUAL database:")
+            for col in phase25_columns:
+                if col in actual_columns:
+                    print(f"    ✓ {col} EXISTS")
+                else:
+                    print(f"    ✗ {col} MISSING")
         except Exception as e:
             print(f"  Error querying information_schema: {e}")
         print()

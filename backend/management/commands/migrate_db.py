@@ -117,8 +117,80 @@ class MigrateDatabaseCommand:
             print("Applying migration...")
             print()
 
-            # Create new tables and columns (SQLAlchemy will only create missing ones)
+            # Step 1: Create new tables (create_all only creates missing tables, not columns)
             Base.metadata.create_all(bind=engine)
+            print("✓ New tables created")
+
+            # Step 2: Add missing columns to existing tables using ALTER TABLE
+            # This is the robust approach - SQLAlchemy's create_all() does NOT add columns!
+
+            # Add Phase 2 columns to users table
+            if 'users' in existing_tables:
+                user_columns = [col['name'] for col in inspector.get_columns('users')]
+
+                phase2_column_defs = {
+                    'email': 'VARCHAR(255)',
+                    'phone': 'VARCHAR(50)',
+                    'cv_url': 'TEXT',
+                    'linkedin_url': 'TEXT',
+                    'education_level': 'VARCHAR(100)',
+                    'job_role': 'VARCHAR(200)',
+                    'years_experience': 'INTEGER',
+                    'target_roles': 'TEXT'
+                }
+
+                for col_name, col_type in phase2_column_defs.items():
+                    if col_name not in user_columns:
+                        self.db.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+                        print(f"  ✓ Added users.{col_name}")
+
+                # Add Phase 2.5 job-based personalization columns
+                phase25_column_defs = {
+                    'job_title': 'VARCHAR(200)',
+                    'job_description': 'TEXT',
+                    'job_seniority': 'VARCHAR(50)',
+                    'firm': 'VARCHAR(200)',
+                    'job_role_type': 'VARCHAR(100)'
+                }
+
+                for col_name, col_type in phase25_column_defs.items():
+                    if col_name not in user_columns:
+                        self.db.execute(text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
+                        print(f"  ✓ Added users.{col_name}")
+
+                self.db.commit()
+
+            # Add cache key columns to generated_content table
+            if 'generated_content' in existing_tables:
+                gc_columns = [col['name'] for col in inspector.get_columns('generated_content')]
+
+                # Make difficulty_level nullable first if it exists and isn't already
+                if 'difficulty_level' in gc_columns:
+                    try:
+                        self.db.execute(text("ALTER TABLE generated_content ALTER COLUMN difficulty_level DROP NOT NULL"))
+                        print("  ✓ Made difficulty_level nullable")
+                    except Exception:
+                        pass  # Already nullable
+
+                # Add new cache key columns
+                if 'role_template_id' not in gc_columns:
+                    self.db.execute(text("ALTER TABLE generated_content ADD COLUMN role_template_id VARCHAR(50)"))
+                    print("  ✓ Added generated_content.role_template_id")
+
+                if 'job_profile_hash' not in gc_columns:
+                    self.db.execute(text("ALTER TABLE generated_content ADD COLUMN job_profile_hash VARCHAR(32)"))
+                    print("  ✓ Added generated_content.job_profile_hash")
+
+                self.db.commit()
+
+                # Create indexes for cache keys
+                try:
+                    self.db.execute(text("CREATE INDEX IF NOT EXISTS ix_generated_content_role_template_id ON generated_content(role_template_id)"))
+                    self.db.execute(text("CREATE INDEX IF NOT EXISTS ix_generated_content_job_profile_hash ON generated_content(job_profile_hash)"))
+                    self.db.commit()
+                    print("  ✓ Created indexes on cache key columns")
+                except Exception as e:
+                    print(f"  ⚠️  Index creation skipped: {e}")
 
             print("✓ Schema updated")
 

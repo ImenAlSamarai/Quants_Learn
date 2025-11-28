@@ -223,56 +223,76 @@ Focus on technical topics relevant to learning. Include implicit requirements li
             matches = []
 
         # ============ DEBUG: Detailed Match Information ============
+        # Group matches by source book
+        matches_by_book = {}
+        for match in matches:
+            source = match.get('metadata', {}).get('source', 'Unknown')
+            if source not in matches_by_book:
+                matches_by_book[source] = []
+            matches_by_book[source].append(match)
+
         if matches:
             best_match = matches[0]
-            print(f"\n  📚 Topic '{topic}': best match score = {best_match['score']:.3f} (threshold={min_score})")
+            print(f"\n  📚 Topic '{topic}': best overall match score = {best_match['score']:.3f} (threshold={min_score})")
 
-            # Show book/chapter source
-            metadata = best_match.get('metadata', {})
-            source = metadata.get('source', 'Unknown')
-            chapter = metadata.get('chapter', 'N/A')
-            section = metadata.get('section', '')
+            # Show matches grouped by book
+            print(f"     └─ Found in {len(matches_by_book)} book(s):")
+            for book_name, book_matches in sorted(matches_by_book.items(),
+                                                   key=lambda x: x[1][0]['score'],
+                                                   reverse=True):
+                best_book_match = book_matches[0]
+                book_score = best_book_match['score']
+                chapter = best_book_match.get('metadata', {}).get('chapter', 'N/A')
+                section = best_book_match.get('metadata', {}).get('section', '')
+                num_matches = len([m for m in book_matches if m['score'] > min_score])
 
-            print(f"     └─ Source: {source}")
-            if chapter != 'N/A':
-                print(f"     └─ Chapter: {chapter}")
-            if section:
-                print(f"     └─ Section: {section}")
+                # Determine if this book covers the topic (above threshold)
+                coverage_status = "✅" if book_score >= min_score else "⚠️"
 
-            # Show matching text snippet
-            text_preview = best_match.get('text', '')[:150].replace('\n', ' ')
-            print(f"     └─ Matching Text: \"{text_preview}...\"")
+                print(f"        {coverage_status} {book_name}")
+                print(f"           └─ Best score: {book_score:.3f} | Ch.{chapter} | {num_matches} chunks above threshold")
 
-            # Show top 3 matches for comparison
-            if len(matches) > 1:
-                print(f"     └─ Top 3 matches:")
-                for i, match in enumerate(matches[:3], 1):
-                    m_source = match.get('metadata', {}).get('source', 'Unknown')
-                    m_chapter = match.get('metadata', {}).get('chapter', 'N/A')
-                    print(f"        {i}. Score: {match['score']:.3f} | {m_source} Ch.{m_chapter}")
+                # Show text preview for books above threshold
+                if book_score >= min_score:
+                    text_preview = best_book_match.get('text', '')[:100].replace('\n', ' ')
+                    print(f"           └─ Preview: \"{text_preview}...\"")
         else:
             print(f"\n  ❌ Topic '{topic}': no matches found in vector store")
 
-        if not matches or matches[0]['score'] < min_score:
-            # NOT COVERED - provide external resources
+        # Determine if topic is covered (ANY book above threshold)
+        books_above_threshold = []
+        for book_name, book_matches in matches_by_book.items():
+            if book_matches[0]['score'] >= min_score:
+                books_above_threshold.append({
+                    'source': book_name,
+                    'confidence': book_matches[0]['score'],
+                    'chapter': book_matches[0].get('metadata', {}).get('chapter', 'N/A'),
+                    'num_chunks': len([m for m in book_matches if m['score'] >= min_score]),
+                    'preview': book_matches[0].get('text', '')[:200] + "..."
+                })
+
+        if not books_above_threshold:
+            # NOT COVERED - no book meets threshold
             return {
                 "covered": False,
                 "topic": topic,
                 "confidence": matches[0]['score'] if matches else 0.0,
-                "external_resources": self._get_external_resources(topic)
+                "external_resources": self._get_external_resources(topic),
+                "all_sources": []  # No sources above threshold
             }
 
-        # COVERED - extract source information
-        source_book = matches[0]['metadata'].get('source', 'Unknown')
-        high_quality_matches = [m for m in matches if m['score'] > min_score]
+        # COVERED - return ALL books that cover this topic
+        # Sort by confidence (best book first)
+        books_above_threshold.sort(key=lambda x: x['confidence'], reverse=True)
 
         return {
             "covered": True,
             "topic": topic,
-            "confidence": matches[0]['score'],
-            "source": source_book,  # e.g., "ESL", "DL", "Bouchaud"
-            "num_chunks": len(high_quality_matches),
-            "top_chunk_preview": matches[0]['text'][:200] + "..." if matches else None
+            "confidence": books_above_threshold[0]['confidence'],  # Best overall score
+            "source": books_above_threshold[0]['source'],  # Primary source (best match)
+            "all_sources": books_above_threshold,  # All books covering this topic
+            "num_chunks": sum(b['num_chunks'] for b in books_above_threshold),
+            "top_chunk_preview": books_above_threshold[0]['preview']
         }
 
     def _get_external_resources(self, topic: str) -> List[Dict[str, str]]:
@@ -348,7 +368,8 @@ Focus on technical topics relevant to learning. Include implicit requirements li
         covered_topics = [
             {
                 "topic": topic,
-                "source": info['source'],
+                "source": info['source'],  # Primary source (best match)
+                "all_sources": info.get('all_sources', []),  # All books covering this topic
                 "confidence": info['confidence']
             }
             for topic, info in coverage_map.items()
@@ -377,7 +398,18 @@ Focus on technical topics relevant to learning. Include implicit requirements li
             print(f"\n✅ COVERED TOPICS ({len(covered_topics)}):")
             for i, t in enumerate(covered_topics, 1):
                 print(f"  {i}. {t['topic']}")
-                print(f"     └─ Source: {t['source']} | Confidence: {t['confidence']:.1%}")
+                all_sources = t.get('all_sources', [])
+                if len(all_sources) > 1:
+                    print(f"     └─ Found in {len(all_sources)} books:")
+                    for j, source_info in enumerate(all_sources, 1):
+                        source_name = source_info['source']
+                        conf = source_info['confidence']
+                        chapter = source_info.get('chapter', 'N/A')
+                        chunks = source_info.get('num_chunks', 0)
+                        print(f"        {j}. {source_name} Ch.{chapter} | Score: {conf:.1%} | {chunks} chunks")
+                else:
+                    # Single source
+                    print(f"     └─ Source: {t['source']} | Confidence: {t['confidence']:.1%}")
 
         if uncovered_topics:
             print(f"\n❌ UNCOVERED TOPICS ({len(uncovered_topics)}):")

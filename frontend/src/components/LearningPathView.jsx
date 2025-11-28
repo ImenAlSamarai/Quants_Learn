@@ -135,11 +135,46 @@ const LearningPathView = ({ userId = 'demo_user', onClose }) => {
                     {(topic.confidence * 100).toFixed(0)}% match
                   </span>
                 </div>
-                {topic.source && topic.source !== 'Unknown' && (
-                  <div className="topic-source">
-                    <span className="source-icon">📖</span>
-                    <span className="source-text">{topic.source}</span>
+
+                {/* Show all sources if multiple books cover this topic */}
+                {topic.all_sources && topic.all_sources.length > 0 ? (
+                  <div className="topic-sources-multi">
+                    {topic.all_sources.length === 1 ? (
+                      <div className="topic-source">
+                        <span className="source-icon">📖</span>
+                        <span className="source-text">{topic.all_sources[0].source}</span>
+                        {topic.all_sources[0].chapter !== 'N/A' && (
+                          <span className="source-chapter">Ch. {topic.all_sources[0].chapter}</span>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="sources-header">
+                          Found in {topic.all_sources.length} books:
+                        </div>
+                        {topic.all_sources.map((source, idx) => (
+                          <div key={idx} className="topic-source">
+                            <span className="source-icon">📖</span>
+                            <span className="source-text">{source.source}</span>
+                            {source.chapter !== 'N/A' && (
+                              <span className="source-chapter">Ch. {source.chapter}</span>
+                            )}
+                            <span className="source-score">
+                              {(source.confidence * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                        ))}
+                      </>
+                    )}
                   </div>
+                ) : (
+                  // Fallback for old data format
+                  topic.source && topic.source !== 'Unknown' && (
+                    <div className="topic-source">
+                      <span className="source-icon">📖</span>
+                      <span className="source-text">{topic.source}</span>
+                    </div>
+                  )
                 )}
               </div>
             ))}

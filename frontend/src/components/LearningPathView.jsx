@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getLearningPath } from '../services/api';
-import LearningStage from './LearningStage';
+import StagedTreeLayout from './tree/StagedTreeLayout';
 import '../styles/LearningPath.css';
 
 const LearningPathView = ({ userId = 'demo_user', onClose }) => {
   const [learningPath, setLearningPath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [expandedStage, setExpandedStage] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchLearningPath();
@@ -92,136 +93,32 @@ const LearningPathView = ({ userId = 'demo_user', onClose }) => {
         </div>
       </header>
 
-      {/* Learning Stages Section */}
-      {learningPath.stages && learningPath.stages.length > 0 && (
-        <section className="stages-section">
+      {/* Staged Tree Visualization */}
+      {learningPath.stages && learningPath.stages.length > 0 ? (
+        <section className="tree-section">
           <div className="section-header">
-            <h2>📚 Learning Stages</h2>
+            <h2>🌳 Your Learning Journey</h2>
             <p className="section-subtitle">
-              {learningPath.stages.length} stages designed for your target role
+              Interactive topic tree showing your path to interview readiness
             </p>
           </div>
 
-          <div className="stages-list">
-            {learningPath.stages.map((stage, index) => (
-              <LearningStage
-                key={index}
-                stage={stage}
-                stageNumber={index + 1}
-                isExpanded={expandedStage === index}
-                onToggle={() => setExpandedStage(expandedStage === index ? -1 : index)}
-              />
-            ))}
-          </div>
+          <StagedTreeLayout
+            stages={learningPath.stages}
+            dependencies={learningPath.dependencies || []}
+            onTopicClick={(topicName) => {
+              // Navigate to topic detail page
+              const topicSlug = topicName.toLowerCase().replace(/\s+/g, '-');
+              navigate(`/topic/${topicSlug}`, { state: { topicName } });
+            }}
+          />
         </section>
-      )}
-
-      {/* Covered Topics Section */}
-      {learningPath.covered_topics && learningPath.covered_topics.length > 0 && (
-        <section className="covered-section">
-          <div className="section-header">
-            <h2>✅ Topics Covered in Our Books</h2>
-            <p className="section-subtitle">
-              These topics are well-covered in our curated content
-            </p>
-          </div>
-
-          <div className="topics-grid">
-            {learningPath.covered_topics.map((topic, index) => (
-              <div key={index} className="topic-card covered">
-                <div className="topic-header">
-                  <span className="topic-name">{topic.topic}</span>
-                  <span className="confidence-badge">
-                    {(topic.confidence * 100).toFixed(0)}% match
-                  </span>
-                </div>
-
-                {/* Show all sources if multiple books cover this topic */}
-                {topic.all_sources && topic.all_sources.length > 0 ? (
-                  <div className="topic-sources-multi">
-                    {topic.all_sources.length === 1 ? (
-                      <div className="topic-source">
-                        <span className="source-icon">📖</span>
-                        <span className="source-text">{topic.all_sources[0].source}</span>
-                        {topic.all_sources[0].chapter !== 'N/A' && (
-                          <span className="source-chapter">Ch. {topic.all_sources[0].chapter}</span>
-                        )}
-                      </div>
-                    ) : (
-                      <>
-                        <div className="sources-header">
-                          Found in {topic.all_sources.length} books:
-                        </div>
-                        {topic.all_sources.map((source, idx) => (
-                          <div key={idx} className="topic-source">
-                            <span className="source-icon">📖</span>
-                            <span className="source-text">{source.source}</span>
-                            {source.chapter !== 'N/A' && (
-                              <span className="source-chapter">Ch. {source.chapter}</span>
-                            )}
-                            <span className="source-score">
-                              {(source.confidence * 100).toFixed(0)}%
-                            </span>
-                          </div>
-                        ))}
-                      </>
-                    )}
-                  </div>
-                ) : (
-                  // Fallback for old data format
-                  topic.source && topic.source !== 'Unknown' && (
-                    <div className="topic-source">
-                      <span className="source-icon">📖</span>
-                      <span className="source-text">{topic.source}</span>
-                    </div>
-                  )
-                )}
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Uncovered Topics Section */}
-      {learningPath.uncovered_topics && learningPath.uncovered_topics.length > 0 && (
-        <section className="uncovered-section">
-          <div className="section-header">
-            <h2>🔗 Additional Resources Needed</h2>
-            <p className="section-subtitle">
-              These topics require external learning resources
-            </p>
-          </div>
-
-          <div className="topics-grid">
-            {learningPath.uncovered_topics.map((topic, index) => (
-              <div key={index} className="topic-card uncovered">
-                <div className="topic-header">
-                  <span className="topic-name">{topic.topic}</span>
-                  <span className="confidence-badge low">
-                    {(topic.confidence * 100).toFixed(0)}% match
-                  </span>
-                </div>
-
-                {topic.external_resources && topic.external_resources.length > 0 && (
-                  <div className="external-resources">
-                    <div className="resources-label">Recommended Resources:</div>
-                    {topic.external_resources.map((resource, idx) => (
-                      <a
-                        key={idx}
-                        href={resource.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="resource-link"
-                      >
-                        <span className="resource-type">{resource.type}</span>
-                        <span className="resource-name">{resource.name}</span>
-                        <span className="external-icon">↗</span>
-                      </a>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
+      ) : (
+        <section className="empty-state">
+          <div className="empty-message">
+            <h3>No Learning Path Available</h3>
+            <p>We couldn't generate a learning path based on your job description.</p>
+            <p>This might be because the topics require resources we don't have yet.</p>
           </div>
         </section>
       )}
@@ -231,20 +128,20 @@ const LearningPathView = ({ userId = 'demo_user', onClose }) => {
         <div className="footer-content">
           <div className="footer-stats">
             <div className="stat">
-              <span className="stat-value">{learningPath.stages.length}</span>
+              <span className="stat-value">{learningPath.stages?.length || 0}</span>
               <span className="stat-label">Learning Stages</span>
             </div>
             <div className="stat">
-              <span className="stat-value">{learningPath.covered_topics.length}</span>
-              <span className="stat-label">Covered Topics</span>
+              <span className="stat-value">{learningPath.covered_topics?.length || 0}</span>
+              <span className="stat-label">Covered in Books</span>
             </div>
             <div className="stat">
-              <span className="stat-value">{learningPath.uncovered_topics.length}</span>
-              <span className="stat-label">External Resources</span>
+              <span className="stat-value">{learningPath.uncovered_topics?.length || 0}</span>
+              <span className="stat-label">Need Resources</span>
             </div>
             <div className="stat">
-              <span className="stat-value">{learningPath.coverage_percentage}%</span>
-              <span className="stat-label">Coverage</span>
+              <span className="stat-value">{learningPath.coverage_percentage || 0}%</span>
+              <span className="stat-label">Overall Coverage</span>
             </div>
           </div>
 

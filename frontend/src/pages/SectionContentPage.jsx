@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../styles/SectionContent.css';
 
@@ -16,6 +16,18 @@ const SectionContentPage = () => {
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState('');
   const [completed, setCompleted] = useState(false);
+
+  // Load completion status from localStorage (placeholder persistence)
+  useEffect(() => {
+    const completionKey = `${topicSlug}-${weekNumber}-${sectionId}-completed`;
+    const isCompleted = localStorage.getItem(completionKey) === 'true';
+    setCompleted(isCompleted);
+
+    // Load notes from localStorage
+    const notesKey = `${topicSlug}-${weekNumber}-${sectionId}-notes`;
+    const savedNotes = localStorage.getItem(notesKey) || '';
+    setNotes(savedNotes);
+  }, [topicSlug, weekNumber, sectionId]); // Reset when section changes!
 
   // PLACEHOLDER DATA - Replace with real API calls
   // Make content dynamic based on sectionId
@@ -190,8 +202,33 @@ This is exactly the OLS estimator! MLE and OLS coincide under normality.`
   const sectionData = getSectionData();
 
   const handleComplete = () => {
-    setCompleted(true);
-    alert('Section marked as complete! Progress saved.');
+    const newCompletedState = !completed;
+    setCompleted(newCompletedState);
+
+    // Save to localStorage (placeholder persistence)
+    const completionKey = `${topicSlug}-${weekNumber}-${sectionId}-completed`;
+    localStorage.setItem(completionKey, newCompletedState.toString());
+
+    if (newCompletedState) {
+      alert('✅ Section marked as complete! Progress saved.');
+    } else {
+      alert('Section marked as incomplete.');
+    }
+  };
+
+  const handleSaveNotes = (newNotes) => {
+    setNotes(newNotes);
+    // Save to localStorage
+    const notesKey = `${topicSlug}-${weekNumber}-${sectionId}-notes`;
+    localStorage.setItem(notesKey, newNotes);
+  };
+
+  const handleTryProblem = (problemId, problemText) => {
+    alert(`Practice Problem #${problemId}\n\n"${problemText}"\n\nTODO: Open practice interface with:\n- Code editor for implementation\n- Test cases\n- Solution checker\n- Hints system`);
+  };
+
+  const handleViewPDF = (source, chapter) => {
+    alert(`Opening PDF:\n\n${source}\n${chapter}\n\nTODO: Integrate with PDF viewer showing:\n- Exact page/section\n- Highlighting capability\n- Bookmark functionality`);
   };
 
   const handleNext = () => {
@@ -300,7 +337,12 @@ This is exactly the OLS estimator! MLE and OLS coincide under normality.`
                   {problem.difficulty}
                 </span>
                 <span className="problem-text">{problem.text}</span>
-                <button className="btn-try">Try It</button>
+                <button
+                  className="btn-try"
+                  onClick={() => handleTryProblem(problem.id, problem.text)}
+                >
+                  Try It
+                </button>
               </div>
             ))}
           </div>
@@ -312,7 +354,12 @@ This is exactly the OLS estimator! MLE and OLS coincide under normality.`
               <div key={i} className="resource-item">
                 <div className="resource-source">{resource.source}</div>
                 <div className="resource-details">{resource.chapter} • {resource.pages}</div>
-                <button className="btn-view">View PDF</button>
+                <button
+                  className="btn-view"
+                  onClick={() => handleViewPDF(resource.source, resource.chapter)}
+                >
+                  View PDF
+                </button>
               </div>
             ))}
           </div>
@@ -324,13 +371,18 @@ This is exactly the OLS estimator! MLE and OLS coincide under normality.`
           <div className="completion-card">
             <h4>Section Progress</h4>
             {completed ? (
-              <div className="completed-status">
-                <span className="check-icon">✅</span>
-                <span>Completed!</span>
-              </div>
+              <>
+                <div className="completed-status">
+                  <span className="check-icon">✅</span>
+                  <span>Completed!</span>
+                </div>
+                <button onClick={handleComplete} className="btn-uncomplete">
+                  Mark as Incomplete
+                </button>
+              </>
             ) : (
               <button onClick={handleComplete} className="btn-complete">
-                Mark as Complete
+                ✓ Mark as Complete
               </button>
             )}
           </div>
@@ -348,7 +400,7 @@ This is exactly the OLS estimator! MLE and OLS coincide under normality.`
                 className="notes-textarea"
                 placeholder="Write your notes here..."
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={(e) => handleSaveNotes(e.target.value)}
                 rows={10}
               />
             )}

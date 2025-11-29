@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import '../styles/TopicDetail.css';
 
@@ -15,6 +15,37 @@ const TopicDetailPage = () => {
   const topicName = location.state?.topicName || topicSlug.replace(/-/g, ' ');
 
   const [activeTab, setActiveTab] = useState('roadmap'); // roadmap, practice, progress
+  const [sectionCompletionStatus, setSectionCompletionStatus] = useState({});
+
+  // Load section completion status from localStorage
+  useEffect(() => {
+    const loadCompletionStatus = () => {
+      const status = {};
+      topicData.weeks.forEach(week => {
+        week.sections.forEach(section => {
+          const completionKey = `${topicSlug}-${week.weekNumber}-${section.id}-completed`;
+          status[section.id] = localStorage.getItem(completionKey) === 'true';
+        });
+      });
+      setSectionCompletionStatus(status);
+    };
+
+    loadCompletionStatus();
+
+    // Listen for storage events to update when completion changes in other tabs
+    const handleStorageChange = () => {
+      loadCompletionStatus();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    // Also check periodically (in case completion happens in same tab)
+    const interval = setInterval(loadCompletionStatus, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [topicSlug]);
 
   // PLACEHOLDER DATA - Replace with real API calls
   const topicData = {
@@ -253,11 +284,15 @@ const TopicDetailPage = () => {
                       <div className="section-header">
                         <input
                           type="checkbox"
-                          checked={section.completed}
-                          onChange={() => {/* TODO: Handle completion */}}
+                          checked={sectionCompletionStatus[section.id] || false}
+                          readOnly
+                          style={{ cursor: 'default' }}
                         />
                         <span className="section-id">{section.id}</span>
                         <span className="section-title">{section.title}</span>
+                        {sectionCompletionStatus[section.id] && (
+                          <span className="section-completed-badge">✓</span>
+                        )}
                       </div>
 
                       {section.topics && (

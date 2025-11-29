@@ -256,6 +256,13 @@
   flex: 1;
 }
 
+.section-completed-badge {
+  font-size: 16px;
+  color: #10B981;
+  font-weight: 700;
+  margin-left: 8px;
+}
+
 .section-topics {
   margin: 8px 0 8px 32px;
   padding-left: 20px;

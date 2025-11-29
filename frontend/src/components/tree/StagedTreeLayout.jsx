@@ -88,13 +88,13 @@ const StagedTreeLayout = ({
         <path
           d={pathData}
           fill="none"
-          stroke="#6B7280"
-          strokeWidth="3"
+          stroke="#374151"
+          strokeWidth="4"
           className="arrow-path"
         />
         <polygon
           points={`${endX},${endY} ${arrowX1},${arrowY1} ${arrowX2},${arrowY2}`}
-          fill="#6B7280"
+          fill="#374151"
           className="arrow-head"
         />
         {reason && (
@@ -136,12 +136,7 @@ const StagedTreeLayout = ({
           </marker>
         </defs>
 
-        {/* Draw dependency arrows */}
-        {dependencies && dependencies.map((dep) =>
-          drawArrow(dep.from, dep.to, dep.reason)
-        )}
-
-        {/* Draw hexagons */}
+        {/* Draw hexagons first (background) */}
         {Object.entries(hexagonPositions).map(([key, { x, y, topic }]) => (
           <g
             key={`hex-${key}`}
@@ -162,6 +157,11 @@ const StagedTreeLayout = ({
             </foreignObject>
           </g>
         ))}
+
+        {/* Draw dependency arrows on top */}
+        {dependencies && dependencies.map((dep) =>
+          drawArrow(dep.from, dep.to, dep.reason)
+        )}
       </svg>
 
       {/* Legend */}

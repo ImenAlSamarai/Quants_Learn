@@ -1,11 +1,16 @@
 .staged-tree-layout {
   position: relative;
   width: 100%;
-  padding: 20px;
+  min-height: 500px;
+  padding: 40px;
   background: #F9FAFB;
   border-radius: 12px;
   overflow-x: auto;
   overflow-y: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .staged-tree-empty {
@@ -28,6 +33,7 @@
 /* Dependency arrows */
 .dependency-arrow {
   transition: opacity 0.2s ease;
+  pointer-events: stroke;
 }
 
 .dependency-arrow:hover {
@@ -36,19 +42,22 @@
 
 .arrow-path {
   transition: stroke 0.2s ease, stroke-width 0.2s ease;
+  stroke: #374151 !important;
+  stroke-width: 4 !important;
 }
 
 .dependency-arrow:hover .arrow-path {
-  stroke: #6B7280;
-  stroke-width: 3;
+  stroke: #1F2937 !important;
+  stroke-width: 5 !important;
 }
 
 .arrow-head {
   transition: fill 0.2s ease;
+  fill: #374151 !important;
 }
 
 .dependency-arrow:hover .arrow-head {
-  fill: #6B7280;
+  fill: #1F2937 !important;
 }
 
 /* Legend */

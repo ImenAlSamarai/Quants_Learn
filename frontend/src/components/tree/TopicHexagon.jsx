@@ -75,11 +75,39 @@ const TopicHexagon = ({
     }
   };
 
-  // Truncate long topic names
-  const truncateName = (name, maxLength = 20) => {
-    if (name.length <= maxLength) return name;
-    return name.substring(0, maxLength - 3) + '...';
+  // Word wrap helper - split text into lines that fit
+  const wrapText = (text, maxCharsPerLine = 12) => {
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    words.forEach(word => {
+      if ((currentLine + word).length > maxCharsPerLine && currentLine.length > 0) {
+        lines.push(currentLine.trim());
+        currentLine = word + ' ';
+      } else {
+        currentLine += word + ' ';
+      }
+    });
+
+    if (currentLine.trim()) {
+      lines.push(currentLine.trim());
+    }
+
+    // Limit to 3 lines max, truncate if needed
+    if (lines.length > 3) {
+      lines[2] = lines[2].substring(0, 10) + '...';
+      return lines.slice(0, 3);
+    }
+
+    return lines;
   };
+
+  const textLines = wrapText(topic);
+  const fontSize = size > 100 ? 12 : 10;
+  const lineHeight = fontSize + 2;
+  const totalTextHeight = textLines.length * lineHeight;
+  const startY = centerY - (totalTextHeight / 2) + (fontSize / 2);
 
   return (
     <div
@@ -114,35 +142,26 @@ const TopicHexagon = ({
           className="hexagon-border"
         />
 
-        {/* Topic name text */}
+        {/* Topic name text - multi-line */}
         <text
           x={centerX}
-          y={centerY}
           textAnchor="middle"
-          dominantBaseline="middle"
           fill={colors.text}
-          fontSize={size > 100 ? 14 : 12}
+          fontSize={fontSize}
           fontWeight="600"
           className="hexagon-text"
         >
-          <tspan x={centerX} dy="0">{truncateName(topic, 18)}</tspan>
+          {textLines.map((line, i) => (
+            <tspan
+              key={i}
+              x={centerX}
+              y={startY + (i * lineHeight)}
+            >
+              {line}
+            </tspan>
+          ))}
         </text>
       </svg>
-
-      {/* Tooltip on hover */}
-      <div className="hexagon-tooltip">
-        <div className="tooltip-content">
-          <div className="tooltip-name">{topic}</div>
-          <div className="tooltip-meta">
-            <span className={`priority-badge priority-${priority.toLowerCase()}`}>
-              {priority}
-            </span>
-            <span className={`coverage-badge ${covered ? 'covered' : 'uncovered'}`}>
-              {covered ? '✓ Covered' : '📚 Need resources'}
-            </span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

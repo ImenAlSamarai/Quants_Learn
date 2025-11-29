@@ -88,15 +88,13 @@ const StagedTreeLayout = ({
         <path
           d={pathData}
           fill="none"
-          stroke="#9CA3AF"
-          strokeWidth="2"
-          strokeDasharray="5,5"
-          markerEnd="url(#arrowhead)"
+          stroke="#6B7280"
+          strokeWidth="3"
           className="arrow-path"
         />
         <polygon
           points={`${endX},${endY} ${arrowX1},${arrowY1} ${arrowX2},${arrowY2}`}
-          fill="#9CA3AF"
+          fill="#6B7280"
           className="arrow-head"
         />
         {reason && (
@@ -116,24 +114,6 @@ const StagedTreeLayout = ({
 
   return (
     <div className={`staged-tree-layout ${className}`}>
-      {/* Stage labels */}
-      <div className="stage-labels">
-        {stages.map((stage, index) => (
-          <div
-            key={`label-${stage.stage_number}`}
-            className="stage-label"
-            style={{
-              left: index * STAGE_SPACING + HEXAGON_SIZE / 2,
-              width: STAGE_SPACING - HEXAGON_SIZE
-            }}
-          >
-            <div className="stage-number">Stage {stage.stage_number}</div>
-            <div className="stage-name">{stage.stage_name}</div>
-            <div className="stage-description">{stage.description}</div>
-          </div>
-        ))}
-      </div>
-
       {/* SVG canvas for hexagons and arrows */}
       <svg
         ref={svgRef}

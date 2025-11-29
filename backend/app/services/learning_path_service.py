@@ -53,7 +53,108 @@ COMMON_ROLE_TEMPLATES = {
     }
 }
 
-# External resource recommendations by topic
+# Curated book recommendations for uncovered topics
+# These are highly-regarded books in quantitative finance that should be added to content/
+CURATED_BOOK_RECOMMENDATIONS = {
+    # Alpha Research & Trading Strategies
+    'alpha research': [
+        {'title': 'Advances in Financial Machine Learning', 'author': 'Marcos López de Prado', 'year': 2018, 'reason': 'Industry standard for ML-based alpha research'},
+        {'title': 'Quantitative Trading', 'author': 'Ernest P. Chan', 'year': 2008, 'reason': 'Practical guide to alpha generation and strategy development'},
+        {'title': 'Active Portfolio Management', 'author': 'Grinold & Kahn', 'year': 1999, 'reason': 'Classical text on alpha models and portfolio construction'}
+    ],
+    'alpha generation': [
+        {'title': 'Advances in Financial Machine Learning', 'author': 'Marcos López de Prado', 'year': 2018, 'reason': 'Modern approach to alpha research with ML'},
+        {'title': 'Quantitative Equity Portfolio Management', 'author': 'Qian, Hua & Sorensen', 'year': 2007, 'reason': 'Comprehensive coverage of factor models and alpha'}
+    ],
+    'factor models': [
+        {'title': 'Quantitative Equity Portfolio Management', 'author': 'Qian, Hua & Sorensen', 'year': 2007, 'reason': 'Detailed coverage of multi-factor models'},
+        {'title': 'Expected Returns', 'author': 'Antti Ilmanen', 'year': 2011, 'reason': 'Deep dive into factor premiums across asset classes'}
+    ],
+
+    # Options & Derivatives
+    'options pricing': [
+        {'title': 'Options, Futures, and Other Derivatives', 'author': 'John C. Hull', 'year': 2017, 'reason': 'Industry bible for derivatives pricing'},
+        {'title': 'The Volatility Surface', 'author': 'Jim Gatheral', 'year': 2006, 'reason': 'Advanced treatment of volatility modeling'}
+    ],
+    'stochastic calculus': [
+        {'title': 'Stochastic Calculus for Finance II', 'author': 'Steven Shreve', 'year': 2004, 'reason': 'Rigorous introduction to continuous-time models'},
+        {'title': 'Arbitrage Theory in Continuous Time', 'author': 'Tomas Björk', 'year': 2009, 'reason': 'Comprehensive coverage with finance applications'}
+    ],
+    'volatility modeling': [
+        {'title': 'The Volatility Surface', 'author': 'Jim Gatheral', 'year': 2006, 'reason': 'Practitioner guide to vol surface construction'},
+        {'title': 'Volatility and Correlation', 'author': 'Riccardo Rebonato', 'year': 2004, 'reason': 'Detailed treatment of correlation and vol dynamics'}
+    ],
+
+    # Risk Management
+    'risk management': [
+        {'title': 'Quantitative Risk Management', 'author': 'McNeil, Frey & Embrechts', 'year': 2015, 'reason': 'Comprehensive QRM textbook'},
+        {'title': 'The Concepts and Practice of Mathematical Finance', 'author': 'Mark Joshi', 'year': 2008, 'reason': 'Practical approach to risk and pricing'}
+    ],
+    'var models': [
+        {'title': 'Value at Risk', 'author': 'Philippe Jorion', 'year': 2006, 'reason': 'Standard reference for VaR methodology'},
+        {'title': 'Quantitative Risk Management', 'author': 'McNeil, Frey & Embrechts', 'year': 2015, 'reason': 'Modern approach to risk measurement'}
+    ],
+    'market microstructure': [
+        {'title': 'Market Microstructure Theory', 'author': "O'Hara", 'year': 1995, 'reason': 'Classic theoretical foundation'},
+        {'title': 'Empirical Market Microstructure', 'author': 'Joel Hasbrouck', 'year': 2007, 'reason': 'Empirical methods for analyzing market data'}
+    ],
+
+    # Time Series & Econometrics
+    'time series': [
+        {'title': 'Time Series Analysis', 'author': 'Hamilton', 'year': 1994, 'reason': 'Comprehensive econometrics textbook'},
+        {'title': 'Analysis of Financial Time Series', 'author': 'Ruey S. Tsay', 'year': 2010, 'reason': 'Finance-specific time series methods'}
+    ],
+    'econometrics': [
+        {'title': 'Econometric Analysis', 'author': 'William Greene', 'year': 2017, 'reason': 'Comprehensive econometrics reference'},
+        {'title': 'Analysis of Financial Time Series', 'author': 'Ruey S. Tsay', 'year': 2010, 'reason': 'Applied econometrics for finance'}
+    ],
+
+    # Portfolio Optimization
+    'portfolio optimization': [
+        {'title': 'Active Portfolio Management', 'author': 'Grinold & Kahn', 'year': 1999, 'reason': 'Classical optimization framework'},
+        {'title': 'Risk and Asset Allocation', 'author': 'Attilio Meucci', 'year': 2005, 'reason': 'Modern approach to portfolio construction'}
+    ],
+    'mean variance optimization': [
+        {'title': 'Portfolio Selection', 'author': 'Harry Markowitz', 'year': 1959, 'reason': 'Original MVO framework (Nobel Prize)'},
+        {'title': 'Risk and Asset Allocation', 'author': 'Attilio Meucci', 'year': 2005, 'reason': 'Modern extensions to classical optimization'}
+    ],
+
+    # Machine Learning for Finance
+    'reinforcement learning': [
+        {'title': 'Reinforcement Learning: An Introduction', 'author': 'Sutton & Barto', 'year': 2018, 'reason': 'Foundational RL textbook'},
+        {'title': 'Advances in Financial Machine Learning', 'author': 'Marcos López de Prado', 'year': 2018, 'reason': 'RL applications in trading'}
+    ],
+    'natural language processing': [
+        {'title': 'Speech and Language Processing', 'author': 'Jurafsky & Martin', 'year': 2023, 'reason': 'Comprehensive NLP textbook'},
+        {'title': 'Machine Learning for Asset Managers', 'author': 'Marcos López de Prado', 'year': 2020, 'reason': 'NLP for financial documents'}
+    ],
+
+    # Programming & Implementation
+    'high frequency trading': [
+        {'title': 'Algorithmic and High-Frequency Trading', 'author': 'Cartea, Jaimungal & Penalva', 'year': 2015, 'reason': 'Mathematical models for HFT'},
+        {'title': 'The Science of Algorithmic Trading', 'author': 'Kissell', 'year': 2013, 'reason': 'Implementation and execution'}
+    ],
+    'backtesting': [
+        {'title': 'Advances in Financial Machine Learning', 'author': 'Marcos López de Prado', 'year': 2018, 'reason': 'Modern backtesting methodology avoiding pitfalls'},
+        {'title': 'Evidence-Based Technical Analysis', 'author': 'David Aronson', 'year': 2006, 'reason': 'Statistical rigor in backtesting'}
+    ],
+    'data preprocessing': [
+        {'title': 'Advances in Financial Machine Learning', 'author': 'Marcos López de Prado', 'year': 2018, 'reason': 'Financial data-specific preprocessing techniques'},
+        {'title': 'Python for Data Analysis', 'author': "Wes McKinney", 'year': 2022, 'reason': 'Practical guide to pandas and data cleaning'}
+    ],
+
+    # Fixed Income
+    'fixed income': [
+        {'title': 'Fixed Income Securities', 'author': 'Tuckman & Serrat', 'year': 2011, 'reason': 'Comprehensive fixed income textbook'},
+        {'title': 'Bond Math', 'author': 'Donald J. Smith', 'year': 2011, 'reason': 'Practical bond calculations'}
+    ],
+    'interest rate models': [
+        {'title': 'Interest Rate Models', 'author': 'Damiano Brigo & Fabio Mercurio', 'year': 2006, 'reason': 'Industry standard for IR modeling'},
+        {'title': 'Term-Structure Models', 'author': 'Damir Filipović', 'year': 2009, 'reason': 'Mathematical foundations'}
+    ],
+}
+
+# External resource recommendations by topic (online resources, courses, practice)
 EXTERNAL_RESOURCES = {
     'c++': [
         {'name': 'LeetCode', 'url': 'https://leetcode.com', 'type': 'practice'},
@@ -411,6 +512,26 @@ Example for a quant researcher role mentioning "statistical modeling, backtestin
             "top_chunk_preview": books_above_threshold[0]['preview']
         }
 
+    def _get_curated_books(self, topic: str) -> List[Dict[str, Any]]:
+        """
+        Get curated book recommendations for topics not well-covered in our content
+
+        Returns list of highly-regarded quant finance books that should be added to content/
+        """
+        topic_lower = topic.lower()
+
+        # Try exact match first
+        if topic_lower in CURATED_BOOK_RECOMMENDATIONS:
+            return CURATED_BOOK_RECOMMENDATIONS[topic_lower]
+
+        # Try partial match (e.g., "alpha" matches "alpha research")
+        for key, books in CURATED_BOOK_RECOMMENDATIONS.items():
+            if key in topic_lower or topic_lower in key:
+                return books
+
+        # No curated books found
+        return []
+
     def _get_external_resources(self, topic: str) -> List[Dict[str, str]]:
         """Get external learning resources for topics not in our books"""
 
@@ -585,6 +706,7 @@ Example for a quant researcher role mentioning "statistical modeling, backtestin
 
         if uncovered_topics:
             print(f"\n❌ UNCOVERED TOPICS ({len(uncovered_topics)}):")
+            print("   ⚠️  These topics need book content to be added to the platform")
             # Sort by priority for better readability
             priority_order = {'HIGH': 0, 'MEDIUM': 1, 'LOW': 2}
             uncovered_sorted = sorted(uncovered_topics, key=lambda x: priority_order.get(x.get('priority', 'MEDIUM'), 3))
@@ -592,22 +714,40 @@ Example for a quant researcher role mentioning "statistical modeling, backtestin
             for i, t in enumerate(uncovered_sorted, 1):
                 priority_emoji = "🔴" if t.get('priority') == 'HIGH' else "🟡" if t.get('priority') == 'MEDIUM' else "🟢"
                 tier_label = t.get('tier', 'EXPLICIT')
-                print(f"  {i}. {priority_emoji} [{t.get('priority', 'MEDIUM')}] [{tier_label}] {t['topic']}")
+                print(f"\n  {i}. {priority_emoji} [{t.get('priority', 'MEDIUM')}] [{tier_label}] {t['topic']}")
                 print(f"     └─ Best Score: {t['confidence']:.1%} (below {TOPIC_COVERAGE_THRESHOLD:.1%} threshold)")
                 print(f"     └─ Keywords: {', '.join(t.get('keywords', []))}")
-                print(f"     └─ External Resources: {len(t['external_resources'])} recommendations")
+
+                # Get curated book recommendations
+                curated_books = self._get_curated_books(t['topic'])
+
+                if curated_books:
+                    print(f"\n     📚 RECOMMENDED BOOKS TO ADD (highly-regarded in the field):")
+                    for j, book in enumerate(curated_books, 1):
+                        print(f"        {j}. '{book['title']}' by {book['author']} ({book['year']})")
+                        print(f"           → {book['reason']}")
+                    print(f"     💡 ACTION: Add PDF to content/ folder and run indexing script")
+                else:
+                    print(f"     ⚠️  No curated book recommendations available")
+                    print(f"     └─ Online Resources: {len(t['external_resources'])} recommendations")
 
         print("="*80 + "\n")
 
-        # Step 3: Sequence covered topics into learning stages
-        if covered_topics:
-            stages = self._sequence_topics(
-                topics=[t['topic'] for t in covered_topics],
+        # Step 3: Create staged prerequisite tree with ALL topics (covered + uncovered)
+        # Include both so frontend can show full tree with dotted hexagons for uncovered topics
+        all_topics_for_tree = covered_topics + uncovered_topics
+
+        if all_topics_for_tree:
+            tree_structure = self._sequence_topics(
+                topics=all_topics_for_tree,
                 job_profile=job_profile,
                 db=db
             )
+            stages = tree_structure.get('stages', [])
+            dependencies = tree_structure.get('dependencies', [])
         else:
             stages = []
+            dependencies = []
 
         # Step 4: Create and save learning path
         learning_path = LearningPath(
@@ -624,117 +764,186 @@ Example for a quant researcher role mentioning "statistical modeling, backtestin
         db.commit()
         db.refresh(learning_path)
 
-        print(f"✓ Learning path generated: {len(stages)} stages, {len(covered_topics)} topics")
+        num_stages = len(stages)
+        total_topics = len(all_topics_for_tree)
+
+        print(f"✓ Learning path generated: {num_stages} stages, {total_topics} topics ({len(covered_topics)} covered, {len(uncovered_topics)} uncovered)")
+        print(f"✓ Dependencies: {len(dependencies)} prerequisite relationships")
 
         return learning_path
 
     def _sequence_topics(
         self,
-        topics: List[str],
+        topics: List[Dict[str, Any]],  # Now receives enriched topic data
         job_profile: Dict[str, Any],
         db: Session
     ) -> List[Dict[str, Any]]:
         """
-        Use LLM to sequence topics into optimal learning stages
+        Use LLM to create staged prerequisite tree structure
+
+        Returns:
+        - Stages (Foundations → Core Skills → Advanced)
+        - Dependencies within each stage
+        - Structure suitable for horizontal tree visualization
 
         Considers:
         - Prerequisites (fundamentals before advanced)
+        - Priority levels (HIGH/MEDIUM/LOW)
         - Job interview priority (most tested topics first)
-        - Pedagogical flow (logical progression)
+        - Topic coverage status (covered vs uncovered)
         """
 
-        # Get available nodes from database
-        all_nodes = db.query(Node).all()
-        available_nodes = []
-
-        for topic in topics:
-            # Try to match topic to existing nodes
-            matching_nodes = [
-                n for n in all_nodes
-                if topic.lower() in n.title.lower() or n.title.lower() in topic.lower()
-            ]
-            if matching_nodes:
-                available_nodes.extend(matching_nodes)
-
-        # Remove duplicates
-        unique_nodes = list({n.id: n for n in available_nodes}.values())
-
-        if not unique_nodes:
-            print("Warning: No matching nodes found for topics")
+        if not topics:
             return []
 
-        # Prepare node info for LLM
-        node_info = [
-            {
-                "id": n.id,
-                "title": n.title,
-                "category": n.category,
-                "difficulty": n.difficulty_level,
-                "estimated_time": n.estimated_time_minutes
-            }
-            for n in unique_nodes
-        ]
+        # Prepare enriched topic info for GPT
+        topic_info = []
+        for t in topics:
+            topic_info.append({
+                "name": t.get('topic', t.get('name', '')),
+                "priority": t.get('priority', 'MEDIUM'),
+                "tier": t.get('tier', 'EXPLICIT'),
+                "covered": t.get('covered', True),  # Whether covered in our books
+                "confidence": t.get('confidence', 0.5)
+            })
 
         system_prompt = """You are an expert curriculum designer for quantitative finance interview preparation.
-Create optimal learning sequences that maximize interview readiness."""
+Your task is to create a STAGED PREREQUISITE TREE for optimal learning.
 
-        user_prompt = f"""Create a learning path for this role:
+The tree structure should have:
+1. Stages (e.g., "Foundations", "Core Skills", "Advanced Applications")
+2. Topics within each stage
+3. Dependencies showing which topics are prerequisites for others
+
+Format the learning path so that:
+- Earlier stages contain prerequisites for later stages
+- Within a stage, topics can be learned in parallel (no strict order)
+- Dependencies across stages are clear (e.g., "statistics" in Stage 1 → "machine learning" in Stage 2)
+"""
+
+        user_prompt = f"""Create a staged prerequisite tree for this role:
 
 Role: {job_profile.get('role_type', 'quantitative researcher')}
 Seniority: {job_profile.get('seniority', 'mid')}
 Domain Focus: {job_profile.get('domain_focus', 'general')}
 
-Available topics to cover:
-{json.dumps(node_info, indent=2)}
+Topics to sequence:
+{json.dumps(topic_info, indent=2)}
 
-Create a structured learning path with 3-5 stages. Return ONLY valid JSON:
+Create a staged learning tree with 2-4 stages. Return ONLY valid JSON:
 {{
     "stages": [
         {{
-            "stage_name": "Stage 1: Fundamentals",
-            "duration_weeks": 2,
-            "description": "Core concepts tested in 90% of interviews",
+            "stage_number": 1,
+            "stage_name": "Foundations",
+            "description": "Prerequisites and fundamental concepts",
             "topics": [
-                {{"node_id": 1, "title": "...", "priority": "high", "why": "Essential because..."}},
-                ...
+                {{
+                    "name": "topic name",
+                    "priority": "HIGH|MEDIUM|LOW",
+                    "prerequisites": [],
+                    "why": "Why this topic is in this stage"
+                }}
             ]
         }},
+        {{
+            "stage_number": 2,
+            "stage_name": "Core Skills",
+            "description": "Building on foundations",
+            "topics": [
+                {{
+                    "name": "topic name",
+                    "priority": "HIGH|MEDIUM|LOW",
+                    "prerequisites": ["topic from earlier stage"],
+                    "why": "Why this topic is in this stage"
+                }}
+            ]
+        }}
+    ],
+    "dependencies": [
+        {{"from": "foundation topic", "to": "dependent topic", "reason": "why needed"}},
         ...
     ]
 }}
 
+IMPORTANT GUIDELINES:
+1. Stage 1 should have NO prerequisites (foundational topics only)
+2. HIGH priority topics should appear in earlier stages
+3. Topics with clear prerequisites should be in later stages
+4. Keep stages balanced (3-5 topics per stage)
+5. Dependencies should cross stage boundaries (not within same stage)
+6. Consider pedagogical flow: statistics → machine learning → alpha research
+
 Prioritize:
-1. Interview-critical topics first (most commonly tested)
-2. Prerequisites before dependent topics
-3. Practical application over pure theory
-4. Balance breadth and depth based on role
+1. Prerequisites before dependent topics (e.g., probability before statistics)
+2. HIGH priority topics in earlier stages
+3. Interview-critical topics first
+4. Logical learning progression
 """
 
         response = self.llm_service.client.chat.completions.create(
-            model="gpt-4o-mini",  # Cheap model for sequencing
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.5,  # Some creativity for good sequencing
+            temperature=0.5,
             response_format={"type": "json_object"}
         )
 
         try:
             result = json.loads(response.choices[0].message.content)
-            return result.get('stages', [])
+
+            # Enrich the result with coverage information
+            stages = result.get('stages', [])
+            dependencies = result.get('dependencies', [])
+
+            # Add coverage info to each topic in the tree
+            for stage in stages:
+                for topic_node in stage.get('topics', []):
+                    topic_name = topic_node['name']
+
+                    # Find matching topic from our coverage data
+                    matching_topic = next(
+                        (t for t in topics if t.get('topic', t.get('name')) == topic_name),
+                        None
+                    )
+
+                    if matching_topic:
+                        topic_node['covered'] = matching_topic.get('source') is not None
+                        topic_node['confidence'] = matching_topic.get('confidence', 0.0)
+                        topic_node['tier'] = matching_topic.get('tier', 'EXPLICIT')
+                    else:
+                        topic_node['covered'] = False
+                        topic_node['confidence'] = 0.0
+
+            return {
+                'stages': stages,
+                'dependencies': dependencies
+            }
+
         except json.JSONDecodeError as e:
             print(f"Error parsing learning path sequence: {e}")
-            # Fallback: simple sequential list
-            return [{
-                "stage_name": "Learning Path",
-                "duration_weeks": len(unique_nodes) // 2,
-                "description": "Complete these topics in order",
-                "topics": [
-                    {"node_id": n.id, "title": n.title, "priority": "medium", "why": "Part of job requirements"}
-                    for n in unique_nodes[:10]  # Limit to first 10
-                ]
-            }]
+            # Fallback: simple staged structure
+            return {
+                'stages': [{
+                    "stage_number": 1,
+                    "stage_name": "Learning Path",
+                    "description": "Complete these topics in order",
+                    "topics": [
+                        {
+                            "name": t.get('topic', t.get('name', '')),
+                            "priority": t.get('priority', 'MEDIUM'),
+                            "prerequisites": [],
+                            "why": "Part of job requirements",
+                            "covered": t.get('source') is not None,
+                            "confidence": t.get('confidence', 0.0)
+                        }
+                        for t in topics[:10]  # Limit to 10
+                    ]
+                }],
+                'dependencies': []
+            }
 
     def get_next_topic(self, user_id: str, db: Session) -> Optional[Node]:
         """

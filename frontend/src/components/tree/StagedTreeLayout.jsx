@@ -1,16 +1,12 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import TopicHexagon from './TopicHexagon';
 import './StagedTreeLayout.css';
 
 /**
- * StagedTreeLayout - Horizontal tree visualization with stages
+ * StagedTreeLayout - Clean horizontal tree visualization
  *
- * Layout: Foundations → Core Skills → Advanced Applications
- * - Hexagons arranged in stages (left to right)
- * - Dependency arrows showing prerequisites
- * - Color-coded by priority
- * - Dotted borders for uncovered topics
+ * Simple left-to-right layout with proper arrow connections
  */
 const StagedTreeLayout = ({
   stages = [],
@@ -18,56 +14,67 @@ const StagedTreeLayout = ({
   onTopicClick,
   className = ''
 }) => {
-  const svgRef = useRef(null);
-  const [hexagonPositions, setHexagonPositions] = useState({});
-  const [svgDimensions, setSvgDimensions] = useState({ width: 0, height: 0 });
-
   const HEXAGON_SIZE = 140;
-  const STAGE_SPACING = 280; // Horizontal spacing between stages
-  const TOPIC_SPACING = 160; // Vertical spacing between topics in same stage
+  const STAGE_SPACING = 300; // Horizontal spacing between stages
+  const TOPIC_SPACING = 180; // Vertical spacing between topics
 
-  // Calculate positions for all hexagons
-  useEffect(() => {
-    if (!stages || stages.length === 0) return;
-
+  // Calculate all topic positions
+  const calculatePositions = () => {
     const positions = {};
-    let maxHeight = 0;
 
     stages.forEach((stage, stageIndex) => {
       const topics = stage.topics || [];
-      const stageHeight = topics.length * TOPIC_SPACING;
-      const stageX = stageIndex * STAGE_SPACING + HEXAGON_SIZE;
+      const x = stageIndex * STAGE_SPACING + 150; // Left margin
 
       topics.forEach((topic, topicIndex) => {
-        const key = topic.name;
-        const x = stageX;
-        const y = topicIndex * TOPIC_SPACING + HEXAGON_SIZE;
-
-        positions[key] = { x, y, topic };
-        maxHeight = Math.max(maxHeight, y + HEXAGON_SIZE);
+        const y = topicIndex * TOPIC_SPACING + 100; // Top margin
+        positions[topic.name] = {
+          x,
+          y,
+          topic
+        };
       });
     });
 
-    setHexagonPositions(positions);
-    setSvgDimensions({
-      width: stages.length * STAGE_SPACING + HEXAGON_SIZE * 2,
-      height: maxHeight + HEXAGON_SIZE
+    return positions;
+  };
+
+  const topicPositions = calculatePositions();
+
+  // Calculate SVG dimensions
+  const calculateDimensions = () => {
+    let maxX = 0;
+    let maxY = 0;
+
+    Object.values(topicPositions).forEach(({ x, y }) => {
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
     });
-  }, [stages]);
+
+    return {
+      width: maxX + 300,
+      height: maxY + 200
+    };
+  };
+
+  const { width, height } = calculateDimensions();
 
   // Draw arrow between two topics
-  const drawArrow = (from, to, reason) => {
-    const fromPos = hexagonPositions[from];
-    const toPos = hexagonPositions[to];
+  const renderArrow = (from, to, reason, index) => {
+    const fromPos = topicPositions[from];
+    const toPos = topicPositions[to];
 
     if (!fromPos || !toPos) return null;
 
+    // Start from right edge of source hexagon
     const startX = fromPos.x + HEXAGON_SIZE / 2;
-    const startY = fromPos.y + HEXAGON_SIZE / 2;
-    const endX = toPos.x - HEXAGON_SIZE / 2 - 10;
-    const endY = toPos.y + HEXAGON_SIZE / 2;
+    const startY = fromPos.y;
 
-    // Bezier curve for smooth arrow
+    // End at left edge of target hexagon
+    const endX = toPos.x - HEXAGON_SIZE / 2;
+    const endY = toPos.y;
+
+    // Bezier curve control points
     const controlX1 = startX + (endX - startX) / 3;
     const controlY1 = startY;
     const controlX2 = startX + (2 * (endX - startX)) / 3;
@@ -76,7 +83,7 @@ const StagedTreeLayout = ({
     const pathData = `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`;
 
     // Arrow head
-    const arrowSize = 8;
+    const arrowSize = 10;
     const angle = Math.atan2(endY - controlY2, endX - controlX2);
     const arrowX1 = endX - arrowSize * Math.cos(angle - Math.PI / 6);
     const arrowY1 = endY - arrowSize * Math.sin(angle - Math.PI / 6);
@@ -84,12 +91,12 @@ const StagedTreeLayout = ({
     const arrowY2 = endY - arrowSize * Math.sin(angle + Math.PI / 6);
 
     return (
-      <g key={`arrow-${from}-${to}`} className="dependency-arrow">
+      <g key={`arrow-${index}-${from}-${to}`} className="dependency-arrow">
         <path
           d={pathData}
           fill="none"
           stroke="#374151"
-          strokeWidth="4"
+          strokeWidth="3"
           className="arrow-path"
         />
         <polygon
@@ -97,9 +104,7 @@ const StagedTreeLayout = ({
           fill="#374151"
           className="arrow-head"
         />
-        {reason && (
-          <title>{reason}</title>
-        )}
+        {reason && <title>{reason}</title>}
       </g>
     );
   };
@@ -114,55 +119,43 @@ const StagedTreeLayout = ({
 
   return (
     <div className={`staged-tree-layout ${className}`}>
-      {/* SVG canvas for hexagons and arrows */}
-      <svg
-        ref={svgRef}
-        className="tree-canvas"
-        width={svgDimensions.width}
-        height={svgDimensions.height}
-        style={{ minHeight: '400px' }}
-      >
-        {/* Arrow marker definition */}
-        <defs>
-          <marker
-            id="arrowhead"
-            markerWidth="10"
-            markerHeight="10"
-            refX="9"
-            refY="3"
-            orient="auto"
-          >
-            <polygon points="0 0, 10 3, 0 6" fill="#9CA3AF" />
-          </marker>
-        </defs>
-
-        {/* Draw hexagons first (background) */}
-        {Object.entries(hexagonPositions).map(([key, { x, y, topic }]) => (
-          <g
-            key={`hex-${key}`}
-            transform={`translate(${x - HEXAGON_SIZE / 2}, ${y - HEXAGON_SIZE / 2})`}
-          >
-            <foreignObject
-              width={HEXAGON_SIZE}
-              height={HEXAGON_SIZE}
-              className="hexagon-container"
-            >
-              <TopicHexagon
-                topic={topic.name}
-                priority={topic.priority}
-                covered={topic.covered !== false}
-                onClick={onTopicClick}
-                size={HEXAGON_SIZE}
-              />
-            </foreignObject>
+      <div className="tree-container">
+        <svg
+          className="tree-canvas"
+          width={width}
+          height={height}
+          viewBox={`0 0 ${width} ${height}`}
+        >
+          {/* Draw arrows first (background layer) */}
+          <g className="arrows-layer">
+            {dependencies && dependencies.map((dep, index) =>
+              renderArrow(dep.from, dep.to, dep.reason, index)
+            )}
           </g>
-        ))}
 
-        {/* Draw dependency arrows on top */}
-        {dependencies && dependencies.map((dep) =>
-          drawArrow(dep.from, dep.to, dep.reason)
-        )}
-      </svg>
+          {/* Draw hexagons on top */}
+          <g className="hexagons-layer">
+            {Object.entries(topicPositions).map(([name, { x, y, topic }]) => (
+              <g key={`topic-${name}`} transform={`translate(${x}, ${y})`}>
+                <foreignObject
+                  x={-HEXAGON_SIZE / 2}
+                  y={-HEXAGON_SIZE / 2}
+                  width={HEXAGON_SIZE}
+                  height={HEXAGON_SIZE}
+                >
+                  <TopicHexagon
+                    topic={topic.name}
+                    priority={topic.priority}
+                    covered={topic.covered !== false}
+                    onClick={onTopicClick}
+                    size={HEXAGON_SIZE}
+                  />
+                </foreignObject>
+              </g>
+            ))}
+          </g>
+        </svg>
+      </div>
 
       {/* Legend */}
       <div className="tree-legend">

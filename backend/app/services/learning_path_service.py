@@ -235,12 +235,15 @@ class LearningPathService:
         system_prompt = """You are an expert in quantitative finance recruiting and job analysis.
 Your task is to extract structured, hierarchical topic information from job descriptions.
 
+CRITICAL: Preserve the EXACT domain-specific terminology from the job description.
+DO NOT abstract or generalize terms - use them as-is!
+
 You must distinguish between:
 1. EXPLICIT topics - skills/knowledge directly mentioned in the job description
 2. IMPLICIT topics - skills commonly required for this role type, but not explicitly mentioned
 
 For each topic, provide:
-- Precise name (e.g., "statistical modeling" not just "statistics")
+- Precise name using EXACT terminology from job description
 - Priority level: HIGH (critical for role), MEDIUM (important), LOW (nice-to-have)
 - Keywords: related terms, synonyms, or specific techniques
 - Context or reason why it's needed"""
@@ -283,8 +286,11 @@ Return ONLY valid JSON (no markdown, no extra text) with this structure:
 IMPORTANT GUIDELINES:
 
 1. EXPLICIT TOPICS (directly mentioned):
-   - Must appear in the job description text
-   - Be specific (e.g., "linear regression" not "statistics")
+   - MUST use EXACT terminology from job description - DO NOT abstract!
+   - If job says "market microstructure" → topic name is "market microstructure" (NOT "data analysis")
+   - If job says "alpha decay" → topic name is "alpha decay" (NOT "performance analysis")
+   - If job says "slippage modeling" → topic name is "slippage modeling" (NOT "modeling & simulation")
+   - CREATE SEPARATE TOPICS for each distinct concept - don't group them!
    - Priority is HIGH if in "Requirements", MEDIUM if in "Nice to have"
    - Include context showing where it was mentioned
 
@@ -300,27 +306,55 @@ IMPORTANT GUIDELINES:
    - Example: "machine learning" → ["ML", "supervised learning", "model training", "feature engineering"]
    - Example: "time series" → ["ARMA", "ARIMA", "forecasting", "autocorrelation"]
 
-4. AVOID:
-   - Generic terms like "statistics" or "mathematics" (be specific!)
+4. PREFER GRANULARITY OVER GROUPING:
+   - Extract 10-15 specific topics rather than 5 generic ones
+   - "trading algorithms" + "algorithmic strategies" = TWO separate topics
+   - "alpha decay" + "slippage" = TWO separate topics
+   - DON'T group related concepts - keep them separate for better matching!
+
+5. AVOID:
+   - Generic abstractions like "algorithm design" when job says "trading algorithms"
+   - Grouping multiple concepts under one umbrella topic
    - Over-adding implicit topics (only critical ones)
    - Repeating same concept in both explicit and implicit
 
-Example for a quant researcher role mentioning "statistical modeling, backtesting strategies, Python":
+Example for a role mentioning "trading algorithms, market microstructure, alpha decay, slippage modeling":
 
 {{
     "topic_hierarchy": {{
         "explicit_topics": [
             {{
-                "name": "statistical modeling",
+                "name": "trading algorithms",
                 "priority": "HIGH",
-                "keywords": ["regression", "statistical inference", "hypothesis testing", "model fitting"],
+                "keywords": ["algorithmic trading", "execution algorithms", "TWAP", "VWAP", "smart order routing"],
                 "mentioned_explicitly": true,
-                "context": "Listed in core requirements"
+                "context": "Core responsibility - leading creation of proprietary trading algorithms"
+            }},
+            {{
+                "name": "market microstructure",
+                "priority": "HIGH",
+                "keywords": ["order book dynamics", "price formation", "liquidity", "market impact"],
+                "mentioned_explicitly": true,
+                "context": "Mentioned as key area for data mining insights"
+            }},
+            {{
+                "name": "alpha decay",
+                "priority": "HIGH",
+                "keywords": ["signal degradation", "alpha erosion", "strategy lifecycle"],
+                "mentioned_explicitly": true,
+                "context": "Listed as KPI to track in performance analysis"
+            }},
+            {{
+                "name": "slippage modeling",
+                "priority": "HIGH",
+                "keywords": ["transaction costs", "execution shortfall", "market impact costs"],
+                "mentioned_explicitly": true,
+                "context": "Mentioned as metric for tracking execution quality"
             }},
             {{
                 "name": "backtesting",
                 "priority": "HIGH",
-                "keywords": ["strategy testing", "historical simulation", "walk-forward analysis"],
+                "keywords": ["historical simulation", "walk-forward analysis", "strategy validation"],
                 "mentioned_explicitly": true,
                 "context": "Required for validating trading strategies"
             }}
@@ -329,16 +363,9 @@ Example for a quant researcher role mentioning "statistical modeling, backtestin
             {{
                 "name": "probability theory",
                 "priority": "MEDIUM",
-                "keywords": ["probability distributions", "expected value", "conditional probability"],
+                "keywords": ["probability distributions", "expected value", "stochastic processes"],
                 "mentioned_explicitly": false,
-                "reason": "Foundation for statistical modeling; commonly tested in quant researcher interviews"
-            }},
-            {{
-                "name": "brain teasers",
-                "priority": "LOW",
-                "keywords": ["probability puzzles", "logic problems", "mental math"],
-                "mentioned_explicitly": false,
-                "reason": "Commonly tested in quant researcher phone screens"
+                "reason": "Foundation for statistical modeling; commonly tested in quant interviews"
             }}
         ]
     }}

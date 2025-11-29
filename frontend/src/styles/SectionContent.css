@@ -156,27 +156,83 @@
   white-space: pre-line;
 }
 
-.formula-highlight {
-  background: #FEF3C7;
-  border-left: 4px solid #F59E0B;
+/* Inline formulas and math */
+.content-text code,
+.formula-inline {
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 15px;
+  background: #F3F4F6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #1F2937;
+  font-weight: 500;
+}
+
+/* Code blocks */
+.code-block {
+  background: #1F2937;
+  color: #F9FAFB;
   border-radius: 8px;
   padding: 20px;
   margin: 24px 0;
+  overflow-x: auto;
+  font-family: 'Courier New', Consolas, Monaco, monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  border: 1px solid #374151;
+}
+
+.code-block pre {
+  margin: 0;
+  white-space: pre;
+}
+
+.code-block code {
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+/* Math display blocks */
+.math-block {
+  font-family: 'Courier New', Consolas, monospace;
+  font-size: 16px;
+  background: #F9FAFB;
+  border-left: 4px solid #3B82F6;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin: 20px 0;
+  color: #1F2937;
+  line-height: 1.8;
+  overflow-x: auto;
+}
+
+.formula-highlight {
+  background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+  border-left: 4px solid #F59E0B;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 28px 0;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.1);
 }
 
 .formula-label {
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   color: #92400E;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  text-transform: uppercase;
 }
 
 .formula-text {
-  font-family: 'Courier New', monospace;
-  font-size: 18px;
+  font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+  font-size: 20px;
   font-weight: 600;
   color: #78350F;
+  letter-spacing: 0.5px;
+  line-height: 1.6;
 }
 
 /* Boxes */

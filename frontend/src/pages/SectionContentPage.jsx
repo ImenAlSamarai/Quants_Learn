@@ -974,6 +974,53 @@ Q: How would you deploy this model?`
 
   const sectionData = getSectionData();
 
+  // Enhanced content renderer for code blocks and formulas
+  const renderContent = (text) => {
+    const lines = text.split('\n');
+    const elements = [];
+    let i = 0;
+    let blockBuffer = [];
+    let inCodeBlock = false;
+
+    while (i < lines.length) {
+      const line = lines[i];
+
+      // Detect code block start/end
+      if (line.trim().startsWith('```')) {
+        if (!inCodeBlock) {
+          // Start of code block
+          inCodeBlock = true;
+          blockBuffer = [];
+        } else {
+          // End of code block
+          inCodeBlock = false;
+          elements.push(
+            <div key={`code-${i}`} className="code-block">
+              <pre><code>{blockBuffer.join('\n')}</code></pre>
+            </div>
+          );
+          blockBuffer = [];
+        }
+        i++;
+        continue;
+      }
+
+      if (inCodeBlock) {
+        blockBuffer.push(line);
+        i++;
+        continue;
+      }
+
+      // Regular paragraph
+      if (line.trim()) {
+        elements.push(<p key={`p-${i}`}>{line}</p>);
+      }
+      i++;
+    }
+
+    return elements;
+  };
+
   const handleComplete = () => {
     const newCompletedState = !completed;
     setCompleted(newCompletedState);
@@ -1068,9 +1115,7 @@ Q: How would you deploy this model?`
             <section key={index} className="content-section">
               <h2>{section.title}</h2>
               <div className="content-text">
-                {section.content.split('\n').map((paragraph, i) => (
-                  paragraph.trim() && <p key={i}>{paragraph}</p>
-                ))}
+                {renderContent(section.content)}
               </div>
               {section.keyFormula && (
                 <div className="formula-highlight">

@@ -276,7 +276,12 @@ const TopicDetailPage = () => {
 
                       <button
                         className="start-section-btn"
-                        onClick={() => alert('TODO: Navigate to section content')}
+                        onClick={() => {
+                          navigate(
+                            `/topic/${topicSlug}/week/${week.weekNumber}/section/${section.id}`,
+                            { state: { topicName: topicData.name } }
+                          );
+                        }}
                       >
                         {section.completed ? 'Review' : 'Start Learning'} →
                       </button>
@@ -400,7 +405,18 @@ const TopicDetailPage = () => {
         <button className="btn-secondary" onClick={() => navigate('/learning-path')}>
           Back to Learning Path
         </button>
-        <button className="btn-primary" onClick={() => alert('TODO: Start learning Week 1')}>
+        <button
+          className="btn-primary"
+          onClick={() => {
+            // Navigate to first section of first week
+            const firstWeek = topicData.weeks[0];
+            const firstSection = firstWeek.sections[0];
+            navigate(
+              `/topic/${topicSlug}/week/${firstWeek.weekNumber}/section/${firstSection.id}`,
+              { state: { topicName: topicData.name } }
+            );
+          }}
+        >
           Start Learning →
         </button>
       </div>

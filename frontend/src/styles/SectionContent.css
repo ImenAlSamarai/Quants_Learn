@@ -1,0 +1,529 @@
+.section-content-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+/* Header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #E5E7EB;
+}
+
+.back-button {
+  background: none;
+  border: none;
+  color: #3B82F6;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.back-button:hover {
+  background: #EFF6FF;
+}
+
+.section-meta {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  font-size: 14px;
+}
+
+.week-indicator,
+.section-indicator {
+  padding: 6px 12px;
+  background: #EFF6FF;
+  color: #3B82F6;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.time-estimate {
+  color: #6B7280;
+  font-weight: 500;
+}
+
+/* Progress Bar */
+.section-progress-bar {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+  border: 1px solid #E5E7EB;
+}
+
+.progress-track {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  padding: 0 20px;
+}
+
+.progress-node {
+  flex: 1;
+  height: 8px;
+  background: #E5E7EB;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  font-weight: 600;
+}
+
+.progress-node:hover {
+  color: #6B7280;
+  height: 24px;
+}
+
+.progress-node.completed {
+  background: #10B981;
+}
+
+.progress-node.current {
+  background: #3B82F6;
+  height: 12px;
+}
+
+/* Main Content Layout */
+.section-main {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 32px;
+  align-items: start;
+}
+
+/* Content Column */
+.content-column {
+  background: white;
+  border-radius: 16px;
+  padding: 48px;
+  border: 1px solid #E5E7EB;
+}
+
+.content-column h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1F2937;
+  margin: 0 0 24px 0;
+}
+
+.intro-box {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 40px;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+/* Content Sections */
+.content-section {
+  margin-bottom: 48px;
+}
+
+.content-section h2 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 20px 0;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #E5E7EB;
+}
+
+.content-text {
+  font-size: 16px;
+  line-height: 1.8;
+  color: #374151;
+}
+
+.content-text p {
+  margin-bottom: 16px;
+  white-space: pre-line;
+}
+
+.formula-highlight {
+  background: #FEF3C7;
+  border-left: 4px solid #F59E0B;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 24px 0;
+}
+
+.formula-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #92400E;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.formula-text {
+  font-family: 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  color: #78350F;
+}
+
+/* Boxes */
+.takeaways-box,
+.interview-tips-box,
+.practice-box,
+.resources-box {
+  border-radius: 12px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.takeaways-box {
+  background: #ECFDF5;
+  border: 2px solid #10B981;
+}
+
+.takeaways-box h3 {
+  margin: 0 0 16px 0;
+  color: #065F46;
+  font-size: 20px;
+}
+
+.takeaways-box ul {
+  margin: 0;
+  padding-left: 24px;
+  color: #047857;
+}
+
+.takeaways-box li {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.interview-tips-box {
+  background: #FEF3C7;
+  border: 2px solid #F59E0B;
+}
+
+.interview-tips-box h3 {
+  margin: 0 0 16px 0;
+  color: #92400E;
+  font-size: 20px;
+}
+
+.interview-tips-box ul {
+  margin: 0;
+  padding-left: 24px;
+  color: #78350F;
+}
+
+.interview-tips-box li {
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.practice-box {
+  background: white;
+  border: 2px solid #E5E7EB;
+}
+
+.practice-box h3 {
+  margin: 0 0 20px 0;
+  color: #1F2937;
+  font-size: 20px;
+}
+
+.practice-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #F9FAFB;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.difficulty-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.difficulty-badge.easy {
+  background: #ECFDF5;
+  color: #065F46;
+  border: 1px solid #10B981;
+}
+
+.difficulty-badge.medium {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #F59E0B;
+}
+
+.difficulty-badge.hard {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #EF4444;
+}
+
+.problem-text {
+  flex: 1;
+  color: #374151;
+  font-size: 15px;
+}
+
+.btn-try {
+  padding: 8px 16px;
+  background: #3B82F6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-try:hover {
+  background: #2563EB;
+}
+
+.resources-box {
+  background: #EFF6FF;
+  border: 2px solid #3B82F6;
+}
+
+.resources-box h3 {
+  margin: 0 0 16px 0;
+  color: #1E40AF;
+  font-size: 20px;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.resource-source {
+  font-weight: 600;
+  color: #1F2937;
+  flex: 1;
+}
+
+.resource-details {
+  font-size: 14px;
+  color: #6B7280;
+}
+
+.btn-view {
+  padding: 6px 12px;
+  background: white;
+  color: #3B82F6;
+  border: 2px solid #3B82F6;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-view:hover {
+  background: #3B82F6;
+  color: white;
+}
+
+/* Sidebar */
+.content-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  position: sticky;
+  top: 20px;
+}
+
+.completion-card,
+.notes-card,
+.nav-card,
+.tips-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #E5E7EB;
+}
+
+.completion-card h4,
+.notes-card h4,
+.nav-card h4,
+.tips-card h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  color: #1F2937;
+}
+
+.btn-complete {
+  width: 100%;
+  padding: 12px;
+  background: #10B981;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-complete:hover {
+  background: #059669;
+}
+
+.completed-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #ECFDF5;
+  border-radius: 8px;
+  color: #065F46;
+  font-weight: 600;
+}
+
+.check-icon {
+  font-size: 24px;
+}
+
+.notes-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.btn-toggle-notes {
+  width: 32px;
+  height: 32px;
+  background: #F3F4F6;
+  border: none;
+  border-radius: 6px;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-toggle-notes:hover {
+  background: #E5E7EB;
+}
+
+.notes-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #E5E7EB;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: #3B82F6;
+}
+
+.nav-btn {
+  width: 100%;
+  padding: 12px 16px;
+  background: white;
+  color: #3B82F6;
+  border: 2px solid #3B82F6;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+  text-align: left;
+}
+
+.nav-btn:hover {
+  background: #3B82F6;
+  color: white;
+}
+
+.nav-btn.next {
+  background: #3B82F6;
+  color: white;
+}
+
+.nav-btn.next:hover {
+  background: #2563EB;
+}
+
+.tips-card ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #6B7280;
+  font-size: 14px;
+}
+
+.tips-card li {
+  margin-bottom: 8px;
+  line-height: 1.5;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .section-main {
+    grid-template-columns: 1fr;
+  }
+
+  .content-sidebar {
+    position: static;
+  }
+
+  .content-column {
+    padding: 32px 24px;
+  }
+}
+
+@media (max-width: 768px) {
+  .section-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .content-column {
+    padding: 24px 16px;
+  }
+
+  .content-column h1 {
+    font-size: 28px;
+  }
+
+  .progress-track {
+    padding: 0;
+  }
+
+  .progress-node {
+    font-size: 10px;
+  }
+}

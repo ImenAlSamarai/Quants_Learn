@@ -15,6 +15,7 @@ const StagedTreeLayout = ({
   className = ''
 }) => {
   const HEXAGON_SIZE = 140;
+  const HEXAGON_RADIUS = HEXAGON_SIZE / 2.5; // Same as TopicHexagon.jsx
   const STAGE_SPACING = 300; // Horizontal spacing between stages
   const TOPIC_SPACING = 180; // Vertical spacing between topics
 
@@ -59,32 +60,25 @@ const StagedTreeLayout = ({
 
   const { width, height } = calculateDimensions();
 
-  // Draw arrow between two topics
+  // Draw straight arrow between two topics
   const renderArrow = (from, to, reason, index) => {
     const fromPos = topicPositions[from];
     const toPos = topicPositions[to];
 
     if (!fromPos || !toPos) return null;
 
-    // Start from right edge of source hexagon
-    const startX = fromPos.x + HEXAGON_SIZE / 2;
+    // Start from right edge of source hexagon (touching the hexagon border)
+    // For a pointy-top hexagon, the rightmost point is at centerX + radius
+    const startX = fromPos.x + HEXAGON_RADIUS;
     const startY = fromPos.y;
 
-    // End at left edge of target hexagon
-    const endX = toPos.x - HEXAGON_SIZE / 2;
+    // End at left edge of target hexagon (touching the hexagon border)
+    const endX = toPos.x - HEXAGON_RADIUS;
     const endY = toPos.y;
 
-    // Bezier curve control points
-    const controlX1 = startX + (endX - startX) / 3;
-    const controlY1 = startY;
-    const controlX2 = startX + (2 * (endX - startX)) / 3;
-    const controlY2 = endY;
-
-    const pathData = `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${endY}`;
-
-    // Arrow head
-    const arrowSize = 10;
-    const angle = Math.atan2(endY - controlY2, endX - controlX2);
+    // Arrow head pointing toward target
+    const arrowSize = 12;
+    const angle = Math.atan2(endY - startY, endX - startX);
     const arrowX1 = endX - arrowSize * Math.cos(angle - Math.PI / 6);
     const arrowY1 = endY - arrowSize * Math.sin(angle - Math.PI / 6);
     const arrowX2 = endX - arrowSize * Math.cos(angle + Math.PI / 6);
@@ -92,13 +86,17 @@ const StagedTreeLayout = ({
 
     return (
       <g key={`arrow-${index}-${from}-${to}`} className="dependency-arrow">
-        <path
-          d={pathData}
-          fill="none"
+        {/* Straight line */}
+        <line
+          x1={startX}
+          y1={startY}
+          x2={endX}
+          y2={endY}
           stroke="#374151"
           strokeWidth="3"
           className="arrow-path"
         />
+        {/* Arrow head */}
         <polygon
           points={`${endX},${endY} ${arrowX1},${arrowY1} ${arrowX2},${arrowY2}`}
           fill="#374151"

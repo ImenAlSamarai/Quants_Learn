@@ -38,7 +38,6 @@
 
 /* Dependency arrows */
 .dependency-arrow {
-  opacity: 0.8;
   transition: opacity 0.2s ease;
 }
 
@@ -49,6 +48,7 @@
 .arrow-path {
   stroke: #374151;
   stroke-width: 3;
+  stroke-linecap: round;
   transition: stroke 0.2s ease, stroke-width 0.2s ease;
 }
 

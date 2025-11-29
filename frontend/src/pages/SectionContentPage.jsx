@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { InlineMath, BlockMath } from 'react-katex';
+import 'katex/dist/katex.min.css';
 import '../styles/SectionContent.css';
 
 /**
@@ -48,53 +50,58 @@ const SectionContentPage = () => {
           sections: [
             {
               title: 'The OLS Problem',
-              content: `Given data points (x₁, y₁), (x₂, y₂), ..., (xₙ, yₙ), we want to find the line that best fits the data.
+              content: `Given data points $(x_1, y_1), (x_2, y_2), \\ldots, (x_n, y_n)$, we want to find the line that best fits the data.
 
 The linear model assumes:
-y = Xβ + ε
+
+$y = X\\beta + \\varepsilon$
 
 where:
-• y is the n×1 vector of responses
-• X is the n×p design matrix
-• β is the p×1 vector of coefficients
-• ε is the n×1 vector of errors
+• $y$ is the $n \\times 1$ vector of responses
+• $X$ is the $n \\times p$ design matrix
+• $\\beta$ is the $p \\times 1$ vector of coefficients
+• $\\varepsilon$ is the $n \\times 1$ vector of errors
 
 The OLS estimator minimizes the sum of squared residuals:
 
-minimize ||y - Xβ||²`
+minimize $\\|y - X\\beta\\|^2$`
             },
             {
               title: 'Deriving the OLS Estimator',
-              content: `To find the optimal β, we take the derivative and set it to zero:
+              content: `To find the optimal $\\beta$, we take the derivative and set it to zero:
 
-∂/∂β ||y - Xβ||² = 0
+$\\frac{\\partial}{\\partial \\beta} \\|y - X\\beta\\|^2 = 0$
 
 Expanding:
-(y - Xβ)ᵀ(y - Xβ) = yᵀy - 2βᵀXᵀy + βᵀXᵀXβ
+
+$(y - X\\beta)^T(y - X\\beta) = y^Ty - 2\\beta^TX^Ty + \\beta^TX^TX\\beta$
 
 Taking the derivative:
-∂/∂β = -2Xᵀy + 2XᵀXβ = 0
 
-Solving for β:
-XᵀXβ = Xᵀy
-β̂ = (XᵀX)⁻¹Xᵀy
+$\\frac{\\partial}{\\partial \\beta} = -2X^Ty + 2X^TX\\beta = 0$
+
+Solving for $\\beta$:
+
+$X^TX\\beta = X^Ty$
+
+$\\hat{\\beta} = (X^TX)^{-1}X^Ty$
 
 This is the **OLS estimator** - you must memorize this formula!`,
-              keyFormula: 'β̂ = (XᵀX)⁻¹Xᵀy'
+              keyFormula: '\\hat{\\beta} = (X^TX)^{-1}X^Ty'
             }
           ],
           keyTakeaways: [
-            'β̂ = (XᵀX)⁻¹Xᵀy is THE formula you must know',
+            'The OLS formula $\\hat{\\beta} = (X^TX)^{-1}X^Ty$ is THE formula you must know',
             'OLS minimizes sum of squared residuals',
             'LINE assumptions required for BLUE property'
           ],
           interviewTips: [
-            'Be ready to derive β̂ on a whiteboard in under 5 minutes',
+            'Be ready to derive $\\hat{\\beta}$ on a whiteboard in under 5 minutes',
             'Know the difference between unbiased and BLUE'
           ],
           practiceProblems: [
-            { id: 1, difficulty: 'Easy', text: 'Show that the OLS estimator is unbiased: E[β̂] = β' },
-            { id: 2, difficulty: 'Medium', text: 'Derive the variance of β̂: Var(β̂) = σ²(XᵀX)⁻¹' }
+            { id: 1, difficulty: 'Easy', text: 'Show that the OLS estimator is unbiased: $E[\\hat{\\beta}] = \\beta$' },
+            { id: 2, difficulty: 'Medium', text: 'Derive the variance: $\\text{Var}(\\hat{\\beta}) = \\sigma^2(X^TX)^{-1}$' }
           ],
           resources: [
             { source: 'Elements of Statistical Learning', chapter: 'Chapter 3, Section 3.2', pages: 'pp. 43-55' }
@@ -199,7 +206,7 @@ These properties are essential for proving unbiasedness.`
    - Identify influential outliers
    - Cook's distance > 0.5 is concerning
    - High leverage + large residual = problem`,
-              keyFormula: 'eᵢ = yᵢ - xᵢᵀβ̂'
+              keyFormula: 'e_i = y_i - x_i^T\\hat{\\beta}'
             }
           ],
           keyTakeaways: [
@@ -242,7 +249,7 @@ Under H₀, t ~ t(n-p) where p is number of parameters
 Decision rule: Reject H₀ if |t| > t_{α/2}(n-p)
 
 The p-value is: P(|T| > |t_obs|) where T ~ t(n-p)`,
-              keyFormula: 't = β̂ⱼ / SE(β̂ⱼ) ~ t(n-p)'
+              keyFormula: 't = \\frac{\\hat{\\beta}_j}{SE(\\hat{\\beta}_j)} \\sim t_{n-p}'
             },
             {
               title: 'Testing Multiple Coefficients (F-test)',
@@ -262,7 +269,7 @@ Under H₀, F ~ F(q, n-p)
 
 Connection to R²:
 F = [R² / (p-1)] / [(1-R²) / (n-p)]`,
-              keyFormula: 'F = [(RSS₀ - RSS₁) / q] / [RSS₁ / (n-p)]'
+              keyFormula: 'F = \\frac{(RSS_0 - RSS_1) / q}{RSS_1 / (n-p)}'
             }
           ],
           keyTakeaways: [
@@ -337,7 +344,7 @@ Autocorrelation Tests:
 Multicollinearity Detection:
 • VIF (Variance Inflation Factor) > 10 is problematic
 • Condition number of XᵀX > 30 suggests issues`,
-              keyFormula: 'VIF_j = 1 / (1 - R²_j)'
+              keyFormula: 'VIF_j = \\frac{1}{1 - R^2_j}'
             }
           ],
           keyTakeaways: [
@@ -385,7 +392,7 @@ Key properties:
 
 Bayesian interpretation:
 Ridge = MAP estimate with Gaussian prior β ~ N(0, σ²/λ I)`,
-              keyFormula: 'β̂_ridge = (XᵀX + λI)⁻¹Xᵀy'
+              keyFormula: '\\hat{\\beta}_{ridge} = (X^TX + \\lambda I)^{-1}X^Ty'
             },
             {
               title: 'Lasso Regression (L1 Penalty)',
@@ -407,7 +414,7 @@ When to use Lasso vs Ridge:
 • Lasso: sparse ground truth, feature selection needed
 • Ridge: all features somewhat relevant, better with correlation
 • Elastic Net: α·L1 + (1-α)·L2 combines both benefits`,
-              keyFormula: 'minimize ||y - Xβ||² + λ||β||₁'
+              keyFormula: '\\min_{\\beta} \\|y - X\\beta\\|^2 + \\lambda \\|\\beta\\|_1'
             },
             {
               title: 'Choosing the Regularization Parameter λ',
@@ -475,7 +482,7 @@ E[(y - f̂)²] = E[(y - f + f - f̂)²]
 
 MSE[f̂] = E[(f̂ - E[f̂] + E[f̂] - f)²]
         = Var[f̂] + Bias²[f̂]`,
-              keyFormula: 'MSE = Bias² + Variance + Irreducible Error'
+              keyFormula: 'MSE = Bias^2 + Variance + \\sigma^2'
             },
             {
               title: 'The Tradeoff in Practice',
@@ -500,7 +507,7 @@ Regularization controls this tradeoff:
 • Small λ → less bias, more variance (complex model)
 
 Optimal λ minimizes: Bias²(λ) + Var(λ)`,
-              keyFormula: 'Optimal complexity minimizes Bias² + Variance'
+              keyFormula: '\\min_{\\lambda} \\left[ Bias^2(\\lambda) + Var(\\lambda) \\right]'
             }
           ],
           keyTakeaways: [
@@ -552,7 +559,7 @@ Common choices:
 • K = 5: good bias-variance tradeoff, fast
 • K = 10: standard in practice
 • K = n (LOOCV): unbiased but high variance, expensive`,
-              keyFormula: 'CV_K = (1/K) Σₖ err_k'
+              keyFormula: 'CV_K = \\frac{1}{K} \\sum_{k=1}^{K} err_k'
             },
             {
               title: 'Leave-One-Out Cross-Validation (LOOCV)',
@@ -767,7 +774,7 @@ Var(β̂) = Var[(XᵀX)⁻¹Xᵀy]
        = (XᵀX)⁻¹Xᵀ (σ²I) X(XᵀX)⁻¹
        = σ²(XᵀX)⁻¹XᵀX(XᵀX)⁻¹
        = σ²(XᵀX)⁻¹ ✓`,
-              keyFormula: 'E[β̂] = β, Var(β̂) = σ²(XᵀX)⁻¹'
+              keyFormula: 'E[\\hat{\\beta}] = \\beta, \\quad Var(\\hat{\\beta}) = \\sigma^2(X^TX)^{-1}'
             },
             {
               title: 'Proof Techniques',
@@ -974,7 +981,7 @@ Q: How would you deploy this model?`
 
   const sectionData = getSectionData();
 
-  // Enhanced content renderer for code blocks and formulas
+  // Enhanced content renderer for code blocks, LaTeX math, and formulas
   const renderContent = (text) => {
     const lines = text.split('\n');
     const elements = [];
@@ -1011,14 +1018,54 @@ Q: How would you deploy this model?`
         continue;
       }
 
-      // Regular paragraph
+      // Regular paragraph with inline math support
       if (line.trim()) {
-        elements.push(<p key={`p-${i}`}>{line}</p>);
+        elements.push(<p key={`p-${i}`}>{renderLineWithMath(line)}</p>);
       }
       i++;
     }
 
     return elements;
+  };
+
+  // Render a line with inline LaTeX math
+  const renderLineWithMath = (line) => {
+    // Split by inline math delimiters $...$
+    const parts = [];
+    let currentPos = 0;
+    let inMath = false;
+    let mathStart = -1;
+
+    for (let i = 0; i < line.length; i++) {
+      if (line[i] === '$' && (i === 0 || line[i-1] !== '\\')) {
+        if (!inMath) {
+          // Start of math
+          if (i > currentPos) {
+            parts.push({ type: 'text', content: line.substring(currentPos, i) });
+          }
+          mathStart = i + 1;
+          inMath = true;
+        } else {
+          // End of math
+          parts.push({ type: 'math', content: line.substring(mathStart, i) });
+          currentPos = i + 1;
+          inMath = false;
+        }
+      }
+    }
+
+    // Add remaining text
+    if (currentPos < line.length) {
+      parts.push({ type: 'text', content: line.substring(currentPos) });
+    }
+
+    // Render parts
+    return parts.map((part, idx) => {
+      if (part.type === 'math') {
+        return <InlineMath key={idx} math={part.content} />;
+      }
+      return <span key={idx}>{part.content}</span>;
+    });
   };
 
   const handleComplete = () => {
@@ -1120,7 +1167,9 @@ Q: How would you deploy this model?`
               {section.keyFormula && (
                 <div className="formula-highlight">
                   <div className="formula-label">KEY FORMULA</div>
-                  <div className="formula-text">{section.keyFormula}</div>
+                  <div className="formula-text">
+                    <BlockMath math={section.keyFormula} />
+                  </div>
                 </div>
               )}
             </section>

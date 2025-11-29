@@ -159,65 +159,44 @@ def index_pdf(pdf_path, book_name, subject="finance"):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Index PDF books into Pinecone")
-    parser.add_argument(
-        '--book',
-        type=str,
-        choices=['finance-ml', 'algo-trading', 'custom'],
-        default='finance-ml',
-        help='Which book to index (finance-ml, algo-trading, or custom)'
+    parser = argparse.ArgumentParser(
+        description="Universal PDF Book Indexer - Just point it at any PDF!",
+        epilog="Example: python scripts/index_finance_book.py ../content/trading/Python_for_Algo.pdf"
     )
     parser.add_argument(
-        '--pdf-path',
+        'pdf_path',
         type=str,
-        help='Custom PDF path (required if --book=custom)'
-    )
-    parser.add_argument(
-        '--book-name',
-        type=str,
-        help='Custom book name (required if --book=custom)'
+        help='Path to PDF file (e.g., ../content/finance/book.pdf)'
     )
     parser.add_argument(
         '--subject',
         type=str,
-        default='finance',
-        help='Subject category (default: finance)'
+        help='Override subject category (default: auto-detect from folder name)'
     )
 
     args = parser.parse_args()
+    pdf_path = args.pdf_path
 
-    # Book configurations
-    books = {
-        'finance-ml': {
-            'pdf_path': '../content/finance/Advances_in_Financial_Machine_Learning.pdf',
-            'book_name': 'Advances in Financial Machine Learning',
-            'subject': 'finance'
-        },
-        'algo-trading': {
-            'pdf_path': '../content/trading/Python_for_Algorithmic_Trading_ From Idea to Cloud Deployment.pdf',
-            'book_name': 'Python for Algorithmic Trading: From Idea to Cloud Deployment',
-            'subject': 'trading'
-        }
-    }
+    # Auto-detect book name from filename
+    # "Python_for_Algorithmic_Trading_ From Idea.pdf" -> "Python for Algorithmic Trading From Idea"
+    filename = Path(pdf_path).stem
+    book_name = filename.replace('_', ' ').replace('  ', ' ').strip()
 
-    # Determine which book to index
-    if args.book == 'custom':
-        if not args.pdf_path or not args.book_name:
-            parser.error("--pdf-path and --book-name are required when using --book=custom")
-        pdf_path = args.pdf_path
-        book_name = args.book_name
+    # Auto-detect subject from parent directory name
+    # "../content/trading/book.pdf" -> "trading"
+    # "../content/finance/book.pdf" -> "finance"
+    if args.subject:
         subject = args.subject
     else:
-        config = books[args.book]
-        pdf_path = config['pdf_path']
-        book_name = config['book_name']
-        subject = config['subject']
+        parent_dir = Path(pdf_path).parent.name
+        subject = parent_dir if parent_dir not in ['content', '.', '..'] else 'general'
 
     print(f"\n{'='*80}")
     print(f"Universal PDF Book Indexer")
     print(f"{'='*80}")
-    print(f"Book: {book_name}")
-    print(f"Subject: {subject}")
+    print(f"PDF Path: {pdf_path}")
+    print(f"Book Name: {book_name} (auto-detected)")
+    print(f"Subject: {subject} (auto-detected)")
     print(f"{'='*80}\n")
 
     # Index the book

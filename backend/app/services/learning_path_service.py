@@ -661,24 +661,64 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
                 'metadata': topic_info  # Preserve priority, keywords, tier, etc.
             }
 
-        # Build covered topics with enriched metadata
+        # Build covered topics with enriched metadata + auto-generate learning structures
         covered_topics = []
+        print(f"\n🔄 Auto-generating learning structures for covered topics (cache-first)...")
+
         for topic_name, data in coverage_map.items():
             coverage = data['coverage']
             metadata = data['metadata']
 
             if coverage['covered']:
-                covered_topics.append({
-                    "topic": topic_name,
-                    "source": coverage['source'],  # Primary source (best match)
-                    "all_sources": coverage.get('all_sources', []),  # All books covering this topic
-                    "confidence": coverage['confidence'],
-                    # NEW: Include enriched metadata
-                    "priority": metadata.get('priority', 'MEDIUM'),
-                    "tier": metadata.get('tier', 'EXPLICIT'),
-                    "keywords": metadata.get('keywords', []),
-                    "mentioned_explicitly": metadata.get('mentioned_explicitly', True)
-                })
+                # Get keywords for better structure generation
+                keywords = metadata.get('keywords', [])
+                source_books = coverage.get('all_sources', [])
+
+                # 🚀 AUTO-GENERATE STRUCTURE (cache-first!)
+                # First user: generates & caches (~$0.006)
+                # Future users: instant retrieval (FREE!)
+                try:
+                    structure = self.get_or_generate_topic_structure(
+                        topic_name=topic_name,
+                        keywords=keywords,
+                        source_books=source_books,
+                        db=db
+                    )
+
+                    # Include structure in covered topic data
+                    topic_data = {
+                        "topic": topic_name,
+                        "source": coverage['source'],  # Primary source (best match)
+                        "all_sources": coverage.get('all_sources', []),  # All books covering this topic
+                        "confidence": coverage['confidence'],
+                        # Enriched metadata
+                        "priority": metadata.get('priority', 'MEDIUM'),
+                        "tier": metadata.get('tier', 'EXPLICIT'),
+                        "keywords": metadata.get('keywords', []),
+                        "mentioned_explicitly": metadata.get('mentioned_explicitly', True),
+                        # 🆕 Learning structure (weeks/sections) - cached or freshly generated!
+                        "learning_structure": {
+                            "weeks": structure['weeks'],
+                            "estimated_hours": structure.get('estimated_hours', 20),
+                            "difficulty_level": structure.get('difficulty_level', 3),
+                            "cached": structure.get('cached', False)
+                        }
+                    }
+                    covered_topics.append(topic_data)
+
+                except Exception as e:
+                    print(f"   ⚠️  Error generating structure for '{topic_name}': {e}")
+                    # Add topic without structure as fallback
+                    covered_topics.append({
+                        "topic": topic_name,
+                        "source": coverage['source'],
+                        "all_sources": coverage.get('all_sources', []),
+                        "confidence": coverage['confidence'],
+                        "priority": metadata.get('priority', 'MEDIUM'),
+                        "tier": metadata.get('tier', 'EXPLICIT'),
+                        "keywords": metadata.get('keywords', []),
+                        "mentioned_explicitly": metadata.get('mentioned_explicitly', True)
+                    })
 
         # Build uncovered topics with enriched metadata
         uncovered_topics = []

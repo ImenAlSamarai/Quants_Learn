@@ -1,6 +1,12 @@
 """
-Simple PDF Indexer for Finance Books
-Indexes "Advances in Financial Machine Learning" into Pinecone
+Universal PDF Document Indexer
+
+Indexes any PDF book into Pinecone for semantic search and RAG.
+Auto-detects book name from filename and subject from directory.
+
+Usage:
+    python scripts/index_document.py <path_to_pdf>
+    python scripts/index_document.py ../content/trading/book.pdf --subject trading
 """
 
 import sys
@@ -160,8 +166,8 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(
-        description="Universal PDF Book Indexer - Just point it at any PDF!",
-        epilog="Example: python scripts/index_finance_book.py ../content/trading/Python_for_Algo.pdf"
+        description="Universal PDF Document Indexer - Just point it at any PDF!",
+        epilog="Example: python scripts/index_document.py ../content/trading/Python_for_Algo.pdf"
     )
     parser.add_argument(
         'pdf_path',

@@ -18,20 +18,25 @@ const SectionContentPage = () => {
   const [completed, setCompleted] = useState(false);
 
   // PLACEHOLDER DATA - Replace with real API calls
-  const sectionData = {
-    topicName: location.state?.topicName || topicSlug.replace(/-/g, ' '),
-    weekNumber: parseInt(weekNumber) || 1,
-    sectionId: sectionId || '1.1',
-    sectionTitle: 'Linear Regression (OLS)',
-    estimatedTime: '45 minutes',
+  // Make content dynamic based on sectionId
+  const getSectionData = () => {
+    const baseData = {
+      topicName: location.state?.topicName || topicSlug.replace(/-/g, ' '),
+      weekNumber: parseInt(weekNumber) || 1,
+      sectionId: sectionId || '1.1',
+    };
 
-    content: {
-      introduction: "Ordinary Least Squares (OLS) is the foundation of statistical modeling and one of the most commonly tested topics in quant interviews. You'll be expected to derive the OLS estimator, explain its assumptions, and implement it from scratch.",
-
-      sections: [
-        {
-          title: 'The OLS Problem',
-          content: `Given data points (x₁, y₁), (x₂, y₂), ..., (xₙ, yₙ), we want to find the line that best fits the data.
+    // Define content for each section (placeholder)
+    const sectionContent = {
+      '1.1': {
+        sectionTitle: 'Linear Regression (OLS)',
+        estimatedTime: '45 minutes',
+        content: {
+          introduction: "Ordinary Least Squares (OLS) is the foundation of statistical modeling and one of the most commonly tested topics in quant interviews. You'll be expected to derive the OLS estimator, explain its assumptions, and implement it from scratch.",
+          sections: [
+            {
+              title: 'The OLS Problem',
+              content: `Given data points (x₁, y₁), (x₂, y₂), ..., (xₙ, yₙ), we want to find the line that best fits the data.
 
 The linear model assumes:
 y = Xβ + ε
@@ -45,10 +50,10 @@ where:
 The OLS estimator minimizes the sum of squared residuals:
 
 minimize ||y - Xβ||²`
-        },
-        {
-          title: 'Deriving the OLS Estimator',
-          content: `To find the optimal β, we take the derivative and set it to zero:
+            },
+            {
+              title: 'Deriving the OLS Estimator',
+              content: `To find the optimal β, we take the derivative and set it to zero:
 
 ∂/∂β ||y - Xβ||² = 0
 
@@ -63,100 +68,126 @@ XᵀXβ = Xᵀy
 β̂ = (XᵀX)⁻¹Xᵀy
 
 This is the **OLS estimator** - you must memorize this formula!`,
-          keyFormula: 'β̂ = (XᵀX)⁻¹Xᵀy'
-        },
-        {
-          title: 'Assumptions (LINE)',
-          content: `For OLS to be the Best Linear Unbiased Estimator (BLUE), we need:
-
-**L**inearity: The relationship is linear in parameters
-**I**ndependence: Observations are independent
-**N**ormality: Errors are normally distributed
-**E**qual variance: Homoskedasticity (constant error variance)
-
-Interview Question: "What happens if assumptions are violated?"
-• Linearity violated → Model is misspecified
-• Independence violated → Standard errors are wrong
-• Normality violated → Inference is invalid (large samples OK)
-• Equal variance violated → OLS still unbiased but not efficient`
-        },
-        {
-          title: 'Geometric Interpretation',
-          content: `The OLS solution has a beautiful geometric interpretation:
-
-ŷ = Xβ̂ = X(XᵀX)⁻¹Xᵀy
-
-The matrix H = X(XᵀX)⁻¹Xᵀ is called the "hat matrix" because it puts the hat on y.
-
-Key insight: H is a **projection matrix** that projects y onto the column space of X. The residual vector (y - ŷ) is orthogonal to the column space of X.
-
-This means: Xᵀ(y - Xβ̂) = 0
-
-This orthogonality condition is fundamental to understanding regression!`
+              keyFormula: 'β̂ = (XᵀX)⁻¹Xᵀy'
+            }
+          ],
+          keyTakeaways: [
+            'β̂ = (XᵀX)⁻¹Xᵀy is THE formula you must know',
+            'OLS minimizes sum of squared residuals',
+            'LINE assumptions required for BLUE property'
+          ],
+          interviewTips: [
+            'Be ready to derive β̂ on a whiteboard in under 5 minutes',
+            'Know the difference between unbiased and BLUE'
+          ],
+          practiceProblems: [
+            { id: 1, difficulty: 'Easy', text: 'Show that the OLS estimator is unbiased: E[β̂] = β' },
+            { id: 2, difficulty: 'Medium', text: 'Derive the variance of β̂: Var(β̂) = σ²(XᵀX)⁻¹' }
+          ],
+          resources: [
+            { source: 'Elements of Statistical Learning', chapter: 'Chapter 3, Section 3.2', pages: 'pp. 43-55' }
+          ]
         }
-      ],
-
-      keyTakeaways: [
-        'β̂ = (XᵀX)⁻¹Xᵀy is THE formula you must know',
-        'OLS minimizes sum of squared residuals',
-        'LINE assumptions required for BLUE property',
-        'Hat matrix H projects y onto column space of X',
-        'Residuals are orthogonal to fitted values'
-      ],
-
-      interviewTips: [
-        'Be ready to derive β̂ on a whiteboard in under 5 minutes',
-        'Know the difference between unbiased and BLUE',
-        'Understand when to use weighted least squares instead',
-        'Be able to code OLS from scratch using numpy'
-      ],
-
-      practiceProblems: [
-        {
-          id: 1,
-          difficulty: 'Easy',
-          text: 'Show that the OLS estimator is unbiased: E[β̂] = β'
-        },
-        {
-          id: 2,
-          difficulty: 'Medium',
-          text: 'Derive the variance of β̂: Var(β̂) = σ²(XᵀX)⁻¹'
-        },
-        {
-          id: 3,
-          difficulty: 'Hard',
-          text: 'Implement OLS regression from scratch using only numpy'
-        }
-      ],
-
-      resources: [
-        {
-          source: 'Elements of Statistical Learning',
-          chapter: 'Chapter 3, Section 3.2',
-          pages: 'pp. 43-55'
-        },
-        {
-          source: 'Quant Learning Materials: Statistics',
-          chapter: 'Linear Models',
-          pages: 'Full section'
-        }
-      ]
-    },
-
-    navigation: {
-      previous: null, // First section
-      next: {
-        sectionId: '1.2',
-        title: 'Maximum Likelihood Estimation'
       },
-      allSections: [
-        { id: '1.1', title: 'Linear Regression (OLS)', current: true },
-        { id: '1.2', title: 'Maximum Likelihood Estimation', current: false },
-        { id: '2.1', title: 'Residual Analysis', current: false },
-        { id: '2.2', title: 'Hypothesis Testing', current: false }
-      ]
-    }
+      '1.2': {
+        sectionTitle: 'Maximum Likelihood Estimation',
+        estimatedTime: '40 minutes',
+        content: {
+          introduction: "Maximum Likelihood Estimation (MLE) is a fundamental method for parameter estimation in statistics. Understanding the connection between MLE and OLS is crucial for interviews.",
+          sections: [
+            {
+              title: 'The MLE Framework',
+              content: `The likelihood function measures how likely the observed data is for different parameter values.
+
+Given data x₁, x₂, ..., xₙ and parameter θ:
+
+L(θ | x) = P(x | θ) = ∏ᵢ P(xᵢ | θ)
+
+The MLE finds the parameter that maximizes this likelihood:
+
+θ̂ₘₗₑ = argmax L(θ | x)
+
+In practice, we maximize the log-likelihood:
+ℓ(θ) = log L(θ) = ∑ᵢ log P(xᵢ | θ)`,
+              keyFormula: 'θ̂ₘₗₑ = argmax ∑ᵢ log P(xᵢ | θ)'
+            },
+            {
+              title: 'Connection to OLS',
+              content: `Under the assumption that errors are normally distributed:
+εᵢ ~ N(0, σ²)
+
+The likelihood of the data is:
+L(β, σ² | y, X) = ∏ᵢ (1/√(2πσ²)) exp(-(yᵢ - xᵢᵀβ)²/(2σ²))
+
+Taking the log and maximizing with respect to β gives:
+β̂ₘₗₑ = (XᵀX)⁻¹Xᵀy
+
+This is exactly the OLS estimator! MLE and OLS coincide under normality.`
+            }
+          ],
+          keyTakeaways: [
+            'MLE maximizes the likelihood of observed data',
+            'Log-likelihood is easier to work with than likelihood',
+            'Under normality, MLE = OLS for linear regression',
+            'MLE is consistent and asymptotically normal'
+          ],
+          interviewTips: [
+            'Know how to derive MLE for simple distributions (Normal, Bernoulli)',
+            'Understand when MLE and OLS give the same answer',
+            'Be ready to explain asymptotic properties'
+          ],
+          practiceProblems: [
+            { id: 1, difficulty: 'Easy', text: 'Find the MLE for μ and σ² for Normal(μ, σ²)' },
+            { id: 2, difficulty: 'Medium', text: 'Show that OLS = MLE under Gaussian errors' }
+          ],
+          resources: [
+            { source: 'Elements of Statistical Learning', chapter: 'Chapter 4, Section 4.1', pages: 'pp. 101-110' }
+          ]
+        }
+      },
+      // Add more sections as needed
+      '2.1': {
+        sectionTitle: 'Residual Analysis',
+        estimatedTime: '35 minutes',
+        content: {
+          introduction: "After fitting a regression model, analyzing residuals is crucial for validating model assumptions and detecting problems.",
+          sections: [
+            { title: 'What are Residuals?', content: 'Residuals are the differences between observed and predicted values...' }
+          ],
+          keyTakeaways: ['Residual plots reveal model violations', 'QQ plots check normality'],
+          interviewTips: ['Be able to interpret residual plots'],
+          practiceProblems: [{ id: 1, difficulty: 'Easy', text: 'Identify heteroskedasticity from a residual plot' }],
+          resources: [{ source: 'Quant Stats', chapter: 'Regression Diagnostics', pages: 'Full section' }]
+        }
+      }
+    };
+
+    const content = sectionContent[sectionId] || sectionContent['1.1'];
+
+    // Navigation logic
+    const allSections = [
+      { id: '1.1', title: 'Linear Regression (OLS)' },
+      { id: '1.2', title: 'Maximum Likelihood Estimation' },
+      { id: '2.1', title: 'Residual Analysis' },
+      { id: '2.2', title: 'Hypothesis Testing' }
+    ];
+
+    const currentIndex = allSections.findIndex(s => s.id === sectionId);
+    const previous = currentIndex > 0 ? allSections[currentIndex - 1] : null;
+    const next = currentIndex < allSections.length - 1 ? allSections[currentIndex + 1] : null;
+
+    return {
+      ...baseData,
+      ...content,
+      navigation: {
+        previous,
+        next,
+        allSections: allSections.map(s => ({ ...s, current: s.id === sectionId }))
+      }
+    };
   };
+
+  const sectionData = getSectionData();
 
   const handleComplete = () => {
     setCompleted(true);
@@ -165,7 +196,15 @@ This orthogonality condition is fundamental to understanding regression!`
 
   const handleNext = () => {
     if (sectionData.navigation.next) {
-      navigate(`/topic/${topicSlug}/week/${weekNumber}/section/${sectionData.navigation.next.sectionId}`, {
+      navigate(`/topic/${topicSlug}/week/${weekNumber}/section/${sectionData.navigation.next.id}`, {
+        state: { topicName: sectionData.topicName }
+      });
+    }
+  };
+
+  const handlePrevious = () => {
+    if (sectionData.navigation.previous) {
+      navigate(`/topic/${topicSlug}/week/${weekNumber}/section/${sectionData.navigation.previous.id}`, {
         state: { topicName: sectionData.topicName }
       });
     }
@@ -319,7 +358,7 @@ This orthogonality condition is fundamental to understanding regression!`
           <div className="nav-card">
             <h4>Navigation</h4>
             {sectionData.navigation.previous && (
-              <button className="nav-btn prev">
+              <button onClick={handlePrevious} className="nav-btn prev">
                 ← Previous: {sectionData.navigation.previous.title}
               </button>
             )}

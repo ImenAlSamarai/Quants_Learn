@@ -773,6 +773,74 @@ Example for a quant researcher role mentioning "statistical modeling, backtestin
 
         return learning_path
 
+    def _validate_dependencies(
+        self,
+        dependencies: List[Dict[str, Any]],
+        stages: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """
+        Validate and filter dependencies to ensure they make logical sense
+
+        Removes:
+        - Dependencies where topics don't exist in stages
+        - Same-stage dependencies (topics in same stage)
+        - Backwards dependencies (later stage → earlier stage)
+        - Nonsensical soft skill → technical skill dependencies
+
+        Returns: Filtered list of valid dependencies
+        """
+        if not dependencies or not stages:
+            return []
+
+        # Build topic → stage mapping
+        topic_to_stage = {}
+        for stage in stages:
+            stage_num = stage.get('stage_number', 0)
+            for topic in stage.get('topics', []):
+                topic_name = topic.get('name', '').lower().strip()
+                topic_to_stage[topic_name] = stage_num
+
+        # Keywords for soft skills (shouldn't be prerequisites for technical topics)
+        soft_skills = {'leadership', 'communication', 'teamwork', 'collaboration',
+                      'presentation', 'management', 'networking'}
+
+        valid_dependencies = []
+        removed_count = 0
+
+        for dep in dependencies:
+            from_topic = dep.get('from', '').lower().strip()
+            to_topic = dep.get('to', '').lower().strip()
+            reason = dep.get('reason', '')
+
+            # Check if both topics exist
+            if from_topic not in topic_to_stage or to_topic not in topic_to_stage:
+                print(f"  ⚠️  Removing dependency: '{dep.get('from')}' → '{dep.get('to')}' (topic not found)")
+                removed_count += 1
+                continue
+
+            from_stage = topic_to_stage[from_topic]
+            to_stage = topic_to_stage[to_topic]
+
+            # Check: from_stage must be < to_stage (earlier stage)
+            if from_stage >= to_stage:
+                print(f"  ⚠️  Removing dependency: '{dep.get('from')}' → '{dep.get('to')}' (same/later stage)")
+                removed_count += 1
+                continue
+
+            # Check: soft skill shouldn't be prerequisite for technical topic
+            if any(skill in from_topic for skill in soft_skills):
+                print(f"  ⚠️  Removing dependency: '{dep.get('from')}' → '{dep.get('to')}' (soft skill → technical)")
+                removed_count += 1
+                continue
+
+            # Dependency is valid
+            valid_dependencies.append(dep)
+
+        if removed_count > 0:
+            print(f"  ✓ Validated dependencies: kept {len(valid_dependencies)}, removed {removed_count}")
+
+        return valid_dependencies
+
     def _sequence_topics(
         self,
         topics: List[Dict[str, Any]],  # Now receives enriched topic data
@@ -872,8 +940,33 @@ IMPORTANT GUIDELINES:
 2. HIGH priority topics should appear in earlier stages
 3. Topics with clear prerequisites should be in later stages
 4. Keep stages balanced (3-5 topics per stage)
-5. Dependencies should cross stage boundaries (not within same stage)
-6. Consider pedagogical flow: statistics → machine learning → alpha research
+5. Dependencies MUST represent actual prerequisite relationships
+6. Dependencies should cross stage boundaries (earlier stage → later stage)
+
+DEPENDENCY RULES (CRITICAL):
+✓ GOOD dependencies (prerequisite → dependent):
+  - "probability theory" → "statistical modeling" (math foundation needed)
+  - "linear algebra" → "machine learning" (math foundation needed)
+  - "statistical modeling" → "backtesting" (must understand stats to backtest)
+  - "programming" → "data analytics" (need coding skills for analysis)
+  - "financial theory" → "portfolio optimization" (need theory first)
+
+✗ BAD dependencies (these make NO SENSE):
+  - "leadership" → "backtesting" (soft skill unrelated to technical skill)
+  - "backtesting" → "probability theory" (backwards - stats is prerequisite!)
+  - "machine learning" → "linear algebra" (backwards - math comes first!)
+  - Same-stage dependencies (topics in same stage can be learned in parallel)
+
+ONLY create dependencies where:
+- The "from" topic is a TRUE prerequisite for the "to" topic
+- The "from" topic appears in an EARLIER stage than the "to" topic
+- The relationship is LOGICAL and PEDAGOGICAL (not random)
+
+Common prerequisite chains in quant finance:
+1. Math foundations → Statistical methods → ML/Advanced topics
+2. Programming basics → Data analysis → Algorithm implementation
+3. Financial theory → Quantitative models → Trading strategies
+4. Probability → Statistics → Risk management
 
 Prioritize:
 1. Prerequisites before dependent topics (e.g., probability before statistics)
@@ -898,6 +991,9 @@ Prioritize:
             # Enrich the result with coverage information
             stages = result.get('stages', [])
             dependencies = result.get('dependencies', [])
+
+            # Validate and filter dependencies
+            dependencies = self._validate_dependencies(dependencies, stages)
 
             # Add coverage info to each topic in the tree
             for stage in stages:

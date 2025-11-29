@@ -78,8 +78,9 @@ def index_pdf(pdf_path, book_name, subject="finance"):
     # Check if file exists
     if not os.path.exists(pdf_path):
         print(f"❌ ERROR: File not found: {pdf_path}")
-        print(f"\nExpected location (relative to backend/):")
-        print(f"  ../content/finance/Advances_in_Financial_Machine_Learning.pdf")
+        print(f"\nCurrent working directory: {os.getcwd()}")
+        print(f"Absolute path attempted: {os.path.abspath(pdf_path)}")
+        print(f"\nMake sure the file exists and the path is correct.")
         return
 
     # Open PDF

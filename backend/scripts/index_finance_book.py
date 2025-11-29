@@ -5,6 +5,7 @@ Indexes "Advances in Financial Machine Learning" into Pinecone
 
 import sys
 import os
+import re
 from pathlib import Path
 
 # Add parent directory to path

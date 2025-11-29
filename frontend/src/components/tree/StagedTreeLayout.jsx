@@ -14,6 +14,11 @@ const StagedTreeLayout = ({
   onTopicClick,
   className = ''
 }) => {
+  // DEBUG: Log the data structure
+  console.log('=== StagedTreeLayout Debug ===');
+  console.log('Stages:', stages);
+  console.log('Dependencies:', dependencies);
+
   const HEXAGON_SIZE = 140;
   const HEXAGON_RADIUS = HEXAGON_SIZE / 2.5; // Same as TopicHexagon.jsx
   const STAGE_SPACING = 300; // Horizontal spacing between stages
@@ -41,6 +46,18 @@ const StagedTreeLayout = ({
   };
 
   const topicPositions = calculatePositions();
+
+  // DEBUG: Log topic positions and check for mismatches
+  console.log('Topic Positions:', Object.keys(topicPositions));
+  console.log('Checking dependencies for mismatches:');
+  dependencies.forEach((dep, i) => {
+    const fromExists = !!topicPositions[dep.from];
+    const toExists = !!topicPositions[dep.to];
+    console.log(`[${i}] "${dep.from}" -> "${dep.to}"`);
+    if (!fromExists) console.warn(`  ⚠️  Source topic "${dep.from}" not found in positions!`);
+    if (!toExists) console.warn(`  ⚠️  Target topic "${dep.to}" not found in positions!`);
+    if (fromExists && toExists) console.log(`  ✓ Both topics found`);
+  });
 
   // Calculate SVG dimensions
   const calculateDimensions = () => {

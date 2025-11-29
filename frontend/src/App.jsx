@@ -6,6 +6,7 @@ import LandingPage from './pages/LandingPage';
 import CategoryView from './pages/CategoryView';
 import AdminPanel from './components/AdminPanel';
 import LearningPathView from './components/LearningPathView';
+import TopicDetailPage from './pages/TopicDetailPage';
 import useAppStore from './store/useAppStore';
 import { fetchMindMap } from './services/api';
 
@@ -166,6 +167,7 @@ function App() {
               element={<CategoryView />}
             />
             <Route path="/learning-path" element={<LearningPathView userId={userId} />} />
+            <Route path="/topic/:topicSlug" element={<TopicDetailPage />} />
           </Routes>
         </main>
       </div>

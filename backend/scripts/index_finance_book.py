@@ -78,64 +78,68 @@ def index_pdf(pdf_path, book_name, subject="finance"):
     total_pages = len(doc)
     print(f"   Total pages: {total_pages}")
 
-    # Extract text from all pages
-    print("\n📝 Extracting text...")
-    full_text = []
-    for page_num in range(total_pages):
-        page = doc[page_num]
-        text = page.get_text()
-        full_text.append(text)
+    # Process in page batches to avoid memory issues
+    print("\n📝 Processing PDF in batches...")
+    page_batch_size = 50  # Process 50 pages at a time
+    all_chunks = []
+    total_chunk_count = 0
+    indexed_count = 0
 
-        if (page_num + 1) % 50 == 0:
-            print(f"   Processed {page_num + 1}/{total_pages} pages...")
+    for batch_start in range(0, total_pages, page_batch_size):
+        batch_end = min(batch_start + page_batch_size, total_pages)
+        print(f"\n   📄 Processing pages {batch_start + 1}-{batch_end}/{total_pages}...")
+
+        # Extract text from this batch of pages
+        batch_text = []
+        for page_num in range(batch_start, batch_end):
+            page = doc[page_num]
+            text = page.get_text()
+            batch_text.append(text)
+
+        # Combine batch text
+        combined_batch_text = "\n\n".join(batch_text)
+        print(f"      Extracted {len(combined_batch_text):,} characters")
+
+        # Chunk this batch
+        batch_chunks = chunk_text(combined_batch_text, chunk_size=1500, overlap=300)
+        print(f"      Created {len(batch_chunks)} chunks")
+
+        # Index chunks from this batch immediately
+        upload_batch_size = 50  # Upload 50 chunks at a time
+        for i in range(0, len(batch_chunks), upload_batch_size):
+            upload_chunks = batch_chunks[i:i + upload_batch_size]
+            batch_texts = []
+            batch_metadata = []
+
+            for chunk in upload_chunks:
+                # Prepare metadata
+                metadata = {
+                    'source': book_name,
+                    'subject': subject,
+                    'chunk_id': total_chunk_count,
+                    'text': chunk  # Store actual text in metadata for retrieval
+                }
+                total_chunk_count += 1
+
+                batch_texts.append(chunk)
+                batch_metadata.append(metadata)
+
+            # Upsert batch to Pinecone
+            try:
+                vector_store.upsert_chunks(batch_texts, batch_metadata)
+                indexed_count += len(upload_chunks)
+                print(f"      ✅ Indexed {indexed_count} chunks so far...")
+                time.sleep(0.5)  # Rate limiting
+            except Exception as e:
+                print(f"      ⚠️  Error indexing: {e}")
+                continue
+
+        # Clear memory
+        del batch_text
+        del combined_batch_text
+        del batch_chunks
 
     doc.close()
-    print(f"   ✅ Extracted text from {total_pages} pages")
-
-    # Combine and clean text
-    combined_text = "\n\n".join(full_text)
-    print(f"   Total characters: {len(combined_text):,}")
-
-    # Chunk the text
-    print("\n🔪 Chunking text...")
-    chunks = chunk_text(combined_text, chunk_size=1500, overlap=300)
-    print(f"   Created {len(chunks)} chunks")
-
-    # Index chunks into Pinecone
-    print(f"\n💾 Indexing into Pinecone...")
-    indexed_count = 0
-    batch_size = 100  # Process in batches to avoid memory issues
-
-    for i in range(0, len(chunks), batch_size):
-        batch_chunks = chunks[i:i + batch_size]
-        batch_texts = []
-        batch_metadata = []
-
-        for idx, chunk in enumerate(batch_chunks):
-            chunk_num = i + idx
-
-            # Prepare metadata
-            metadata = {
-                'source': book_name,
-                'subject': subject,
-                'chunk_id': chunk_num,
-                'total_chunks': len(chunks),
-                'text': chunk  # Store actual text in metadata for retrieval
-            }
-
-            batch_texts.append(chunk)
-            batch_metadata.append(metadata)
-
-        # Upsert batch to Pinecone
-        try:
-            vector_store.upsert_chunks(batch_texts, batch_metadata)
-            indexed_count += len(batch_chunks)
-            print(f"   Indexed {indexed_count}/{len(chunks)} chunks...")
-            time.sleep(0.5)  # Rate limiting
-        except Exception as e:
-            print(f"   ⚠️  Error indexing batch {i//batch_size + 1}: {e}")
-            continue
-
     print(f"\n✅ Successfully indexed {indexed_count} chunks from '{book_name}'")
     print(f"{'='*80}\n")
 

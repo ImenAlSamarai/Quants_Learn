@@ -157,18 +157,79 @@ def index_pdf(pdf_path, book_name, subject="finance"):
 
 
 if __name__ == "__main__":
-    # Path to your PDF (relative to backend directory)
-    pdf_path = "../content/finance/Advances_in_Financial_Machine_Learning.pdf"
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Index PDF books into Pinecone")
+    parser.add_argument(
+        '--book',
+        type=str,
+        choices=['finance-ml', 'algo-trading', 'custom'],
+        default='finance-ml',
+        help='Which book to index (finance-ml, algo-trading, or custom)'
+    )
+    parser.add_argument(
+        '--pdf-path',
+        type=str,
+        help='Custom PDF path (required if --book=custom)'
+    )
+    parser.add_argument(
+        '--book-name',
+        type=str,
+        help='Custom book name (required if --book=custom)'
+    )
+    parser.add_argument(
+        '--subject',
+        type=str,
+        default='finance',
+        help='Subject category (default: finance)'
+    )
+
+    args = parser.parse_args()
+
+    # Book configurations
+    books = {
+        'finance-ml': {
+            'pdf_path': '../content/finance/Advances_in_Financial_Machine_Learning.pdf',
+            'book_name': 'Advances in Financial Machine Learning',
+            'subject': 'finance'
+        },
+        'algo-trading': {
+            'pdf_path': '../content/trading/Python_for_Algorithmic_Trading_ From Idea to Cloud Deployment.pdf',
+            'book_name': 'Python for Algorithmic Trading: From Idea to Cloud Deployment',
+            'subject': 'trading'
+        }
+    }
+
+    # Determine which book to index
+    if args.book == 'custom':
+        if not args.pdf_path or not args.book_name:
+            parser.error("--pdf-path and --book-name are required when using --book=custom")
+        pdf_path = args.pdf_path
+        book_name = args.book_name
+        subject = args.subject
+    else:
+        config = books[args.book]
+        pdf_path = config['pdf_path']
+        book_name = config['book_name']
+        subject = config['subject']
+
+    print(f"\n{'='*80}")
+    print(f"Universal PDF Book Indexer")
+    print(f"{'='*80}")
+    print(f"Book: {book_name}")
+    print(f"Subject: {subject}")
+    print(f"{'='*80}\n")
 
     # Index the book
     index_pdf(
         pdf_path=pdf_path,
-        book_name="Advances in Financial Machine Learning",
-        subject="finance"
+        book_name=book_name,
+        subject=subject
     )
 
     print("\n🎉 Indexing complete!")
     print("\nNext steps:")
-    print("1. Submit a job description with 'alpha generation' or 'machine learning for finance'")
-    print("2. The system should now detect coverage from this book")
+    print("1. Submit a job description with topics covered by this book")
+    print("2. The system should detect coverage from indexed content")
     print("3. Learning content can be generated using these chunks\n")
+

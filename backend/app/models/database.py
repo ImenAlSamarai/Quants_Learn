@@ -319,6 +319,33 @@ class LearningPath(Base):
     user = relationship('User', backref='learning_paths')
 
 
+class TopicStructure(Base):
+    """Cached learning structures (weeks/sections) for topics"""
+    __tablename__ = 'topic_structures'
+
+    id = Column(Integer, primary_key=True, index=True)
+    topic_name = Column(String(200), nullable=False, index=True)  # e.g., "algorithmic strategies"
+    topic_hash = Column(String(32), nullable=False, unique=True, index=True)  # MD5(topic_name + keywords) for uniqueness
+
+    # Structure (JSON)
+    weeks = Column(JSON, nullable=False)  # [{"weekNumber": 1, "title": "...", "sections": [...]}]
+
+    # Metadata
+    keywords = Column(JSON)  # Keywords used for RAG retrieval
+    source_books = Column(JSON)  # Books used: [{"source": "ESL", "confidence": 0.85}]
+    estimated_hours = Column(Integer)  # Total estimated learning hours
+    difficulty_level = Column(Integer, default=3)  # 1-5 scale
+
+    # Caching
+    generation_model = Column(String(50), default="gpt-4o-mini")  # Model used for generation
+    content_version = Column(Integer, default=1)  # For cache invalidation
+    access_count = Column(Integer, default=0)  # Track usage
+    is_valid = Column(Boolean, default=True)  # For cache invalidation
+
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 # Database setup
 engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

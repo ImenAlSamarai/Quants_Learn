@@ -279,3 +279,46 @@ def check_topic_coverage(topic: str, db: Session = Depends(get_db)):
     coverage = learning_path_service.check_topic_coverage(topic)
 
     return TopicCoverageCheck(**coverage)
+
+
+@router.get("/topics/{topic_name}/structure")
+def get_topic_structure(
+    topic_name: str,
+    keywords: str = "",  # Comma-separated keywords
+    db: Session = Depends(get_db)
+):
+    """
+    Get learning structure (weeks/sections) for a topic with smart caching
+
+    Flow:
+    1. Check cache - if exists, return instantly (FREE!)
+    2. If not cached - generate with GPT-4o-mini + RAG (~$0.006)
+    3. Cache for all future users
+
+    Query params:
+    - keywords: Optional comma-separated keywords for better RAG retrieval
+
+    Returns:
+    - weeks: Array of weeks with sections
+    - estimated_hours: Total learning time
+    - source_books: Books used
+    - cached: Whether this was cached or freshly generated
+    """
+    # Parse keywords
+    keyword_list = [k.strip() for k in keywords.split(",")] if keywords else []
+
+    # Get topic from user's learning path to find source books
+    # For now, do a quick coverage check to find source books
+    coverage = learning_path_service.check_topic_coverage(topic_name)
+
+    source_books = coverage.get('all_sources', []) if coverage['covered'] else []
+
+    # Get or generate structure (cache-first!)
+    structure = learning_path_service.get_or_generate_topic_structure(
+        topic_name=topic_name,
+        keywords=keyword_list,
+        source_books=source_books,
+        db=db
+    )
+
+    return structure

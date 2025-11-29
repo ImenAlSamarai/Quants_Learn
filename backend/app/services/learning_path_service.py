@@ -1099,6 +1099,196 @@ Prioritize:
 
         return None
 
+    def get_or_generate_topic_structure(
+        self,
+        topic_name: str,
+        keywords: list,
+        source_books: list,
+        db: Session
+    ) -> dict:
+        """
+        Get cached topic structure or generate new one using GPT-4o-mini + RAG
+
+        Args:
+            topic_name: Topic name (e.g., "algorithmic strategies")
+            keywords: Keywords for better RAG retrieval
+            source_books: Books covering this topic
+            db: Database session
+
+        Returns:
+            dict with weeks/sections structure
+        """
+        import hashlib
+        from app.models.database import TopicStructure
+
+        # Create unique hash for this topic (name + keywords for uniqueness)
+        topic_key = f"{topic_name}|{','.join(sorted(keywords))}"
+        topic_hash = hashlib.md5(topic_key.encode()).hexdigest()
+
+        # Check cache first
+        cached = db.query(TopicStructure).filter(
+            TopicStructure.topic_hash == topic_hash,
+            TopicStructure.is_valid == True
+        ).first()
+
+        if cached:
+            # Cache hit! Increment access count
+            cached.access_count += 1
+            db.commit()
+            print(f"✅ Cache HIT for '{topic_name}' (accessed {cached.access_count} times)")
+            return {
+                "weeks": cached.weeks,
+                "estimated_hours": cached.estimated_hours,
+                "difficulty_level": cached.difficulty_level,
+                "source_books": cached.source_books,
+                "cached": True
+            }
+
+        # Cache miss - generate new structure
+        print(f"🔄 Cache MISS for '{topic_name}' - generating with gpt-4o-mini...")
+
+        # Step 1: Retrieve relevant chunks from RAG
+        search_query = f"{topic_name} {' '.join(keywords[:3])}"  # Topic + top 3 keywords
+        coverage = self.check_topic_coverage(search_query)
+
+        chunks = []
+        if coverage['covered']:
+            # Get chunks from all sources
+            for source_info in coverage.get('all_sources', []):
+                chunks.extend(source_info.get('chunks', []))
+
+        # Limit to top 10 most relevant chunks
+        chunks = chunks[:10]
+        chunk_texts = [c.get('text', '') for c in chunks]
+
+        # Step 2: Generate structure using GPT-4o-mini
+        structure = self._generate_topic_structure_with_llm(
+            topic_name=topic_name,
+            keywords=keywords,
+            source_books=source_books,
+            context_chunks=chunk_texts
+        )
+
+        # Step 3: Save to cache
+        topic_structure = TopicStructure(
+            topic_name=topic_name,
+            topic_hash=topic_hash,
+            weeks=structure['weeks'],
+            keywords=keywords,
+            source_books=source_books,
+            estimated_hours=structure.get('estimated_hours', 20),
+            difficulty_level=structure.get('difficulty_level', 3),
+            generation_model="gpt-4o-mini",
+            access_count=1
+        )
+
+        db.add(topic_structure)
+        db.commit()
+        db.refresh(topic_structure)
+
+        print(f"✅ Generated and cached structure for '{topic_name}' (ID: {topic_structure.id})")
+
+        return {
+            "weeks": structure['weeks'],
+            "estimated_hours": structure.get('estimated_hours', 20),
+            "difficulty_level": structure.get('difficulty_level', 3),
+            "source_books": source_books,
+            "cached": False
+        }
+
+    def _generate_topic_structure_with_llm(
+        self,
+        topic_name: str,
+        keywords: list,
+        source_books: list,
+        context_chunks: list
+    ) -> dict:
+        """Generate week/section structure using GPT-4o-mini + RAG context"""
+
+        context_text = "\n\n".join(context_chunks) if context_chunks else "No specific book content available."
+        books_list = ", ".join([b.get('source', 'Unknown') for b in source_books])
+
+        system_prompt = """You are an expert curriculum designer for quantitative finance education.
+Create a structured learning roadmap (weeks → sections) for interview preparation.
+
+CRITICAL REQUIREMENTS:
+1. Structure into 2-4 weeks of learning
+2. Each week has 2-4 sections
+3. Each section is a focused sub-topic (45-90 min of study)
+4. Base structure on PROVIDED BOOK CONTENT - don't invent topics not in the books
+5. Order sections from foundational → advanced
+6. Include practical examples and interview relevance
+
+Return ONLY valid JSON (no markdown, no extra text):
+{
+  "weeks": [
+    {
+      "weekNumber": 1,
+      "title": "Week title",
+      "sections": [
+        {
+          "id": "1.1",
+          "title": "Section title",
+          "topics": ["Key concept 1", "Key concept 2", "Key concept 3"],
+          "estimatedMinutes": 60,
+          "interviewRelevance": "Why this appears in interviews"
+        }
+      ]
+    }
+  ],
+  "estimated_hours": 20,
+  "difficulty_level": 3
+}"""
+
+        user_prompt = f"""Topic: {topic_name}
+Keywords: {', '.join(keywords)}
+Source Books: {books_list}
+
+Book Content (use this to structure your roadmap):
+{context_text}
+
+Create a practical learning roadmap for someone preparing for quant interviews.
+Focus on concepts actually covered in the provided book content.
+Return valid JSON only."""
+
+        response = self.llm_service.client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=2000,
+            response_format={"type": "json_object"}
+        )
+
+        import json
+        try:
+            structure = json.loads(response.choices[0].message.content)
+            return structure
+        except json.JSONDecodeError as e:
+            print(f"⚠️  JSON decode error: {e}")
+            # Fallback structure
+            return {
+                "weeks": [
+                    {
+                        "weekNumber": 1,
+                        "title": f"Introduction to {topic_name}",
+                        "sections": [
+                            {
+                                "id": "1.1",
+                                "title": f"{topic_name} Fundamentals",
+                                "topics": keywords[:3],
+                                "estimatedMinutes": 90,
+                                "interviewRelevance": "Core concept for interviews"
+                            }
+                        ]
+                    }
+                ],
+                "estimated_hours": 15,
+                "difficulty_level": 3
+            }
+
 
 # Singleton instance
 learning_path_service = LearningPathService()

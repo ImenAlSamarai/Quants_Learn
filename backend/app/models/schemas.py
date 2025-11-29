@@ -145,6 +145,7 @@ class LearningPathResponse(BaseModel):
     job_description: str
     role_type: str
     stages: List[Dict[str, Any]]
+    dependencies: List[Dict[str, Any]] = []
     covered_topics: List[Dict[str, Any]]
     uncovered_topics: List[Dict[str, Any]]
     coverage_percentage: int

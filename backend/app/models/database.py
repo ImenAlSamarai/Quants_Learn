@@ -306,6 +306,7 @@ class LearningPath(Base):
 
     # Path structure (JSON)
     stages = Column(JSON)  # [{"stage_name": "...", "topics": [...], "duration_weeks": 2, ...}]
+    dependencies = Column(JSON)  # [{"from": "topic1", "to": "topic2", "reason": "why"}]
 
     # Coverage analysis (Tier 3)
     covered_topics = Column(JSON)  # Topics available in our books: [{"topic": "...", "source": "ESL", ...}]

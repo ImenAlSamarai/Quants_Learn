@@ -755,6 +755,7 @@ Example for a quant researcher role mentioning "statistical modeling, backtestin
             job_description=job_description,
             role_type=job_profile.get('role_type', 'other'),
             stages=stages,
+            dependencies=dependencies,
             covered_topics=covered_topics,
             uncovered_topics=uncovered_topics,
             coverage_percentage=coverage_percentage

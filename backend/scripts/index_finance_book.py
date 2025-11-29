@@ -80,8 +80,7 @@ def index_pdf(pdf_path, book_name, subject="finance"):
 
     # Process in page batches to avoid memory issues
     print("\n📝 Processing PDF in batches...")
-    page_batch_size = 50  # Process 50 pages at a time
-    all_chunks = []
+    page_batch_size = 25  # Process 25 pages at a time (smaller batches)
     total_chunk_count = 0
     indexed_count = 0
 
@@ -104,40 +103,49 @@ def index_pdf(pdf_path, book_name, subject="finance"):
         batch_chunks = chunk_text(combined_batch_text, chunk_size=1500, overlap=300)
         print(f"      Created {len(batch_chunks)} chunks")
 
-        # Index chunks from this batch immediately
-        upload_batch_size = 50  # Upload 50 chunks at a time
-        for i in range(0, len(batch_chunks), upload_batch_size):
-            upload_chunks = batch_chunks[i:i + upload_batch_size]
-            batch_texts = []
-            batch_metadata = []
+        # Process chunks one at a time to minimize memory usage
+        print(f"      Indexing chunks...")
+        for chunk in batch_chunks:
+            try:
+                # Generate embedding for this single chunk
+                embedding = vector_store.generate_embedding(chunk)
 
-            for chunk in upload_chunks:
+                # Create vector ID
+                vector_id = f"finance_{book_name.replace(' ', '_')}_{total_chunk_count}"
+
                 # Prepare metadata
                 metadata = {
                     'source': book_name,
                     'subject': subject,
                     'chunk_id': total_chunk_count,
-                    'text': chunk  # Store actual text in metadata for retrieval
+                    'text': chunk[:1000]  # Store truncated text
                 }
+
+                # Upsert single vector to Pinecone
+                vector_store.index.upsert(vectors=[{
+                    'id': vector_id,
+                    'values': embedding,
+                    'metadata': metadata
+                }])
+
                 total_chunk_count += 1
+                indexed_count += 1
 
-                batch_texts.append(chunk)
-                batch_metadata.append(metadata)
+                # Progress indicator every 10 chunks
+                if indexed_count % 10 == 0:
+                    print(f"      ✅ Indexed {indexed_count} chunks...", end='\r')
 
-            # Upsert batch to Pinecone
-            try:
-                vector_store.upsert_chunks(batch_texts, batch_metadata)
-                indexed_count += len(upload_chunks)
-                print(f"      ✅ Indexed {indexed_count} chunks so far...")
-                time.sleep(0.5)  # Rate limiting
             except Exception as e:
-                print(f"      ⚠️  Error indexing: {e}")
+                print(f"\n      ⚠️  Error indexing chunk {total_chunk_count}: {e}")
+                total_chunk_count += 1
                 continue
 
-        # Clear memory
+        # Clear memory after each page batch
         del batch_text
         del combined_batch_text
         del batch_chunks
+
+        print(f"      ✅ Batch complete: {indexed_count} total chunks indexed")
 
     doc.close()
     print(f"\n✅ Successfully indexed {indexed_count} chunks from '{book_name}'")

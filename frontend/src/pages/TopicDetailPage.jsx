@@ -179,6 +179,23 @@ const TopicDetailPage = () => {
     return '⚪'.repeat(5).split('').map((_, i) => i < filled ? '🟢' : '⚪').join('');
   };
 
+  // Calculate week progress based on completed sections
+  const calculateWeekProgress = (week) => {
+    if (!week.sections || week.sections.length === 0) return 0;
+
+    const completedCount = week.sections.filter(
+      section => sectionCompletionStatus[section.id] === true
+    ).length;
+
+    return Math.round((completedCount / week.sections.length) * 100);
+  };
+
+  // Check if entire week is completed
+  const isWeekCompleted = (week) => {
+    if (!week.sections || week.sections.length === 0) return false;
+    return week.sections.every(section => sectionCompletionStatus[section.id] === true);
+  };
+
   return (
     <div className="topic-detail-page">
       {/* Header with Back Button */}
@@ -269,12 +286,16 @@ const TopicDetailPage = () => {
           <section className="roadmap-section">
             <h2>📚 Mastery Path ({topicData.estimatedWeeks} weeks)</h2>
 
-            {topicData.weeks.map((week) => (
+            {topicData.weeks.map((week) => {
+              const weekProgress = calculateWeekProgress(week);
+              const weekCompleted = isWeekCompleted(week);
+
+              return (
               <div key={week.weekNumber} className="week-card">
                 <div className="week-header">
                   <h3>Week {week.weekNumber}: {week.title}</h3>
                   <span className="week-status">
-                    {week.completed ? '✅ Complete' : `${week.progress}% complete`}
+                    {weekCompleted ? '✅ Complete' : `${weekProgress}% complete`}
                   </span>
                 </div>
 
@@ -324,7 +345,8 @@ const TopicDetailPage = () => {
                   ))}
                 </div>
               </div>
-            ))}
+              );
+            })}
 
             {/* Available Books */}
             <div className="books-section">

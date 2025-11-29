@@ -14,39 +14,42 @@ import fitz  # PyMuPDF
 from app.services.vector_store import vector_store
 import time
 
-def chunk_text(text, chunk_size=1000, overlap=200):
+def chunk_text(text, chunk_size=1000, overlap=50):
     """
-    Split text into overlapping chunks
+    Split text into overlapping chunks (paragraph-based, proven algorithm)
 
     Args:
         text: Full text to chunk
         chunk_size: Target size of each chunk in characters
-        overlap: Number of characters to overlap between chunks
+        overlap: Number of words to overlap between chunks
 
     Returns:
         List of text chunks
     """
+    # Remove multiple newlines and extra spaces
+    text = re.sub(r'\n\s*\n', '\n\n', text)
+
+    # Split by paragraphs first
+    paragraphs = text.split('\n\n')
+
     chunks = []
-    start = 0
+    current_chunk = ""
 
-    while start < len(text):
-        end = start + chunk_size
-        chunk = text[start:end]
+    for para in paragraphs:
+        # If adding this paragraph exceeds chunk size, save current chunk
+        if len(current_chunk) + len(para) > chunk_size and current_chunk:
+            chunks.append(current_chunk.strip())
 
-        # Try to end at a sentence boundary
-        if end < len(text):
-            # Find last period, exclamation, or question mark
-            last_period = max(
-                chunk.rfind('.'),
-                chunk.rfind('!'),
-                chunk.rfind('?'),
-                chunk.rfind('\n\n')
-            )
-            if last_period > chunk_size * 0.5:  # Don't make chunks too small
-                chunk = chunk[:last_period + 1]
+            # Start new chunk with overlap (last few words of previous chunk)
+            words = current_chunk.split()
+            overlap_words = words[-overlap:] if len(words) > overlap else words
+            current_chunk = ' '.join(overlap_words) + '\n\n' + para
+        else:
+            current_chunk += '\n\n' + para if current_chunk else para
 
-        chunks.append(chunk.strip())
-        start = start + len(chunk) - overlap
+    # Add the last chunk
+    if current_chunk:
+        chunks.append(current_chunk.strip())
 
     return chunks
 
@@ -99,8 +102,8 @@ def index_pdf(pdf_path, book_name, subject="finance"):
         combined_batch_text = "\n\n".join(batch_text)
         print(f"      Extracted {len(combined_batch_text):,} characters")
 
-        # Chunk this batch
-        batch_chunks = chunk_text(combined_batch_text, chunk_size=1500, overlap=300)
+        # Chunk this batch (overlap is in words, not characters)
+        batch_chunks = chunk_text(combined_batch_text, chunk_size=1000, overlap=50)
         print(f"      Created {len(batch_chunks)} chunks")
 
         # Process chunks one at a time to minimize memory usage

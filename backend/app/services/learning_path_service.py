@@ -464,64 +464,103 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
         if min_score is None:
             min_score = TOPIC_COVERAGE_THRESHOLD
 
-        # Search vector store for topic
+        # Search vector store for topic across ALL namespaces (books + web content)
         try:
-            matches = self.vector_store.search(query=topic, top_k=10)
+            matches = self.vector_store.search_all_namespaces(
+                query=topic,
+                top_k=10,  # Get top 10 per namespace
+                namespaces=['', 'web_resource']  # Search both book and web content
+            )
         except Exception as e:
             print(f"⚠️  Error searching for topic '{topic}': {e}")
             matches = []
 
         # ============ DEBUG: Detailed Match Information ============
-        # Group matches by source book
-        matches_by_book = {}
+        # Group matches by source (books + web resources)
+        matches_by_source = {}
         for match in matches:
             source = match.get('metadata', {}).get('source', 'Unknown')
-            if source not in matches_by_book:
-                matches_by_book[source] = []
-            matches_by_book[source].append(match)
+            if source not in matches_by_source:
+                matches_by_source[source] = []
+            matches_by_source[source].append(match)
 
         if matches:
             best_match = matches[0]
             print(f"\n  📚 Topic '{topic}': best overall match score = {best_match['score']:.3f} (threshold={min_score})")
 
-            # Show matches grouped by book
-            print(f"     └─ Found in {len(matches_by_book)} book(s):")
-            for book_name, book_matches in sorted(matches_by_book.items(),
-                                                   key=lambda x: x[1][0]['score'],
-                                                   reverse=True):
-                best_book_match = book_matches[0]
-                book_score = best_book_match['score']
-                chapter = best_book_match.get('metadata', {}).get('chapter', 'N/A')
-                section = best_book_match.get('metadata', {}).get('section', '')
-                num_matches = len([m for m in book_matches if m['score'] > min_score])
+            # Show matches grouped by source (books + web)
+            print(f"     └─ Found in {len(matches_by_source)} source(s):")
+            for source_name, source_matches in sorted(matches_by_source.items(),
+                                                       key=lambda x: x[1][0]['score'],
+                                                       reverse=True):
+                best_source_match = source_matches[0]
+                source_score = best_source_match['score']
+                num_matches = len([m for m in source_matches if m['score'] > min_score])
 
-                # Determine if this book covers the topic (above threshold)
-                coverage_status = "✅" if book_score >= min_score else "⚠️"
+                # Determine source type (web or book)
+                source_namespace = best_source_match.get('source_namespace', 'default')
+                is_web = source_namespace == 'web_resource'
 
-                print(f"        {coverage_status} {book_name}")
-                print(f"           └─ Best score: {book_score:.3f} | Ch.{chapter} | {num_matches} chunks above threshold")
+                # Get source-specific metadata
+                if is_web:
+                    # Web resource metadata
+                    url = best_source_match.get('metadata', {}).get('url', 'N/A')
+                    topic_name = best_source_match.get('metadata', {}).get('topic', 'N/A')
+                    source_icon = "🌐"
+                else:
+                    # Book metadata
+                    chapter = best_source_match.get('metadata', {}).get('chapter', 'N/A')
+                    source_icon = "📖"
 
-                # Show text preview for books above threshold
-                if book_score >= min_score:
-                    text_preview = best_book_match.get('text', '')[:100].replace('\n', ' ')
+                # Determine if this source covers the topic (above threshold)
+                coverage_status = "✅" if source_score >= min_score else "⚠️"
+
+                print(f"        {coverage_status} {source_icon} {source_name} {'[WEB]' if is_web else '[BOOK]'}")
+
+                if is_web:
+                    print(f"           └─ Best score: {source_score:.3f} | Topic: {topic_name} | {num_matches} chunks above threshold")
+                else:
+                    print(f"           └─ Best score: {source_score:.3f} | Ch.{chapter} | {num_matches} chunks above threshold")
+
+                # Show text preview for sources above threshold
+                if source_score >= min_score:
+                    text_preview = best_source_match.get('text', '')[:100].replace('\n', ' ')
                     print(f"           └─ Preview: \"{text_preview}...\"")
         else:
             print(f"\n  ❌ Topic '{topic}': no matches found in vector store")
 
-        # Determine if topic is covered (ANY book above threshold)
-        books_above_threshold = []
-        for book_name, book_matches in matches_by_book.items():
-            if book_matches[0]['score'] >= min_score:
-                books_above_threshold.append({
-                    'source': book_name,
-                    'confidence': book_matches[0]['score'],
-                    'chapter': book_matches[0].get('metadata', {}).get('chapter', 'N/A'),
-                    'num_chunks': len([m for m in book_matches if m['score'] >= min_score]),
-                    'preview': book_matches[0].get('text', '')[:200] + "..."
-                })
+        # Determine if topic is covered (ANY source above threshold - books or web)
+        sources_above_threshold = []
+        for source_name, source_matches in matches_by_source.items():
+            if source_matches[0]['score'] >= min_score:
+                # Determine if this is web or book content
+                source_namespace = source_matches[0].get('source_namespace', 'default')
+                is_web = source_namespace == 'web_resource'
 
-        if not books_above_threshold:
-            # NOT COVERED - no book meets threshold
+                # Get matching chunks above threshold for RAG content generation
+                matching_chunks = [m for m in source_matches if m['score'] >= min_score]
+
+                source_info = {
+                    'source': source_name,
+                    'confidence': source_matches[0]['score'],
+                    'num_chunks': len(matching_chunks),
+                    'preview': source_matches[0].get('text', '')[:200] + "...",
+                    'is_web': is_web,
+                    'source_type': 'web' if is_web else 'book',
+                    'chunks': matching_chunks  # Include actual chunks for RAG
+                }
+
+                # Add source-specific metadata
+                if is_web:
+                    source_info['url'] = source_matches[0].get('metadata', {}).get('url', 'N/A')
+                    source_info['topic'] = source_matches[0].get('metadata', {}).get('topic', 'N/A')
+                else:
+                    source_info['chapter'] = source_matches[0].get('metadata', {}).get('chapter', 'N/A')
+
+                sources_above_threshold.append(source_info)
+
+        if not sources_above_threshold:
+            # NOT COVERED - no source meets threshold
             return {
                 "covered": False,
                 "topic": topic,
@@ -530,18 +569,18 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
                 "all_sources": []  # No sources above threshold
             }
 
-        # COVERED - return ALL books that cover this topic
-        # Sort by confidence (best book first)
-        books_above_threshold.sort(key=lambda x: x['confidence'], reverse=True)
+        # COVERED - return ALL sources that cover this topic (books + web)
+        # Sort by confidence (best source first)
+        sources_above_threshold.sort(key=lambda x: x['confidence'], reverse=True)
 
         return {
             "covered": True,
             "topic": topic,
-            "confidence": books_above_threshold[0]['confidence'],  # Best overall score
-            "source": books_above_threshold[0]['source'],  # Primary source (best match)
-            "all_sources": books_above_threshold,  # All books covering this topic
-            "num_chunks": sum(b['num_chunks'] for b in books_above_threshold),
-            "top_chunk_preview": books_above_threshold[0]['preview']
+            "confidence": sources_above_threshold[0]['confidence'],  # Best overall score
+            "source": sources_above_threshold[0]['source'],  # Primary source (best match)
+            "all_sources": sources_above_threshold,  # All sources covering this topic (books + web)
+            "num_chunks": sum(s['num_chunks'] for s in sources_above_threshold),
+            "top_chunk_preview": sources_above_threshold[0]['preview']
         }
 
     def _get_curated_books(self, topic: str) -> List[Dict[str, Any]]:

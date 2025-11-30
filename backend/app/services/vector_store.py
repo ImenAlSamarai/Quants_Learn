@@ -216,7 +216,8 @@ class VectorStoreService:
         query: str,
         node_id: Optional[int] = None,
         top_k: int = 5,
-        filter_metadata: Optional[Dict[str, Any]] = None
+        filter_metadata: Optional[Dict[str, Any]] = None,
+        namespace: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """
         Search for relevant content chunks
@@ -226,6 +227,7 @@ class VectorStoreService:
             node_id: Optional filter by node
             top_k: Number of results to return
             filter_metadata: Additional Pinecone filters
+            namespace: Optional namespace to search (default: searches default namespace)
 
         Returns:
             List of matches with text and metadata
@@ -243,13 +245,19 @@ class VectorStoreService:
         if filter_metadata:
             filter_dict.update(filter_metadata)
 
-        # Search
-        results = self.index.query(
-            vector=query_embedding,
-            top_k=top_k,
-            include_metadata=True,
-            filter=filter_dict if filter_dict else None
-        )
+        # Search in specified namespace
+        query_params = {
+            'vector': query_embedding,
+            'top_k': top_k,
+            'include_metadata': True,
+            'filter': filter_dict if filter_dict else None
+        }
+
+        # Only add namespace if explicitly provided (Pinecone uses default if not specified)
+        if namespace is not None:
+            query_params['namespace'] = namespace
+
+        results = self.index.query(**query_params)
 
         # Format results
         matches = []
@@ -258,10 +266,62 @@ class VectorStoreService:
                 'id': match.id,
                 'score': match.score,
                 'text': match.metadata.get('text', ''),
-                'metadata': match.metadata
+                'metadata': match.metadata,
+                'namespace': namespace or 'default'  # Track which namespace this came from
             })
 
         return matches
+
+    def search_all_namespaces(
+        self,
+        query: str,
+        node_id: Optional[int] = None,
+        top_k: int = 10,
+        filter_metadata: Optional[Dict[str, Any]] = None,
+        namespaces: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Search across multiple namespaces and combine results
+
+        Args:
+            query: Search query text
+            node_id: Optional filter by node
+            top_k: Number of results to return PER NAMESPACE
+            filter_metadata: Additional Pinecone filters
+            namespaces: List of namespaces to search (default: ['', 'web_resource'])
+
+        Returns:
+            Combined list of matches from all namespaces, sorted by score
+        """
+        if not self.available:
+            return []
+
+        # Default: search both book content (default namespace) and web content
+        if namespaces is None:
+            namespaces = ['', 'web_resource']  # Empty string = default namespace
+
+        all_matches = []
+
+        # Search each namespace
+        for ns in namespaces:
+            ns_param = ns if ns else None  # Convert empty string to None for default namespace
+            matches = self.search(
+                query=query,
+                node_id=node_id,
+                top_k=top_k,
+                filter_metadata=filter_metadata,
+                namespace=ns_param
+            )
+            # Tag each match with its source namespace
+            for match in matches:
+                match['source_namespace'] = ns or 'default'
+            all_matches.extend(matches)
+
+        # Sort combined results by score (highest first)
+        all_matches.sort(key=lambda x: x['score'], reverse=True)
+
+        # Return top_k results overall (not per namespace)
+        return all_matches[:top_k]
 
     def delete_node_vectors(self, node_id: int):
         """Delete all vectors associated with a node"""

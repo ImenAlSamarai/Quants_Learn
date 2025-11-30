@@ -7,7 +7,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 60000, // 60 second timeout for LLM content generation (first generation can be slow)
+  timeout: 300000, // 5 minute timeout for automatic structure generation (first-time generation of 8+ topics with GPT-4o-mini + RAG can take 2-4 minutes)
 });
 
 // Demo data for when backend is unavailable

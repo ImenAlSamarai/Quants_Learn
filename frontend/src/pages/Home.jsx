@@ -177,6 +177,7 @@ const Home = ({ userId = 'demo_user' }) => {
             <ul className="info-list">
               <li>AI analyzes your job requirements (5-10 seconds)</li>
               <li>Checks which topics are covered in our curated books</li>
+              <li>Generates detailed learning structures for each topic (first time: 2-4 min, cached: instant!)</li>
               <li>Creates 3-5 learning stages tailored to your target role</li>
               <li>Provides external resources for topics not in our books</li>
             </ul>
@@ -187,8 +188,9 @@ const Home = ({ userId = 'demo_user' }) => {
             <div className="generating-notice">
               <div className="spinner"></div>
               <div>
-                <strong>🤖 Analyzing Job & Generating Path...</strong>
-                <p>This may take 5-10 seconds.</p>
+                <strong>🤖 Analyzing Job & Generating Learning Path...</strong>
+                <p>First time: 2-4 minutes (generating + caching structures for all topics)</p>
+                <p>Next time: Instant! (retrieving from cache)</p>
               </div>
             </div>
           )}

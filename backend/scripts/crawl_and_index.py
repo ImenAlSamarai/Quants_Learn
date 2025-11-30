@@ -88,6 +88,44 @@ class WebCrawler:
 
         self.indexer = WebResourceIndexer()
 
+    def extract_topic_from_title(self, title: str, url: str) -> str:
+        """
+        Extract clean topic name from page title
+
+        Removes common prefixes like:
+        - "Documentation - Linear Regression" → "Linear Regression"
+        - "Scikit-Learn: Ridge Regression" → "Ridge Regression"
+        - "PyTorch Docs: Neural Networks" → "Neural Networks"
+        """
+        import re
+
+        # Common prefixes to remove
+        prefixes_to_remove = [
+            r'^Documentation[\s\-:]+',
+            r'^Docs[\s\-:]+',
+            r'^Tutorial[\s\-:]+',
+            r'^Guide[\s\-:]+',
+            r'^\d+\.\d+\.\d+[\s\-:]+',  # Version numbers like "1.2.3 - "
+            r'^[A-Za-z\-]+\s*(?:Documentation|Docs|Tutorial)[\s\-:]+',  # "PyTorch Documentation - "
+        ]
+
+        clean_title = title
+        for prefix_pattern in prefixes_to_remove:
+            clean_title = re.sub(prefix_pattern, '', clean_title, flags=re.IGNORECASE)
+
+        # Also try to extract from URL if title is too generic
+        if len(clean_title.split()) <= 2 or clean_title.lower() in ['documentation', 'docs', 'home', 'index']:
+            # Extract from URL path
+            # e.g., ".../linear_model/ridge.html" → "Ridge"
+            path_parts = urlparse(url).path.split('/')
+            if len(path_parts) > 1:
+                # Get last meaningful part
+                last_part = path_parts[-1].replace('.html', '').replace('.php', '').replace('_', ' ').title()
+                if last_part and last_part.lower() not in ['index', 'home', 'readme']:
+                    clean_title = last_part
+
+        return clean_title.strip()
+
     def is_allowed(self, url: str) -> bool:
         """Check if URL is allowed by robots.txt"""
         try:
@@ -214,9 +252,18 @@ class WebCrawler:
                 # Index this page
                 page_data = self.indexer.fetch_webpage(url)
 
-                # Auto-detect topic from page title if not provided
-                page_topic = topic or page_data['title']
+                # Extract clean topic from page title and URL
+                clean_topic = self.extract_topic_from_title(page_data['title'], url)
+
+                # If global topic provided, use it as category/prefix
+                if topic:
+                    page_topic = f"{topic}: {clean_topic}"
+                else:
+                    page_topic = clean_topic
+
                 page_source = source or page_data['domain']
+
+                print(f"  📌 Topic: {page_topic}")
 
                 # Index the page
                 chunks = self.indexer.split_text(page_data['text'])
@@ -306,7 +353,11 @@ Examples:
     parser.add_argument('--depth', type=int, default=2, help='Max crawl depth (default: 2)')
     parser.add_argument('--max-pages', type=int, default=100, help='Max pages to index (default: 100)')
     parser.add_argument('--pattern', help='URL pattern to match (e.g., "*/docs/stable/*")')
-    parser.add_argument('--topic', help='Topic name (auto-detect from titles if not provided)')
+    parser.add_argument(
+        '--topic',
+        help='Optional category prefix. Each page auto-detects its own topic from title. '
+             'If provided, format will be "Category: Page Topic" (e.g., "ML Docs: Linear Regression")'
+    )
     parser.add_argument('--source', help='Source name (auto-detect from domain if not provided)')
     parser.add_argument('--category', default='web_resource', help='Category (default: web_resource)')
     parser.add_argument('--delay', type=int, default=2, help='Delay between requests in seconds (default: 2)')

@@ -177,4 +177,18 @@ export const checkTopicCoverage = async (topic) => {
   return response.data;
 };
 
+export const getSectionContent = async (topicName, sectionId, sectionTitle, keywords = []) => {
+  const params = {
+    section_title: sectionTitle,
+    keywords: keywords.join(',')
+  };
+
+  const response = await api.get(
+    `/api/users/topics/${encodeURIComponent(topicName)}/sections/${sectionId}/content`,
+    { params }
+  );
+
+  return response.data;
+};
+
 export default api;

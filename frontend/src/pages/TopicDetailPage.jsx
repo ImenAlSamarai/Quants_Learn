@@ -325,7 +325,16 @@ const TopicDetailPage = () => {
                         onClick={() => {
                           navigate(
                             `/topic/${topicSlug}/week/${week.weekNumber}/section/${section.id}`,
-                            { state: { topicName: topicData.name } }
+                            {
+                              state: {
+                                topicName: topicData.name,
+                                sectionData: {
+                                  title: section.title,
+                                  topics: section.topics || [],
+                                  weekNumber: week.weekNumber
+                                }
+                              }
+                            }
                           );
                         }}
                       >

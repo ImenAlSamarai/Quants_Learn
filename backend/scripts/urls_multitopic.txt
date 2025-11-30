@@ -1,0 +1,11 @@
+# Multi-Topic Web Resources
+# Format: URL | Topic1, Topic2, Topic3 | Source Name (optional)
+#
+# Use this when a single webpage covers multiple topics.
+# Each topic will be tagged in metadata for better search matching.
+#
+# Example:
+# https://example.com/comprehensive-guide | Linear Regression, Hypothesis Testing, ANOVA | Example Site
+# https://scikit-learn.org/stable/modules/linear_model.html | Linear Regression, Ridge Regression, Lasso Regression | Scikit-Learn
+
+# Add your multi-topic URLs below:

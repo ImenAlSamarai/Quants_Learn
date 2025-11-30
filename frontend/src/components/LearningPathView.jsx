@@ -107,9 +107,18 @@ const LearningPathView = ({ userId = 'demo_user', onClose }) => {
             stages={learningPath.stages}
             dependencies={learningPath.dependencies || []}
             onTopicClick={(topicName) => {
-              // Navigate to topic detail page
+              // Find the full topic data with learning_structure from covered_topics
+              const fullTopicData = learningPath.covered_topics?.find(
+                t => t.topic === topicName
+              );
+
               const topicSlug = topicName.toLowerCase().replace(/\s+/g, '-');
-              navigate(`/topic/${topicSlug}`, { state: { topicName } });
+              navigate(`/topic/${topicSlug}`, {
+                state: {
+                  topicName,
+                  topicData: fullTopicData // Pass full topic data including learning_structure
+                }
+              });
             }}
           />
         </section>

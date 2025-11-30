@@ -14,6 +14,9 @@ const TopicDetailPage = () => {
   const location = useLocation();
   const topicName = location.state?.topicName || topicSlug.replace(/-/g, ' ');
 
+  // Get real topic data from navigation state (includes learning_structure from backend)
+  const backendTopicData = location.state?.topicData;
+
   const [activeTab, setActiveTab] = useState('roadmap'); // roadmap, practice, progress
   const [sectionCompletionStatus, setSectionCompletionStatus] = useState({});
 
@@ -47,123 +50,110 @@ const TopicDetailPage = () => {
     };
   }, [topicSlug]);
 
-  // PLACEHOLDER DATA - Replace with real API calls
-  const topicData = {
-    name: topicName,
-    priority: 'MEDIUM',
-    coverage: 54.9,
-    booksCount: 3,
-    chunksCount: 10,
-    userProgress: 0,
-    estimatedWeeks: '3-4',
-    interviewFrequency: 90,
-    prerequisiteFor: ['time series analysis', 'machine learning'],
+  // Use real backend data if available, otherwise use placeholder
+  const topicData = React.useMemo(() => {
+    if (backendTopicData && backendTopicData.learning_structure) {
+      // We have real data from backend!
+      const structure = backendTopicData.learning_structure;
 
-    whyMatters: "Statistical modeling appears in 90% of quant interviews. You'll be asked to derive regression coefficients from first principles, explain bias-variance tradeoff, debug overfitting in production models, code linear regression from scratch (no sklearn), and discuss when to use Ridge vs Lasso.",
+      return {
+        name: topicName,
+        priority: backendTopicData.priority || 'MEDIUM',
+        coverage: backendTopicData.confidence ? (backendTopicData.confidence * 100).toFixed(1) : 0,
+        booksCount: backendTopicData.all_sources?.length || 0,
+        chunksCount: backendTopicData.all_sources?.reduce((sum, s) => sum + (s.chunks?.length || 0), 0) || 0,
+        userProgress: 0, // TODO: Fetch from backend user progress API
+        estimatedWeeks: Math.ceil(structure.estimated_hours / 10) || '3-4', // Assume 10 hours/week
+        estimatedHours: structure.estimated_hours,
+        difficultyLevel: structure.difficulty_level,
+        cached: structure.cached,
+        interviewFrequency: 80, // Placeholder - could be derived from priority
+        prerequisiteFor: [], // TODO: Extract from dependencies
 
-    interviewQuestions: [
-      "Walk me through ordinary least squares derivation",
-      "How would you detect heteroskedasticity?",
-      "Implement gradient descent for linear regression in Python"
-    ],
+        whyMatters: `This topic appears in quant interviews for roles requiring ${backendTopicData.keywords?.slice(0, 3).join(', ')}. Master this to demonstrate your expertise in ${topicName}.`,
 
-    weeks: [
-      {
-        weekNumber: 1,
-        title: 'Foundations',
-        completed: false,
-        progress: 0,
-        sections: [
-          {
-            id: '1.1',
-            title: 'Linear Regression (OLS)',
-            completed: false,
-            topics: ['Matrix formulation: β = (X\'X)⁻¹X\'y', 'Assumptions (LINE)', 'Interpretation'],
-            resources: ['ESL Chapter 3, sections 3.1-3.2', 'Quant Stats: Linear Models']
-          },
-          {
-            id: '1.2',
-            title: 'Maximum Likelihood Estimation',
-            completed: false,
-            topics: ['MLE framework', 'Connection to OLS'],
-            resources: ['ESL Chapter 4, section 4.1']
-          }
-        ]
-      },
-      {
-        weekNumber: 2,
-        title: 'Model Diagnostics',
-        completed: false,
-        progress: 0,
-        sections: [
-          { id: '2.1', title: 'Residual Analysis', completed: false },
-          { id: '2.2', title: 'Hypothesis Testing (t-tests, F-tests)', completed: false },
-          { id: '2.3', title: 'Model Assumptions Validation', completed: false }
-        ]
-      },
-      {
-        weekNumber: 3,
-        title: 'Advanced Topics',
-        completed: false,
-        progress: 0,
-        sections: [
-          { id: '3.1', title: 'Regularization (Ridge, Lasso, Elastic Net)', completed: false },
-          { id: '3.2', title: 'Bias-Variance Tradeoff', completed: false },
-          { id: '3.3', title: 'Cross-Validation', completed: false }
-        ]
-      },
-      {
-        weekNumber: 4,
-        title: 'Interview Prep',
-        completed: false,
-        progress: 0,
-        sections: [
-          { id: '4.1', title: 'Coding from scratch (no libraries)', completed: false },
-          { id: '4.2', title: 'Derivations & Proofs', completed: false },
-          { id: '4.3', title: 'Mock interviews', completed: false }
-        ]
-      }
-    ],
+        interviewQuestions: [
+          `Explain the key concepts in ${topicName}`,
+          `How would you apply ${topicName} in trading strategies?`,
+          `Walk through a practical example using ${topicName}`
+        ],
 
-    books: [
-      {
-        title: 'Elements of Statistical Learning, Chapter 3',
-        sections: '3.1, 3.2, 3.4',
-        chunks: 7,
-        topics: 'Linear Regression Fundamentals'
-      },
-      {
-        title: 'Quant Learning Materials: Statistics',
-        sections: 'Linear Models section',
-        chunks: 3,
-        topics: 'Linear Regression Fundamentals'
-      },
-      {
-        title: 'Elements of Statistical Learning, Chapter 4',
-        sections: '4.1-4.4',
-        chunks: 2,
-        topics: 'Generalized Linear Models'
-      }
-    ],
+        // Use real weeks/sections from backend!
+        weeks: structure.weeks || [],
 
-    practiceProblems: {
-      easy: [
-        { id: 1, text: 'Explain the difference between R² and adjusted R²', completed: false },
-        { id: 2, text: 'When would you use Ridge vs Lasso regression?', completed: false },
-        { id: 3, text: 'What are the OLS assumptions and why do they matter?', completed: false }
-      ],
-      medium: [
-        { id: 4, text: 'Derive the closed-form solution for linear regression', completed: false },
-        { id: 5, text: 'Prove that Ridge regression shrinks coefficients', completed: false },
-        { id: 6, text: 'Show that R² always increases with more features', completed: false }
-      ],
-      hard: [
-        { id: 7, text: 'Implement linear regression from scratch (30 min)', completed: false },
-        { id: 8, text: 'Code Ridge regression with cross-validation', completed: false },
-        { id: 9, text: 'Detect and fix multicollinearity in a dataset', completed: false }
-      ]
+        // Map backend source books to display format
+        books: backendTopicData.all_sources?.map(source => ({
+          title: source.source || 'Book',
+          sections: 'Multiple sections',
+          chunks: source.chunks?.length || 0,
+          topics: source.chunks?.slice(0, 3).map(c => c.text?.substring(0, 50)).join(', ') || topicName
+        })) || [],
+
+        practiceProblems: {
+          easy: [
+            { id: 1, text: `What are the key concepts in ${topicName}?`, completed: false },
+            { id: 2, text: `When would you use ${topicName} in trading?`, completed: false },
+            { id: 3, text: `What are the main assumptions or limitations?`, completed: false }
+          ],
+          medium: [
+            { id: 4, text: `Derive or prove a key theorem in ${topicName}`, completed: false },
+            { id: 5, text: `Solve a moderately complex problem using ${topicName}`, completed: false }
+          ],
+          hard: [
+            { id: 6, text: `Implement ${topicName} from scratch (30 min)`, completed: false },
+            { id: 7, text: `Apply ${topicName} to a real trading scenario`, completed: false }
+          ]
+        }
+      };
     }
-  };
+
+    // Fallback to placeholder data if no backend data available
+    return {
+      name: topicName,
+      priority: 'MEDIUM',
+      coverage: 54.9,
+      booksCount: 3,
+      chunksCount: 10,
+      userProgress: 0,
+      estimatedWeeks: '3-4',
+      interviewFrequency: 90,
+      prerequisiteFor: ['time series analysis', 'machine learning'],
+
+      whyMatters: `Learn ${topicName} to excel in quant interviews. This topic is essential for understanding advanced concepts and solving real-world problems.`,
+
+      interviewQuestions: [
+        `Explain ${topicName} in your own words`,
+        `How is ${topicName} applied in quantitative finance?`,
+        `What are the key challenges when working with ${topicName}?`
+      ],
+
+      weeks: [
+        {
+          weekNumber: 1,
+          title: 'Foundations',
+          sections: [
+            { id: '1.1', title: `Introduction to ${topicName}`, topics: ['Core concepts', 'Fundamentals'], resources: ['Reading materials'] }
+          ]
+        }
+      ],
+
+      books: [
+        { title: 'Reference materials', sections: 'Various', chunks: 10, topics: topicName }
+      ],
+
+      practiceProblems: {
+        easy: [
+          { id: 1, text: `What are the basics of ${topicName}?`, completed: false }
+        ],
+        medium: [
+          { id: 2, text: `Solve a problem using ${topicName}`, completed: false }
+        ],
+        hard: [
+          { id: 3, text: `Implement ${topicName} from scratch`, completed: false }
+        ]
+      }
+    };
+  }, [backendTopicData, topicName]);
 
   const getPriorityColor = (priority) => {
     switch (priority) {

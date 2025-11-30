@@ -328,10 +328,22 @@ const TopicDetailPage = () => {
                             {
                               state: {
                                 topicName: topicData.name,
+                                topicData: backendTopicData, // Pass full topic data for back navigation
                                 sectionData: {
                                   title: section.title,
                                   topics: section.topics || [],
                                   weekNumber: week.weekNumber
+                                },
+                                // Pass complete learning structure for navigation
+                                learningStructure: {
+                                  weeks: topicData.weeks,
+                                  allSections: topicData.weeks.flatMap(w =>
+                                    w.sections.map(s => ({
+                                      id: s.id,
+                                      title: s.title,
+                                      weekNumber: w.weekNumber
+                                    }))
+                                  )
                                 }
                               }
                             }

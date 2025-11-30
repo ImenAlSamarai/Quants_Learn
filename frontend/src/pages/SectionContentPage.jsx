@@ -17,6 +17,8 @@ const SectionContentPage = () => {
 
   const topicName = location.state?.topicName || topicSlug.replace(/-/g, ' ');
   const sectionData = location.state?.sectionData || {};
+  const learningStructure = location.state?.learningStructure; // Real navigation structure
+  const topicData = location.state?.topicData; // Full topic data for back navigation
 
   const [showNotes, setShowNotes] = useState(false);
   const [notes, setNotes] = useState('');
@@ -1025,6 +1027,23 @@ Q: How would you deploy this model?`
 
   const fallbackData = getSectionData();
 
+  // Build real navigation from learning structure if available
+  const buildNavigation = () => {
+    if (learningStructure?.allSections) {
+      const currentIndex = learningStructure.allSections.findIndex(s => s.id === sectionId);
+      const previous = currentIndex > 0 ? learningStructure.allSections[currentIndex - 1] : null;
+      const next = currentIndex < learningStructure.allSections.length - 1 ? learningStructure.allSections[currentIndex + 1] : null;
+
+      return {
+        previous,
+        next,
+        allSections: learningStructure.allSections.map(s => ({ ...s, current: s.id === sectionId }))
+      };
+    }
+    // Fall back to placeholder navigation if no real structure
+    return fallbackData.navigation;
+  };
+
   // Use real data if available, otherwise fall back to placeholder
   const displayData = contentData ? {
     sectionTitle: contentData.sectionTitle || fallbackData.sectionTitle,
@@ -1033,8 +1052,11 @@ Q: How would you deploy this model?`
     topicName: topicName,
     weekNumber: parseInt(weekNumber) || 1,
     sectionId: sectionId,
-    navigation: fallbackData.navigation
-  } : fallbackData;
+    navigation: buildNavigation() // Use real navigation
+  } : {
+    ...fallbackData,
+    navigation: buildNavigation() // Use real navigation even for fallback
+  };
 
   // Enhanced content renderer for code blocks, LaTeX math, and formulas
   const renderContent = (text) => {
@@ -1155,16 +1177,36 @@ Q: How would you deploy this model?`
 
   const handleNext = () => {
     if (displayData.navigation.next) {
-      navigate(`/topic/${topicSlug}/week/${weekNumber}/section/${displayData.navigation.next.id}`, {
-        state: { topicName: displayData.topicName }
+      const nextSection = displayData.navigation.next;
+      navigate(`/topic/${topicSlug}/week/${nextSection.weekNumber || weekNumber}/section/${nextSection.id}`, {
+        state: {
+          topicName: displayData.topicName,
+          topicData: topicData, // Preserve full topic data
+          learningStructure: learningStructure, // Preserve navigation structure
+          sectionData: {
+            title: nextSection.title,
+            topics: [],
+            weekNumber: nextSection.weekNumber || weekNumber
+          }
+        }
       });
     }
   };
 
   const handlePrevious = () => {
     if (displayData.navigation.previous) {
-      navigate(`/topic/${topicSlug}/week/${weekNumber}/section/${displayData.navigation.previous.id}`, {
-        state: { topicName: displayData.topicName }
+      const prevSection = displayData.navigation.previous;
+      navigate(`/topic/${topicSlug}/week/${prevSection.weekNumber || weekNumber}/section/${prevSection.id}`, {
+        state: {
+          topicName: displayData.topicName,
+          topicData: topicData, // Preserve full topic data
+          learningStructure: learningStructure, // Preserve navigation structure
+          sectionData: {
+            title: prevSection.title,
+            topics: [],
+            weekNumber: prevSection.weekNumber || weekNumber
+          }
+        }
       });
     }
   };
@@ -1175,7 +1217,9 @@ Q: How would you deploy this model?`
       <div className="section-content-page">
         <header className="section-header">
           <button
-            onClick={() => navigate(`/topic/${topicSlug}`, { state: { topicName } })}
+            onClick={() => navigate(`/topic/${topicSlug}`, {
+              state: { topicName, topicData }
+            })}
             className="back-button"
           >
             ← Back to {topicName}
@@ -1201,7 +1245,9 @@ Q: How would you deploy this model?`
       <div className="section-content-page">
         <header className="section-header">
           <button
-            onClick={() => navigate(`/topic/${topicSlug}`, { state: { topicName } })}
+            onClick={() => navigate(`/topic/${topicSlug}`, {
+              state: { topicName, topicData }
+            })}
             className="back-button"
           >
             ← Back to {topicName}
@@ -1253,7 +1299,12 @@ Q: How would you deploy this model?`
       {/* Header with Navigation */}
       <header className="section-header">
         <button
-          onClick={() => navigate(`/topic/${topicSlug}`, { state: { topicName: displayData.topicName } })}
+          onClick={() => navigate(`/topic/${topicSlug}`, {
+            state: {
+              topicName: displayData.topicName,
+              topicData: topicData // Preserve full topic data for mastery path
+            }
+          })}
           className="back-button"
         >
           ← Back to {displayData.topicName}

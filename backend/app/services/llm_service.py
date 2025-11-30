@@ -3,6 +3,12 @@ from typing import List, Dict, Any, Optional
 from app.config.settings import settings
 import json
 
+try:
+    from anthropic import Anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+
 
 class LLMService:
     """Handles LLM-powered content generation"""
@@ -10,6 +16,12 @@ class LLMService:
     def __init__(self):
         self.client = OpenAI(api_key=settings.OPENAI_API_KEY)
         self.model = settings.OPENAI_MODEL
+
+        # Initialize Claude client if API key is available
+        self.claude_client = None
+        self.claude_model = settings.ANTHROPIC_MODEL
+        if ANTHROPIC_AVAILABLE and settings.ANTHROPIC_API_KEY:
+            self.claude_client = Anthropic(api_key=settings.ANTHROPIC_API_KEY)
 
         # Define audience profiles for difficulty-aware prompting
         self.difficulty_profiles = {
@@ -464,6 +476,148 @@ Return only a JSON array of topic names: ["topic1", "topic2", ...]"""
             return json.loads(content)
         except:
             return []
+
+    def generate_rich_section_content(
+        self,
+        topic_name: str,
+        section_title: str,
+        section_id: str,
+        context_chunks: List[str],
+        use_claude: bool = True
+    ) -> str:
+        """
+        Generate comprehensive, high-quality section content
+
+        Uses Claude (Sonnet 3.5) for superior quality, similar to validated statistical modeling content
+        Falls back to GPT-4 if Claude is unavailable
+
+        Args:
+            topic_name: The parent topic (e.g., "statistical modeling")
+            section_title: Specific section (e.g., "Ridge vs Lasso Regularization")
+            section_id: Section identifier (e.g., "2.3")
+            context_chunks: RAG-retrieved relevant book content
+            use_claude: Whether to use Claude (True) or GPT-4 (False)
+
+        Returns:
+            Rich markdown content with LaTeX, code examples, and explanations
+        """
+
+        context_text = "\n\n---\n\n".join(context_chunks) if context_chunks else "No specific book content available."
+
+        system_prompt = """You are an elite educator specializing in quantitative finance, with deep expertise in mathematics, statistics, and trading.
+
+Your task is to create comprehensive, rigorous learning content for quant interview preparation.
+
+QUALITY STANDARDS (Match "Statistical Modeling" Example):
+- Information-dense, no filler or pleasantries
+- Mathematical rigor with proper LaTeX notation
+- Real-world quant finance applications
+- Python code examples that actually work
+- Interview-focused insights and tips
+
+CONTENT STRUCTURE:
+
+## Overview
+[2-3 paragraphs introducing the concept, its importance in quant finance, and key applications. Include mathematical formulations using LaTeX.]
+
+## Mathematical Foundation
+[Detailed mathematical treatment with all key formulas. Use LaTeX extensively:
+- Inline math: $E[X] = \\mu$
+- Display equations: $$\\hat{\\beta} = (X^TX)^{-1}X^Ty$$
+Include derivations where relevant for interviews.]
+
+## Quantitative Finance Application
+[Concrete examples from:
+- Trading strategies
+- Risk management
+- Portfolio optimization
+- Derivative pricing
+Show HOW this is used in practice, not just WHAT it is.]
+
+## Python Implementation
+```python
+import numpy as np
+import pandas as pd
+
+# Working, production-quality code
+# Include comments explaining key steps
+```
+
+## Interview Deep-Dive
+**Common Questions:**
+- [Question 1]
+- [Question 2]
+- [Question 3]
+
+**Key Points Interviewers Look For:**
+- [Point 1]
+- [Point 2]
+
+**Pitfalls to Avoid:**
+- [Pitfall 1]
+- [Pitfall 2]
+
+## Key Takeaways
+- **[Concept 1]**: One-sentence summary
+- **[Concept 2]**: One-sentence summary
+- **[Concept 3]**: One-sentence summary
+
+CRITICAL REQUIREMENTS:
+1. Use ALL concepts from provided book content - don't ignore valuable material
+2. LaTeX for ALL math: $inline$ and $$display$$
+3. Include at least one complete Python example
+4. Make it interview-focused - what will they ask? how to answer?
+5. Length: 800-1200 words (comprehensive but not overwhelming)
+6. NO filler phrases like "Let's explore..." or "It's important to understand..."
+7. Start immediately with substantive content
+
+FORMATTING:
+- Headers: ##, ###
+- Bold: **key terms**
+- Code blocks: ```python
+- LaTeX: proper notation
+- Lists: - or 1."""
+
+        user_prompt = f"""Topic: {topic_name}
+Section {section_id}: {section_title}
+
+Book Content to Incorporate:
+{context_text}
+
+Create comprehensive learning content for this section. This will be used by candidates preparing for quant interviews, so ensure it's rigorous, practical, and interview-focused.
+
+Draw heavily from the book content provided. If mathematical concepts, specific algorithms, or theoretical frameworks are mentioned, integrate them fully with proper mathematical treatment."""
+
+        if use_claude and self.claude_client:
+            # Use Claude Sonnet 3.5 for superior quality
+            try:
+                response = self.claude_client.messages.create(
+                    model=self.claude_model,
+                    max_tokens=4000,  # Longer content for comprehensive sections
+                    temperature=0.7,  # Balanced creativity
+                    system=system_prompt,
+                    messages=[{
+                        "role": "user",
+                        "content": user_prompt
+                    }]
+                )
+                return response.content[0].text
+            except Exception as e:
+                print(f"⚠️  Claude API error: {e}. Falling back to GPT-4.")
+                # Fall through to GPT-4
+
+        # Fallback to GPT-4 (or if use_claude=False)
+        response = self.client.chat.completions.create(
+            model="gpt-4-turbo-preview",  # Use GPT-4 for quality (not mini)
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=3000
+        )
+
+        return response.choices[0].message.content
 
 
 # Singleton instance

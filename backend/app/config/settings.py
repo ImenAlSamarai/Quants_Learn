@@ -15,6 +15,10 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str
     OPENAI_MODEL: str = "gpt-4-turbo-preview"
 
+    # Anthropic Claude (for high-quality content generation)
+    ANTHROPIC_API_KEY: Optional[str] = None
+    ANTHROPIC_MODEL: str = "claude-3-5-sonnet-20241022"  # Latest Claude model
+
     # App Settings
     APP_NAME: str = "Quant Learning Platform"
     DEBUG: bool = True

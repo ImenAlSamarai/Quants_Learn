@@ -1343,6 +1343,111 @@ Return valid JSON only."""
                 "difficulty_level": 3
             }
 
+    def get_or_generate_section_content(
+        self,
+        topic_name: str,
+        section_id: str,
+        section_title: str,
+        topic_keywords: list,
+        db: Session
+    ) -> dict:
+        """
+        Get cached section content or generate new using Claude/GPT-4 + RAG
+
+        Similar to get_or_generate_topic_structure but for individual section content
+        Uses Claude Sonnet 3.5 for premium quality (or GPT-4 as fallback)
+
+        Returns:
+            {
+                "content": "markdown content with LaTeX",
+                "estimated_minutes": 45,
+                "cached": True/False,
+                "generation_model": "claude-3-5-sonnet"
+            }
+        """
+        import hashlib
+        from app.models.database import SectionContent
+
+        # Create unique hash for this section
+        content_key = f"{topic_name}|{section_id}|{section_title}"
+        content_hash = hashlib.md5(content_key.encode()).hexdigest()
+
+        # Check cache first
+        cached = db.query(SectionContent).filter(
+            SectionContent.content_hash == content_hash,
+            SectionContent.is_valid == True
+        ).first()
+
+        if cached:
+            # Cache hit! Increment access count
+            cached.access_count += 1
+            db.commit()
+            print(f"✅ Cache HIT for section '{topic_name} - {section_id}' (accessed {cached.access_count} times)")
+            return {
+                "content": cached.content,
+                "estimated_minutes": cached.estimated_minutes or 45,
+                "cached": True,
+                "generation_model": cached.generation_model
+            }
+
+        # Cache miss - generate new content
+        print(f"🔄 Cache MISS for section '{topic_name} - {section_id}' - generating with Claude/GPT-4...")
+
+        # Step 1: Retrieve relevant chunks from RAG
+        search_query = f"{topic_name} {section_title} {' '.join(topic_keywords[:3])}"
+        coverage = self.check_topic_coverage(search_query)
+
+        chunks = []
+        if coverage['covered']:
+            for source_info in coverage.get('all_sources', []):
+                chunks.extend(source_info.get('chunks', []))
+
+        # Limit to top 15 most relevant chunks
+        chunks = chunks[:15]
+        chunk_texts = [c.get('text', '') for c in chunks]
+
+        # Step 2: Generate rich content using Claude (or GPT-4)
+        content = self.llm_service.generate_rich_section_content(
+            topic_name=topic_name,
+            section_title=section_title,
+            section_id=section_id,
+            context_chunks=chunk_texts,
+            use_claude=True  # Use Claude by default for quality
+        )
+
+        # Determine which model was used
+        generation_model = "claude-3-5-sonnet" if self.llm_service.claude_client else "gpt-4-turbo"
+
+        # Estimate reading time (rough: 200 words per minute, ~5 chars per word)
+        estimated_minutes = max(30, min(90, len(content) // 1000))  # 30-90 min range
+
+        # Step 3: Save to cache
+        section_content = SectionContent(
+            topic_name=topic_name,
+            section_id=section_id,
+            section_title=section_title,
+            content_hash=content_hash,
+            content=content,
+            topic_keywords=topic_keywords,
+            source_chunks_count=len(chunks),
+            estimated_minutes=estimated_minutes,
+            generation_model=generation_model,
+            access_count=1
+        )
+
+        db.add(section_content)
+        db.commit()
+        db.refresh(section_content)
+
+        print(f"✅ Generated and cached section content ({len(content)} chars, {len(chunks)} chunks, ~{estimated_minutes} min)")
+
+        return {
+            "content": content,
+            "estimated_minutes": estimated_minutes,
+            "cached": False,
+            "generation_model": generation_model
+        }
+
 
 # Singleton instance
 learning_path_service = LearningPathService()

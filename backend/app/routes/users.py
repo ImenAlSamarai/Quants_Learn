@@ -322,3 +322,51 @@ def get_topic_structure(
     )
 
     return structure
+
+
+@router.get("/topics/{topic_name}/sections/{section_id}/content")
+def get_section_content(
+    topic_name: str,
+    section_id: str,
+    section_title: str = "",
+    keywords: str = "",  # Comma-separated keywords
+    db: Session = Depends(get_db)
+):
+    """
+    Get rich learning content for a specific section using Claude API
+
+    Uses Claude Sonnet 3.5 for premium-quality content generation
+    Falls back to GPT-4 if Claude unavailable
+    Caches content for instant retrieval on subsequent requests
+
+    Flow:
+    1. Check cache - if exists, return instantly (FREE!)
+    2. If not cached - generate with Claude + RAG (~$0.02-0.05)
+    3. Cache for all future users
+
+    Query params:
+    - section_title: Required - the section title
+    - keywords: Optional comma-separated keywords for better RAG retrieval
+
+    Returns:
+    - content: Rich markdown with LaTeX, code examples, interview tips
+    - estimated_minutes: Reading time
+    - cached: Whether this was cached or freshly generated
+    - generation_model: Which model generated the content
+    """
+    if not section_title:
+        return {"error": "section_title query parameter is required"}
+
+    # Parse keywords
+    keyword_list = [k.strip() for k in keywords.split(",")] if keywords else []
+
+    # Get or generate section content (cache-first!)
+    result = learning_path_service.get_or_generate_section_content(
+        topic_name=topic_name,
+        section_id=section_id,
+        section_title=section_title,
+        topic_keywords=keyword_list,
+        db=db
+    )
+
+    return result

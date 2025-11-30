@@ -346,6 +346,34 @@ class TopicStructure(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 
+class SectionContent(Base):
+    """Cached rich learning content for individual sections"""
+    __tablename__ = 'section_contents'
+
+    id = Column(Integer, primary_key=True, index=True)
+    topic_name = Column(String(200), nullable=False, index=True)
+    section_id = Column(String(20), nullable=False, index=True)  # e.g., "2.3"
+    section_title = Column(String(300), nullable=False)
+    content_hash = Column(String(32), nullable=False, unique=True, index=True)  # MD5(topic + section_id + section_title)
+
+    # Rich content (Markdown with LaTeX)
+    content = Column(Text, nullable=False)  # Full markdown content
+
+    # Metadata
+    topic_keywords = Column(JSON)  # Keywords for RAG retrieval
+    source_chunks_count = Column(Integer, default=0)  # Number of RAG chunks used
+    estimated_minutes = Column(Integer)  # Estimated reading time
+
+    # Caching
+    generation_model = Column(String(50), default="claude-3-5-sonnet")  # Model used (Claude or GPT-4)
+    content_version = Column(Integer, default=1)  # For cache invalidation
+    access_count = Column(Integer, default=0)  # Track usage
+    is_valid = Column(Boolean, default=True)  # For cache invalidation
+
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
 # Database setup
 engine = create_engine(settings.DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

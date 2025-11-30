@@ -1,0 +1,11 @@
+# Web Resources to Index
+# Format: URL | Topic Name | Source Name (optional)
+#
+# Examples:
+# https://towardsdatascience.com/understanding-mle | Maximum Likelihood Estimation | Towards Data Science
+# https://stats.stackexchange.com/questions/12345 | Bayesian Inference | Cross Validated
+#
+# Leave Source Name empty to auto-detect from domain:
+# https://scikit-learn.org/stable/modules/linear_model.html | Linear Regression
+
+# Add your URLs below (one per line):

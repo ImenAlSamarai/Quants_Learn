@@ -1383,9 +1383,12 @@ Return valid JSON only."""
             cached.access_count += 1
             db.commit()
             print(f"✅ Cache HIT for section '{topic_name} - {section_id}' (accessed {cached.access_count} times)")
+
+            import json
             return {
-                "content": cached.content,
-                "estimated_minutes": cached.estimated_minutes or 45,
+                "sectionTitle": cached.section_title,
+                "estimatedTime": f"{cached.estimated_minutes or 45} minutes",
+                "content": json.loads(cached.content),  # Parse JSON string back to dict
                 "cached": True,
                 "generation_model": cached.generation_model
             }
@@ -1406,8 +1409,8 @@ Return valid JSON only."""
         chunks = chunks[:15]
         chunk_texts = [c.get('text', '') for c in chunks]
 
-        # Step 2: Generate rich content using Claude (or GPT-4)
-        content = self.llm_service.generate_rich_section_content(
+        # Step 2: Generate rich content using Claude (or GPT-4) in validated JSON structure
+        content_dict = self.llm_service.generate_rich_section_content(
             topic_name=topic_name,
             section_title=section_title,
             section_id=section_id,
@@ -1418,32 +1421,59 @@ Return valid JSON only."""
         # Determine which model was used
         generation_model = "claude-3-5-sonnet" if self.llm_service.claude_client else "gpt-4-turbo"
 
-        # Estimate reading time (rough: 200 words per minute, ~5 chars per word)
-        estimated_minutes = max(30, min(90, len(content) // 1000))  # 30-90 min range
+        # Estimate reading time from content structure
+        intro_length = len(content_dict.get('introduction', ''))
+        sections_length = sum(len(s.get('content', '')) for s in content_dict.get('sections', []))
+        total_length = intro_length + sections_length
+        estimated_minutes = max(30, min(90, total_length // 1000))  # 30-90 min range
 
-        # Step 3: Save to cache
-        section_content = SectionContent(
-            topic_name=topic_name,
-            section_id=section_id,
-            section_title=section_title,
-            content_hash=content_hash,
-            content=content,
-            topic_keywords=topic_keywords,
-            source_chunks_count=len(chunks),
-            estimated_minutes=estimated_minutes,
-            generation_model=generation_model,
-            access_count=1
-        )
+        # Step 3: Save to cache (handle duplicate gracefully)
+        import json
+        try:
+            section_content = SectionContent(
+                topic_name=topic_name,
+                section_id=section_id,
+                section_title=section_title,
+                content_hash=content_hash,
+                content=json.dumps(content_dict),  # Store as JSON string
+                topic_keywords=topic_keywords,
+                source_chunks_count=len(chunks),
+                estimated_minutes=estimated_minutes,
+                generation_model=generation_model,
+                access_count=1
+            )
 
-        db.add(section_content)
-        db.commit()
-        db.refresh(section_content)
+            db.add(section_content)
+            db.commit()
+            db.refresh(section_content)
 
-        print(f"✅ Generated and cached section content ({len(content)} chars, {len(chunks)} chunks, ~{estimated_minutes} min)")
+            print(f"✅ Generated and cached section content ({len(chunks)} chunks, ~{estimated_minutes} min)")
+
+        except Exception as e:
+            if "duplicate key" in str(e):
+                print(f"⚠️  Content already exists (race condition), fetching from cache...")
+                db.rollback()
+                # Fetch the existing content
+                cached = db.query(SectionContent).filter(
+                    SectionContent.content_hash == content_hash
+                ).first()
+                if cached:
+                    cached.access_count += 1
+                    db.commit()
+                    return {
+                        "sectionTitle": section_title,
+                        "estimatedTime": f"{cached.estimated_minutes} minutes",
+                        "content": json.loads(cached.content),
+                        "cached": True,
+                        "generation_model": cached.generation_model
+                    }
+            else:
+                raise e
 
         return {
-            "content": content,
-            "estimated_minutes": estimated_minutes,
+            "sectionTitle": section_title,
+            "estimatedTime": f"{estimated_minutes} minutes",
+            "content": content_dict,
             "cached": False,
             "generation_model": generation_model
         }

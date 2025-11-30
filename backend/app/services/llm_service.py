@@ -484,22 +484,25 @@ Return only a JSON array of topic names: ["topic1", "topic2", ...]"""
         section_id: str,
         context_chunks: List[str],
         use_claude: bool = True
-    ) -> str:
+    ) -> dict:
         """
-        Generate comprehensive, high-quality section content
+        Generate comprehensive, high-quality section content in VALIDATED STRUCTURE
 
-        Uses Claude (Sonnet 3.5) for superior quality, similar to validated statistical modeling content
+        CRITICAL: Must match the exact structure validated for statistical modeling:
+        {
+          "introduction": "...",
+          "sections": [{"title": "...", "content": "...", "keyFormula": "..."}],
+          "keyTakeaways": [...],
+          "interviewTips": [...],
+          "practiceProblems": [...],
+          "resources": [...]
+        }
+
+        Uses Claude (Sonnet 3.5) for superior quality
         Falls back to GPT-4 if Claude is unavailable
 
-        Args:
-            topic_name: The parent topic (e.g., "statistical modeling")
-            section_title: Specific section (e.g., "Ridge vs Lasso Regularization")
-            section_id: Section identifier (e.g., "2.3")
-            context_chunks: RAG-retrieved relevant book content
-            use_claude: Whether to use Claude (True) or GPT-4 (False)
-
         Returns:
-            Rich markdown content with LaTeX, code examples, and explanations
+            Structured dict matching statistical modeling validated format
         """
 
         context_text = "\n\n---\n\n".join(context_chunks) if context_chunks else "No specific book content available."
@@ -508,75 +511,62 @@ Return only a JSON array of topic names: ["topic1", "topic2", ...]"""
 
 Your task is to create comprehensive, rigorous learning content for quant interview preparation.
 
-QUALITY STANDARDS (Match "Statistical Modeling" Example):
-- Information-dense, no filler or pleasantries
-- Mathematical rigor with proper LaTeX notation
-- Real-world quant finance applications
-- Python code examples that actually work
-- Interview-focused insights and tips
+CRITICAL: You MUST return VALID JSON in this EXACT structure (no markdown, no ```json wrapper):
 
-CONTENT STRUCTURE:
+{
+  "introduction": "2-3 sentences introducing the concept, its importance in quant interviews, and why mastering it matters. Be direct and substantive.",
+  "sections": [
+    {
+      "title": "Specific concept name (e.g., 'The OLS Problem', 'Deriving the Estimator')",
+      "content": "Detailed explanation with LaTeX math. Use $...$ for inline math and $$...$$ for display equations. Include step-by-step derivations, bullet points for clarity, and concrete examples.",
+      "keyFormula": "Main formula if applicable (e.g., '\\\\hat{\\\\beta} = (X^TX)^{-1}X^Ty')"
+    }
+  ],
+  "keyTakeaways": [
+    "Concise bullet point with key insight, can include LaTeX like $E[X] = \\\\mu$",
+    "Another critical point interviewers expect you to know",
+    "Third essential concept"
+  ],
+  "interviewTips": [
+    "Practical interview advice (e.g., 'Be ready to derive on whiteboard in <5 min')",
+    "Common pitfalls or what interviewers look for",
+    "Connection to practical applications"
+  ],
+  "practiceProblems": [
+    {
+      "id": 1,
+      "difficulty": "Easy",
+      "text": "Specific problem with LaTeX if needed"
+    },
+    {
+      "id": 2,
+      "difficulty": "Medium",
+      "text": "More challenging problem"
+    }
+  ],
+  "resources": [
+    {
+      "source": "Book name from context",
+      "chapter": "Specific chapter/section",
+      "pages": "Page numbers if mentioned"
+    }
+  ]
+}
 
-## Overview
-[2-3 paragraphs introducing the concept, its importance in quant finance, and key applications. Include mathematical formulations using LaTeX.]
+QUALITY STANDARDS (Match validated "Statistical Modeling" example):
+- Introduction: Direct, no filler. Immediately state why this matters for interviews
+- Sections: 2-4 detailed sections with mathematical rigor
+- LaTeX: Use proper notation: $inline$ and $$display$$ (escape backslashes: \\\\)
+- Key Formulas: Highlight THE formula to memorize
+- Interview Tips: Practical, specific advice
+- Practice Problems: 2-3 problems of increasing difficulty
+- Resources: Extract from provided book content
 
-## Mathematical Foundation
-[Detailed mathematical treatment with all key formulas. Use LaTeX extensively:
-- Inline math: $E[X] = \\mu$
-- Display equations: $$\\hat{\\beta} = (X^TX)^{-1}X^Ty$$
-Include derivations where relevant for interviews.]
-
-## Quantitative Finance Application
-[Concrete examples from:
-- Trading strategies
-- Risk management
-- Portfolio optimization
-- Derivative pricing
-Show HOW this is used in practice, not just WHAT it is.]
-
-## Python Implementation
-```python
-import numpy as np
-import pandas as pd
-
-# Working, production-quality code
-# Include comments explaining key steps
-```
-
-## Interview Deep-Dive
-**Common Questions:**
-- [Question 1]
-- [Question 2]
-- [Question 3]
-
-**Key Points Interviewers Look For:**
-- [Point 1]
-- [Point 2]
-
-**Pitfalls to Avoid:**
-- [Pitfall 1]
-- [Pitfall 2]
-
-## Key Takeaways
-- **[Concept 1]**: One-sentence summary
-- **[Concept 2]**: One-sentence summary
-- **[Concept 3]**: One-sentence summary
-
-CRITICAL REQUIREMENTS:
-1. Use ALL concepts from provided book content - don't ignore valuable material
-2. LaTeX for ALL math: $inline$ and $$display$$
-3. Include at least one complete Python example
-4. Make it interview-focused - what will they ask? how to answer?
-5. Length: 800-1200 words (comprehensive but not overwhelming)
-6. NO filler phrases like "Let's explore..." or "It's important to understand..."
-7. Start immediately with substantive content
-
-FORMATTING:
-- Headers: ##, ###
-- Bold: **key terms**
-- Code blocks: ```python
-- LaTeX: proper notation
-- Lists: - or 1."""
+CRITICAL:
+- Return ONLY valid JSON (no markdown wrapper, no extra text)
+- Use \\\\  (double backslash) for LaTeX in JSON strings
+- Draw heavily from provided book content
+- Be mathematically rigorous but interview-focused"""
 
         user_prompt = f"""Topic: {topic_name}
 Section {section_id}: {section_title}
@@ -584,40 +574,61 @@ Section {section_id}: {section_title}
 Book Content to Incorporate:
 {context_text}
 
-Create comprehensive learning content for this section. This will be used by candidates preparing for quant interviews, so ensure it's rigorous, practical, and interview-focused.
+Generate content matching the EXACT JSON structure specified in the system prompt. This content will be used by candidates preparing for quant interviews at top firms.
 
-Draw heavily from the book content provided. If mathematical concepts, specific algorithms, or theoretical frameworks are mentioned, integrate them fully with proper mathematical treatment."""
+Return ONLY the JSON object - no markdown formatting, no ```json wrapper, just the raw JSON."""
 
         if use_claude and self.claude_client:
             # Use Claude Sonnet 3.5 for superior quality
             try:
                 response = self.claude_client.messages.create(
                     model=self.claude_model,
-                    max_tokens=4000,  # Longer content for comprehensive sections
-                    temperature=0.7,  # Balanced creativity
+                    max_tokens=4000,
+                    temperature=0.7,
                     system=system_prompt,
                     messages=[{
                         "role": "user",
                         "content": user_prompt
                     }]
                 )
-                return response.content[0].text
+
+                content_text = response.content[0].text
+
+                # Parse JSON response
+                import json
+                try:
+                    # Remove markdown wrapper if present
+                    if content_text.startswith('```'):
+                        # Extract JSON from markdown code block
+                        import re
+                        json_match = re.search(r'```(?:json)?\s*(\{.*\})\s*```', content_text, re.DOTALL)
+                        if json_match:
+                            content_text = json_match.group(1)
+
+                    return json.loads(content_text)
+                except json.JSONDecodeError as e:
+                    print(f"⚠️  JSON parse error from Claude: {e}")
+                    print(f"Raw response: {content_text[:200]}...")
+                    # Fall through to GPT-4
+
             except Exception as e:
                 print(f"⚠️  Claude API error: {e}. Falling back to GPT-4.")
                 # Fall through to GPT-4
 
         # Fallback to GPT-4 (or if use_claude=False)
         response = self.client.chat.completions.create(
-            model="gpt-4-turbo-preview",  # Use GPT-4 for quality (not mini)
+            model="gpt-4-turbo-preview",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
             temperature=0.7,
-            max_tokens=3000
+            max_tokens=3000,
+            response_format={"type": "json_object"}
         )
 
-        return response.choices[0].message.content
+        import json
+        return json.loads(response.choices[0].message.content)
 
 
 # Singleton instance

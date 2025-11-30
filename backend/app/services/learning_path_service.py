@@ -238,6 +238,11 @@ Your task is to extract structured, hierarchical topic information from job desc
 CRITICAL: Preserve the EXACT domain-specific terminology from the job description.
 DO NOT abstract or generalize terms - use them as-is!
 
+DETERMINISM REQUIREMENT:
+- You MUST extract the SAME topics for the SAME job description EVERY time
+- Be 100% consistent and reproducible in your analysis
+- Extract topics in a deterministic order (explicit topics first, then implicit)
+
 You must distinguish between:
 1. EXPLICIT topics - skills/knowledge directly mentioned in the job description
 2. IMPLICIT topics - skills commonly required for this role type, but not explicitly mentioned
@@ -378,7 +383,7 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.3,  # Low temperature for consistent parsing
+            temperature=0.0,  # ZERO temperature for 100% deterministic, reproducible topic extraction
             response_format={"type": "json_object"}
         )
 
@@ -1197,8 +1202,8 @@ Prioritize:
             for source_info in coverage.get('all_sources', []):
                 chunks.extend(source_info.get('chunks', []))
 
-        # Limit to top 10 most relevant chunks
-        chunks = chunks[:10]
+        # Limit to top 20 most relevant chunks (increased for better context)
+        chunks = chunks[:20]
         chunk_texts = [c.get('text', '') for c in chunks]
 
         # Step 2: Generate structure using GPT-4o-mini
@@ -1259,6 +1264,15 @@ CRITICAL REQUIREMENTS:
 5. Order sections from foundational → advanced
 6. Include practical examples and interview relevance
 
+QUALITY STANDARDS - Section Titles Must Be SPECIFIC:
+✅ GOOD: "Black-Scholes Formula Derivation", "Maximum Likelihood Estimation for Normal Distributions"
+✅ GOOD: "Ridge vs Lasso: L1 vs L2 Regularization", "ARIMA Models for Financial Time Series"
+❌ BAD: "Introduction to...", "Basics of...", "Overview of...", "Fundamentals"
+❌ BAD: Generic topic names without specifics
+
+Use concrete mathematical formulas, algorithm names, and specific techniques from the book content.
+Make section titles immediately actionable and interview-focused.
+
 Return ONLY valid JSON (no markdown, no extra text):
 {
   "weeks": [
@@ -1297,8 +1311,8 @@ Return valid JSON only."""
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.7,
-            max_tokens=2000,
+            temperature=0.3,  # Lower temperature for more consistent, detailed structures
+            max_tokens=2500,  # Increased for more detailed content
             response_format={"type": "json_object"}
         )
 

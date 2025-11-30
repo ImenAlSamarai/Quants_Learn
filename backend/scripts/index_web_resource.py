@@ -166,7 +166,7 @@ class WebResourceIndexer:
             metadata_list.append(metadata)
 
         # Batch upsert to Pinecone
-        vector_store.upsert_chunks(
+        vector_store.upsert_web_chunks(
             chunks=chunks,
             metadata_list=metadata_list,
             namespace=category

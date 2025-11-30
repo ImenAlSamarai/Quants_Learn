@@ -145,6 +145,72 @@ class VectorStoreService:
 
         return vector_ids
 
+    def upsert_web_chunks(
+        self,
+        chunks: List[str],
+        metadata_list: List[Dict[str, Any]],
+        namespace: str = "web_resource"
+    ) -> List[str]:
+        """
+        Index web content chunks with embeddings
+
+        Args:
+            chunks: List of text chunks (strings)
+            metadata_list: List of metadata dicts (one per chunk)
+            namespace: Namespace for organizing content
+
+        Returns:
+            List of vector IDs
+        """
+        if not self.available:
+            return []
+
+        if len(chunks) != len(metadata_list):
+            raise ValueError(f"Chunks ({len(chunks)}) and metadata_list ({len(metadata_list)}) must have same length")
+
+        vectors = []
+        vector_ids = []
+        total_chunks = len(chunks)
+
+        print(f"  Generating embeddings for {total_chunks} chunks...")
+        for i, (chunk, metadata) in enumerate(zip(chunks, metadata_list), 1):
+            # Generate embedding with progress
+            print(f"    Processing chunk {i}/{total_chunks}...", end='\r')
+            embedding = self.generate_embedding(chunk)
+
+            # Generate unique vector ID using URL hash and chunk index
+            url = metadata.get('url', 'unknown')
+            chunk_index = metadata.get('chunk_index', i-1)
+            id_string = f"{url}_{chunk_index}"
+            vector_id = hashlib.md5(id_string.encode()).hexdigest()
+            vector_ids.append(vector_id)
+
+            # Prepare metadata (ensure text is included and truncated)
+            final_metadata = {
+                'text': chunk[:1000],  # Store truncated text in metadata
+                **metadata
+            }
+
+            # Filter out None values (Pinecone doesn't accept null)
+            final_metadata = {k: v for k, v in final_metadata.items() if v is not None}
+
+            vectors.append({
+                'id': vector_id,
+                'values': embedding,
+                'metadata': final_metadata
+            })
+
+        print()  # New line after progress
+        print(f"  ✓ Generated {len(vectors)} embeddings")
+
+        # Upsert to Pinecone with namespace
+        if vectors:
+            print(f"  Uploading to Pinecone (namespace: {namespace})...")
+            self.index.upsert(vectors=vectors, namespace=namespace)
+            print(f"  ✓ Upserted {len(vectors)} vectors to namespace '{namespace}'")
+
+        return vector_ids
+
     def search(
         self,
         query: str,

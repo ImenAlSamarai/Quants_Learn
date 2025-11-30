@@ -129,7 +129,7 @@ def index_url_multitopic(url: str, topics: list, source: str = None, category: s
 
         # Batch upsert to Pinecone
         from app.services.vector_store import vector_store
-        vector_store.upsert_chunks(
+        vector_store.upsert_web_chunks(
             chunks=chunks,
             metadata_list=metadata_list,
             namespace=category

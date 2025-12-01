@@ -75,5 +75,21 @@ content/**/*_internal.*
 # content/proprietary_research.pdf
 # content/firm_materials/
 
-# Backup: ignore all PDFs by default (comment out if you want to track some PDFs)
-# content/**/*.pdf
+# ========================================
+# BOOKS AND DOCUMENTS - DO NOT COMMIT
+# ========================================
+
+# All books and documents in content directory
+content/**/*.pdf
+content/**/*.epub
+content/**/*.mobi
+content/**/*.djvu
+content/**/*.docx
+content/**/*.doc
+content/**/*.txt
+content/**/*.md
+
+# Keep only index/metadata files
+!content/**/index.json
+!content/**/metadata.json
+!content/**/README.md

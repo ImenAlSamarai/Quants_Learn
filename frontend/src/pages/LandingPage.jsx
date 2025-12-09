@@ -59,7 +59,10 @@ const LandingPage = () => {
         transition={{ duration: 0.3, delay: 0.1 }}
       >
         <div className="user-info-content">
-          <span className="user-name">{userName || 'Loading...'}</span>
+          <span className="user-name">
+            {userName || 'Loading...'}
+            <span className="greeting"> Hello World!</span>
+          </span>
           <span className="user-level">{getLevelLabel()}</span>
         </div>
       </motion.div>

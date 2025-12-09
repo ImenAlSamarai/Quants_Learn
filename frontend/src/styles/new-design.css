@@ -205,13 +205,6 @@
   color: var(--text-primary);
 }
 
-.greeting {
-  margin-left: 8px;
-  color: #10b981;
-  font-weight: 500;
-  font-size: 0.9em;
-}
-
 .user-level {
   font-size: 0.75rem;
   font-weight: 500;

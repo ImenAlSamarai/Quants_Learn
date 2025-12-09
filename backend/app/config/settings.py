@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "allow"  # Allow extra fields in .env that aren't defined in model
 
 
 settings = Settings()

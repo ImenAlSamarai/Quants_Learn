@@ -1,3 +1,18 @@
+/**
+ * ⚠️ DEPRECATED - DO NOT USE FOR NEW FEATURES
+ *
+ * This component is from the old explore-based navigation system.
+ * It has been replaced by the job-based personalization system.
+ *
+ * Current main page: frontend/src/pages/Home.jsx (route: /)
+ * This file (route: /explore) is kept for backward compatibility only.
+ *
+ * Deprecated: 2025-11-28 (Phase 3 - Job-based personalization)
+ * TODO: Remove this file in refactoring Phase 5
+ *
+ * Last active use: Before Phase 3 completion
+ */
+
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import CategoryCard from '../components/discovery/CategoryCard';

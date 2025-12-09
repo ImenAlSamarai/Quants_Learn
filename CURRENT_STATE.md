@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-09
 **Branch:** `dev` (main development branch)
-**Last Commit:** Merge feature/cleanup-scripts-and-structure into dev
+**Last Commit:** Documentation cleanup - archive 28 historical docs, delete 3 obsolete files
 
 ---
 
@@ -25,27 +25,33 @@
 **Current Branch:** `dev` (main development branch)
 **Old Name:** `claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB` (renamed 2025-12-09)
 **Working Directory:** Clean
-**Commits Ahead of Remote:** 12 commits (deprecation docs + workflow test + topic extraction improvements + cleanup)
+**Commits Ahead of Remote:** 0 (all changes pushed to remote)
 
 ### Active Work
 - **Current Feature:** None (ready for new work)
-- **Last Shipped:** Repository cleanup (2025-12-09)
+- **Last Shipped:** Documentation cleanup (2025-12-09)
 
 ### Features on Dev Branch (Not Yet on Main)
-1. ✅ Repository cleanup (2025-12-09)
+1. ✅ Documentation cleanup (2025-12-09)
+   - Removed .claude/ directory from repository (local only)
+   - Archived 28 historical docs to docs/_archive/ (phases, testing, issues, guides)
+   - Deleted 3 obsolete files (PROMPTS_USED, SESSION_HANDOFF, CHANGELOG)
+   - Root directory: 32 .md files → 6 essential docs (81% reduction)
+   - Organized archive structure: phases/, testing/, issues/, guides/
+2. ✅ Repository cleanup (2025-12-09)
    - Archived 38 book-specific and chapter-specific scripts
    - Deleted 13 debug/test utility scripts
    - Moved 8 legacy migration scripts to migrations/legacy/
    - .claude/ directory now local only
    - scripts/start-dev.sh references dev branch
    - 53 scripts removed/organized (67 → 14 essential scripts)
-2. ✅ Topic extraction quality improvements - zero cost increase (2025-12-09)
+3. ✅ Topic extraction quality improvements - zero cost increase (2025-12-09)
    - 80% specificity score (Grade B)
    - Few-shot examples + keyword fallback
    - Cost still $0.005 per analysis
-3. ✅ Deprecation documentation system (2025-12-09)
-4. ✅ Topic extraction issue documentation (2025-12-08)
-5. ✅ Timeout fix documentation (2025-12-08)
+4. ✅ Deprecation documentation system (2025-12-09)
+5. ✅ Topic extraction issue documentation (2025-12-08)
+6. ✅ Timeout fix documentation (2025-12-08)
 
 ### Feature Branches
 - None currently active

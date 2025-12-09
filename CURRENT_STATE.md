@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-09
 **Branch:** `dev` (main development branch)
-**Last Commit:** Documentation cleanup - archive 28 historical docs, delete 3 obsolete files
+**Last Commit:** Clean up root directory - remove obsolete scripts and update README
 
 ---
 
@@ -29,29 +29,36 @@
 
 ### Active Work
 - **Current Feature:** None (ready for new work)
-- **Last Shipped:** Documentation cleanup (2025-12-09)
+- **Last Shipped:** Root directory cleanup and README update (2025-12-09)
 
 ### Features on Dev Branch (Not Yet on Main)
-1. ✅ Documentation cleanup (2025-12-09)
+1. ✅ Root directory cleanup and README update (2025-12-09)
+   - Deleted 4 obsolete scripts (PULL_CHANGES.sh, test_topic_hierarchy.py, analyze_book.py, find_chapters.py)
+   - Updated README.md to reflect Phase 3 job-based personalization
+   - Changed title from "MVP v1.0" to "Job-Based Personalization"
+   - Rewritten user guide for job-based learning paths
+   - Updated roadmap to show Phases 1-3 complete, Phase 4 current
+   - Root directory: Clean and accurate documentation
+2. ✅ Documentation cleanup (2025-12-09)
    - Removed .claude/ directory from repository (local only)
    - Archived 28 historical docs to docs/_archive/ (phases, testing, issues, guides)
    - Deleted 3 obsolete files (PROMPTS_USED, SESSION_HANDOFF, CHANGELOG)
    - Root directory: 32 .md files → 6 essential docs (81% reduction)
    - Organized archive structure: phases/, testing/, issues/, guides/
-2. ✅ Repository cleanup (2025-12-09)
+3. ✅ Repository cleanup (2025-12-09)
    - Archived 38 book-specific and chapter-specific scripts
    - Deleted 13 debug/test utility scripts
    - Moved 8 legacy migration scripts to migrations/legacy/
    - .claude/ directory now local only
    - scripts/start-dev.sh references dev branch
    - 53 scripts removed/organized (67 → 14 essential scripts)
-3. ✅ Topic extraction quality improvements - zero cost increase (2025-12-09)
+4. ✅ Topic extraction quality improvements - zero cost increase (2025-12-09)
    - 80% specificity score (Grade B)
    - Few-shot examples + keyword fallback
    - Cost still $0.005 per analysis
-4. ✅ Deprecation documentation system (2025-12-09)
-5. ✅ Topic extraction issue documentation (2025-12-08)
-6. ✅ Timeout fix documentation (2025-12-08)
+5. ✅ Deprecation documentation system (2025-12-09)
+6. ✅ Topic extraction issue documentation (2025-12-08)
+7. ✅ Timeout fix documentation (2025-12-08)
 
 ### Feature Branches
 - None currently active

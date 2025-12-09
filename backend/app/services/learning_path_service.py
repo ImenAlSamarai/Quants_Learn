@@ -345,26 +345,52 @@ Focus on technical topics relevant to learning. Include implicit requirements li
         - Prerequisites (fundamentals before advanced)
         - Job interview priority (most tested topics first)
         - Pedagogical flow (logical progression)
+
+        Uses semantic search (vector similarity) to match job topics to database nodes,
+        rather than simple string matching, to handle cases like:
+        - Job says "machine learning" → matches nodes like "Supervised Learning", "Neural Networks"
+        - Job says "statistical modeling" → matches nodes like "Linear Regression", "GLMs"
         """
 
-        # Get available nodes from database
-        all_nodes = db.query(Node).all()
-        available_nodes = []
+        # Use semantic search to find nodes related to each topic
+        node_id_set = set()  # Track unique node IDs
+
+        print(f"  Matching {len(topics)} topics to database nodes using semantic search...")
 
         for topic in topics:
-            # Try to match topic to existing nodes
-            matching_nodes = [
-                n for n in all_nodes
-                if topic.lower() in n.title.lower() or n.title.lower() in topic.lower()
-            ]
-            if matching_nodes:
-                available_nodes.extend(matching_nodes)
+            try:
+                # Search vector store for content related to this topic
+                # Use lower threshold (0.35) than coverage check since we want to find
+                # ANY potentially related nodes, not just "covered" topics
+                matches = self.vector_store.search(query=topic, top_k=15)
 
-        # Remove duplicates
-        unique_nodes = list({n.id: n for n in available_nodes}.values())
+                if matches:
+                    # Extract node IDs from chunk metadata
+                    for match in matches:
+                        if match['score'] >= 0.35:  # Relaxed threshold for matching
+                            node_id = match['metadata'].get('node_id')
+                            if node_id:
+                                node_id_set.add(node_id)
+
+                    best_score = matches[0]['score']
+                    print(f"    '{topic}': found {len([m for m in matches if m['score'] >= 0.35])} related nodes (best score: {best_score:.3f})")
+                else:
+                    print(f"    '{topic}': no matching nodes found in vector store")
+
+            except Exception as e:
+                print(f"    ⚠️  Error searching for topic '{topic}': {e}")
+                continue
+
+        # Query database to get actual Node objects
+        if not node_id_set:
+            print("  ⚠️  Warning: No matching nodes found for any topics via semantic search")
+            return []
+
+        unique_nodes = db.query(Node).filter(Node.id.in_(node_id_set)).all()
+        print(f"  ✓ Matched {len(unique_nodes)} unique nodes for learning path")
 
         if not unique_nodes:
-            print("Warning: No matching nodes found for topics")
+            print("  ⚠️  Warning: Node IDs from vector store not found in database")
             return []
 
         # Prepare node info for LLM

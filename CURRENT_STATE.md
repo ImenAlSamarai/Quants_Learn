@@ -1,8 +1,8 @@
 # Current Development State
 
 **Last Updated:** 2025-12-09
-**Branch:** `claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB`
-**Last Commit:** Merge workflow test - Add deprecation documentation system
+**Branch:** `dev` (main development branch)
+**Last Commit:** Add git operations guide with clear feature workflow
 
 ---
 
@@ -22,8 +22,8 @@
 
 ## 🌿 Current Git State
 
-**Current Branch:** `claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB` (main dev branch)
-**Planned Rename:** `dev` (simpler name)
+**Current Branch:** `dev` (main development branch)
+**Old Name:** `claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB` (renamed 2025-12-09)
 **Working Directory:** Clean (check with `git status`)
 **Commits Ahead of Remote:** 7 commits (deprecation docs + workflow test)
 
@@ -47,7 +47,7 @@
 
 ```bash
 # 1. Start from clean dev branch
-git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git checkout dev
 git status  # Ensure working directory is clean
 
 # 2. Create feature branch
@@ -59,7 +59,7 @@ git add .
 git commit -m "Implement your feature"
 
 # 4. Ship the feature (merge to dev)
-git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git checkout dev
 git merge feature/your-feature-name --no-ff  # Keep merge history
 git branch -d feature/your-feature-name  # Delete feature branch
 
@@ -73,7 +73,7 @@ git commit -am "Update CURRENT_STATE.md - Add [feature] to shipped features"
 
 ```bash
 # 1. Ensure you're on dev and it's clean
-git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git checkout dev
 git status  # Should show "nothing to commit, working tree clean"
 
 # 2. Create new feature branch from current dev
@@ -88,7 +88,7 @@ git checkout -b feature/next-feature-name
 
 ```bash
 # 1. Start from dev (where shipped feature exists)
-git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git checkout dev
 
 # 2. Create fix branch
 git checkout -b fix/feature-name-bug
@@ -102,7 +102,7 @@ git commit -m "Fix: [describe bug fix]"
 # ... test the fix ...
 
 # 5. Merge fix to dev
-git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git checkout dev
 git merge fix/feature-name-bug --no-ff
 git branch -d fix/feature-name-bug
 
@@ -141,7 +141,7 @@ git add .
 git commit -m "Remove feature: [feature-name]"
 
 # 3. Merge removal to dev
-git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git checkout dev
 git merge remove/feature-name --no-ff
 git branch -d remove/feature-name
 ```
@@ -200,7 +200,7 @@ cat CURRENT_STATE.md
      - Commit as you go
 
 ☐ 5. When complete, merge to dev
-     git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+     git checkout dev
      git merge feature/[name] --no-ff
      git branch -d feature/[name]
 
@@ -590,13 +590,13 @@ python scripts/verify_content.py
 ### Git Workflow
 ```bash
 # Always work on develop branch
-git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git checkout dev
 
 # Create feature branch
 git checkout -b feature/fix-topic-extraction
 
 # When done, merge back
-git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git checkout dev
 git merge feature/fix-topic-extraction
 ```
 
@@ -607,7 +607,7 @@ git merge feature/fix-topic-extraction
 ### Starting Work
 - [ ] Read this file (CURRENT_STATE.md)
 - [ ] Check which branch you're on: `git branch`
-- [ ] Switch to develop: `git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB`
+- [ ] Switch to develop: `git checkout dev`
 - [ ] Run health check: `python setup.py --status`
 - [ ] Review "What's Next" section above
 - [ ] Decide what to work on
@@ -643,7 +643,7 @@ cat CURRENT_STATE.md
 cd backend && python setup.py --status
 
 # 4. Go to safe state
-git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git checkout dev
 git status
 ```
 

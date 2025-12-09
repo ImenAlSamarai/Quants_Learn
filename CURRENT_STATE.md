@@ -20,6 +20,227 @@
 
 ---
 
+## 🌿 Current Git State
+
+**Current Branch:** `claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB` (main dev branch)
+**Planned Rename:** `dev` (simpler name)
+**Working Directory:** Clean (check with `git status`)
+**Commits Ahead of Remote:** 7 commits (deprecation docs + workflow test)
+
+### Active Work
+- **Current Feature:** None (ready for new work)
+- **Last Shipped:** Deprecation documentation system (2025-12-09)
+
+### Features on Dev Branch (Not Yet on Main)
+1. ✅ Deprecation documentation system (2025-12-09)
+2. ✅ Topic extraction issue documentation (2025-12-08)
+3. ✅ Timeout fix documentation (2025-12-08)
+
+### Feature Branches
+- None currently active
+
+---
+
+## 📋 Git Operations Guide
+
+### **Scenario 1: Add a New Feature**
+
+```bash
+# 1. Start from clean dev branch
+git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git status  # Ensure working directory is clean
+
+# 2. Create feature branch
+git checkout -b feature/your-feature-name
+
+# 3. Work on feature (implement, test, commit as needed)
+# ... make changes ...
+git add .
+git commit -m "Implement your feature"
+
+# 4. Ship the feature (merge to dev)
+git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git merge feature/your-feature-name --no-ff  # Keep merge history
+git branch -d feature/your-feature-name  # Delete feature branch
+
+# 5. Update CURRENT_STATE.md
+# Add to "Features on Dev Branch" section
+# Update "Last Shipped" with feature name and date
+git commit -am "Update CURRENT_STATE.md - Add [feature] to shipped features"
+```
+
+### **Scenario 2: Add Another Feature (Sequential)**
+
+```bash
+# 1. Ensure you're on dev and it's clean
+git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git status  # Should show "nothing to commit, working tree clean"
+
+# 2. Create new feature branch from current dev
+git checkout -b feature/next-feature-name
+
+# 3. Work and ship (same as Scenario 1, steps 3-5)
+```
+
+**Key Point:** Always start new features from clean dev branch. Previous feature is already merged, so new feature automatically includes it.
+
+### **Scenario 3: Fix a Shipped Feature (Safe Method)**
+
+```bash
+# 1. Start from dev (where shipped feature exists)
+git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+
+# 2. Create fix branch
+git checkout -b fix/feature-name-bug
+
+# 3. Make the fix
+# ... edit files ...
+git add .
+git commit -m "Fix: [describe bug fix]"
+
+# 4. Test thoroughly
+# ... test the fix ...
+
+# 5. Merge fix to dev
+git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git merge fix/feature-name-bug --no-ff
+git branch -d fix/feature-name-bug
+
+# 6. Update CURRENT_STATE.md
+git commit -am "Update CURRENT_STATE.md - Document fix for [feature]"
+```
+
+**Safety:** This method keeps all other shipped features intact. Only the specific feature is updated.
+
+### **Scenario 4: Remove a Shipped Feature (Clean Removal)**
+
+**Option A: Revert (Recommended - Safest)**
+```bash
+# 1. Find the merge commit of the feature you want to remove
+git log --oneline --graph  # Look for "Merge feature/xyz"
+
+# 2. Revert the merge commit
+git revert -m 1 <merge-commit-hash>  # -m 1 keeps parent #1 (dev branch)
+
+# 3. Commit the revert
+git commit -m "Remove feature: [feature-name]"
+
+# 4. Update CURRENT_STATE.md
+# Remove from "Features on Dev Branch" section
+git commit -am "Update CURRENT_STATE.md - Removed [feature]"
+```
+
+**Option B: Manual Removal (If revert doesn't work)**
+```bash
+# 1. Create removal branch
+git checkout -b remove/feature-name
+
+# 2. Manually undo changes (delete files, revert code)
+# ... manual changes ...
+git add .
+git commit -m "Remove feature: [feature-name]"
+
+# 3. Merge removal to dev
+git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+git merge remove/feature-name --no-ff
+git branch -d remove/feature-name
+```
+
+### **Scenario 5: Check Current State**
+
+```bash
+# Quick check
+git status                    # Current branch, uncommitted changes
+git log --oneline -10         # Recent commits
+git branch                    # List all branches
+
+# Detailed check
+cat CURRENT_STATE.md | grep "Current Git State" -A 20
+```
+
+### **Emergency: Lost Track of State**
+
+```bash
+# 1. Check where you are
+git status
+git branch
+
+# 2. See what's uncommitted
+git diff
+
+# 3. See recent work
+git log --oneline --graph -20
+
+# 4. Read project state
+cat CURRENT_STATE.md
+
+# 5. If confused, ask Claude: "What's my current git state?"
+```
+
+---
+
+## 🎯 Quick Reference: Claude's Feature Workflow Checklist
+
+**When user says: "Add [feature]"**
+
+```
+☐ 1. Check current git state
+     git status
+     git branch  # Confirm on dev branch
+
+☐ 2. Check DEPRECATED_FILES.md (mandatory!)
+     Read to ensure not implementing in deprecated files
+
+☐ 3. Create feature branch
+     git checkout -b feature/[descriptive-name]
+
+☐ 4. Implement feature
+     - Make changes
+     - Test changes
+     - Commit as you go
+
+☐ 5. When complete, merge to dev
+     git checkout claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB
+     git merge feature/[name] --no-ff
+     git branch -d feature/[name]
+
+☐ 6. Update CURRENT_STATE.md
+     - Update "Current Git State" section
+     - Add feature to "Features on Dev Branch" list
+     - Update "Last Shipped" date
+     - Commit: "Update CURRENT_STATE.md - Add [feature] to shipped features"
+
+☐ 7. Ask user: "Should I push to remote?"
+```
+
+**When user says: "Fix [shipped feature]"**
+
+```
+☐ 1. Check CURRENT_STATE.md - Confirm feature is on dev
+☐ 2. Create fix branch: git checkout -b fix/[feature-name]
+☐ 3. Implement fix, test thoroughly
+☐ 4. Merge to dev
+☐ 5. Update CURRENT_STATE.md with fix notes
+☐ 6. Delete fix branch
+```
+
+**When user says: "Remove [shipped feature]"**
+
+```
+☐ 1. Find merge commit: git log --oneline --graph
+☐ 2. Revert: git revert -m 1 <merge-commit-hash>
+☐ 3. Update CURRENT_STATE.md - Remove from shipped features list
+☐ 4. Commit: "Remove feature: [name]"
+```
+
+**Always Remember:**
+- ✅ Check DEPRECATED_FILES.md before implementing
+- ✅ Confirm file location with user if uncertain
+- ✅ Update CURRENT_STATE.md after every feature ship/fix/removal
+- ✅ Delete feature branches after merge
+
+---
+
 ## ✅ What's Working
 
 ### Core Features (Stable)

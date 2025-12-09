@@ -99,7 +99,10 @@ const Home = ({ userId = 'demo_user' }) => {
         <div className="home-form">
           {/* Name Input */}
           <div className="form-group">
-            <label className="form-label">Name</label>
+            <label className="form-label">
+              Name
+              <span className="greeting"> Hello World!</span>
+            </label>
             <input
               type="text"
               value={userName}

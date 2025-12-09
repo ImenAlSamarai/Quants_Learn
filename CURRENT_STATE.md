@@ -13,7 +13,7 @@
 | Backend | ✅ Working | FastAPI running on port 8000 |
 | Frontend | ✅ Working | Vite dev server on port 5173 |
 | Database | ✅ Ready | 61 nodes, 827 chunks, 42 insights |
-| Job-Based Paths | ⚠️ Partial | Working but topic extraction has quality issues |
+| Job-Based Paths | ✅ Improved | Topic extraction improved to 80% specificity (Grade B) |
 | Content Pipeline | ✅ Working | Can add books, markdown content |
 | Mind Map | ✅ Working | Visualization functional |
 | Caching | ✅ Working | LLM responses cached |
@@ -22,14 +22,16 @@
 
 ## 🌿 Current Git State
 
-**Current Branch:** `dev` (main development branch)
+**Current Branch:** `feature/improve-topic-extraction-cost-free`
 **Old Name:** `claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB` (renamed 2025-12-09)
-**Working Directory:** Clean (check with `git status`)
+**Working Directory:** Modified (implementing feature)
 **Commits Ahead of Remote:** 7 commits (deprecation docs + workflow test)
 
 ### Active Work
-- **Current Feature:** None (ready for new work)
-- **Last Shipped:** Deprecation documentation system (2025-12-09)
+- **Current Feature:** Improve topic extraction quality (ZERO cost increase)
+- **Approach:** Few-shot examples + keyword fallback matching
+- **Status:** ✅ Implemented, ✅ Tested (Grade B - 80% specificity)
+- **Next:** Merge to dev, update documentation
 
 ### Features on Dev Branch (Not Yet on Main)
 1. ✅ Deprecation documentation system (2025-12-09)
@@ -37,7 +39,7 @@
 3. ✅ Timeout fix documentation (2025-12-08)
 
 ### Feature Branches
-- None currently active
+- **feature/improve-topic-extraction-cost-free** (ACTIVE - ready to merge)
 
 ---
 

@@ -238,6 +238,50 @@ Your task is to extract structured, hierarchical topic information from job desc
 CRITICAL: Preserve the EXACT domain-specific terminology from the job description.
 DO NOT abstract or generalize terms - use them as-is!
 
+COMMON MISTAKES TO AVOID - Here are examples of INCORRECT vs CORRECT extractions:
+
+❌ WRONG EXAMPLE 1:
+Job mentions: "macro positioning, equity derivatives, retail investor sentiment"
+Bad extraction (TOO GENERIC!):
+- "Market knowledge"
+- "Data handling"
+- "Financial analysis"
+
+✅ CORRECT EXAMPLE 1:
+Job mentions: "macro positioning, equity derivatives, retail investor sentiment"
+Good extraction (USES EXACT TERMS):
+- "Macro positioning"
+- "Equity derivatives pricing"
+- "Retail investor sentiment analysis"
+
+❌ WRONG EXAMPLE 2:
+Job mentions: "time series forecasting, ARIMA models, seasonality detection"
+Bad extraction (TOO GENERIC!):
+- "Statistical analysis"
+- "Forecasting skills"
+- "Data modeling"
+
+✅ CORRECT EXAMPLE 2:
+Job mentions: "time series forecasting, ARIMA models, seasonality detection"
+Good extraction (USES EXACT TERMS):
+- "Time series forecasting"
+- "ARIMA models"
+- "Seasonality detection"
+
+❌ WRONG EXAMPLE 3:
+Job mentions: "algorithmic trading, market microstructure, order book dynamics"
+Bad extraction (TOO GENERIC!):
+- "Trading knowledge"
+- "Algorithm design"
+- "Market understanding"
+
+✅ CORRECT EXAMPLE 3:
+Job mentions: "algorithmic trading, market microstructure, order book dynamics"
+Good extraction (USES EXACT TERMS):
+- "Algorithmic trading"
+- "Market microstructure"
+- "Order book dynamics"
+
 DETERMINISM REQUIREMENT:
 - You MUST extract the SAME topics for the SAME job description EVERY time
 - Be 100% consistent and reproducible in your analysis
@@ -439,15 +483,19 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
                 }
             }
 
-    def check_topic_coverage(self, topic: str, min_score: float = None) -> Dict[str, Any]:
+    def check_topic_coverage(self, topic: str, min_score: float = None, keywords: list = None) -> Dict[str, Any]:
         """
         Tier 3: Check if topic is well-covered in our books
+
+        Enhanced with keyword fallback: If main topic search yields low scores,
+        also searches using keywords to improve matching (zero cost increase).
 
         Args:
             topic: Topic name to check
             min_score: Minimum similarity score to consider covered (default from config)
                       For semantic search: 0.9+=identical, 0.7-0.9=very similar,
                       0.5-0.7=related concepts, <0.5=unrelated
+            keywords: Optional list of related terms/synonyms for fallback search
 
         Returns:
             {
@@ -456,7 +504,8 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
                 'confidence': float,
                 'source': str (if covered),
                 'num_chunks': int (if covered),
-                'external_resources': list (if not covered)
+                'external_resources': list (if not covered),
+                'matched_via': 'topic' or 'keyword' (if keyword fallback used)
             }
         """
 
@@ -474,6 +523,60 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
         except Exception as e:
             print(f"⚠️  Error searching for topic '{topic}': {e}")
             matches = []
+
+        # Check if we should try keyword fallback
+        # Use keyword fallback if: 1) keywords provided, 2) main search score is low
+        use_keyword_fallback = False
+        if keywords and matches:
+            best_score = matches[0]['score'] if matches else 0.0
+            # If best match is below threshold + margin, try keywords
+            if best_score < (min_score + 0.05):
+                use_keyword_fallback = True
+                print(f"  ℹ️  Topic '{topic}' score ({best_score:.3f}) is borderline. Trying keyword fallback with: {keywords[:3]}")
+
+        # Keyword fallback search
+        keyword_matches = []
+        if use_keyword_fallback:
+            for keyword in keywords[:3]:  # Top 3 keywords only
+                try:
+                    kw_matches = self.vector_store.search_all_namespaces(
+                        query=keyword,
+                        top_k=5,
+                        namespaces=['', 'web_resource']
+                    )
+                    keyword_matches.extend(kw_matches)
+                except Exception as e:
+                    print(f"  ⚠️  Error searching keyword '{keyword}': {e}")
+
+            # De-duplicate by chunk text (simple dedup)
+            seen_texts = set()
+            deduped_keyword_matches = []
+            for match in keyword_matches:
+                text_snippet = match.get('text', '')[:100]  # First 100 chars as fingerprint
+                if text_snippet not in seen_texts:
+                    seen_texts.add(text_snippet)
+                    deduped_keyword_matches.append(match)
+
+            keyword_matches = deduped_keyword_matches
+
+            if keyword_matches:
+                best_keyword_score = max(m['score'] for m in keyword_matches)
+                print(f"  ✓ Keyword search found {len(keyword_matches)} additional matches (best: {best_keyword_score:.3f})")
+
+        # Combine main topic matches with keyword matches
+        all_matches = matches + keyword_matches
+        if all_matches:
+            # Sort by score
+            all_matches.sort(key=lambda m: m['score'], reverse=True)
+            # Remove duplicates again after combining
+            seen_texts = set()
+            unique_matches = []
+            for match in all_matches:
+                text_snippet = match.get('text', '')[:100]
+                if text_snippet not in seen_texts:
+                    seen_texts.add(text_snippet)
+                    unique_matches.append(match)
+            matches = unique_matches
 
         # ============ DEBUG: Detailed Match Information ============
         # Group matches by source (books + web resources)
@@ -699,9 +802,10 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
         coverage_map = {}
         for topic_info in all_topics_enriched:
             topic_name = topic_info['name']
-            # Search using both topic name and keywords for better matching
+            keywords = topic_info.get('keywords', [])
+            # Search using both topic name and keywords for better matching (keyword fallback if needed)
             coverage_map[topic_name] = {
-                'coverage': self.check_topic_coverage(topic_name),
+                'coverage': self.check_topic_coverage(topic_name, keywords=keywords),
                 'metadata': topic_info  # Preserve priority, keywords, tier, etc.
             }
 

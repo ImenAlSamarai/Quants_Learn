@@ -1,34 +1,36 @@
-# 🧠 Quant Learning Platform - MVP v1.0
+# 🧠 Quant Learning Platform - Job-Based Personalization
 
-An intelligent, adaptive learning platform for aspiring quantitative finance professionals. Features AI-generated educational content that adapts to your learning level, beautiful mathematical rendering, and progress tracking across difficulty levels.
+An intelligent, job-focused learning platform for aspiring quantitative finance professionals. Paste any quant job description and get a personalized learning path with AI-generated content, mathematical rendering, and progress tracking.
 
-## ✨ MVP Features
+## ✨ Key Features
 
-### 🎓 **Adaptive Learning Levels**
-- **5 Difficulty Levels**: From beginner to experienced researcher
-- **Level-Specific Content**: Each topic generates different explanations for different levels
-- **Independent Progress Tracking**: Complete topics at one level without affecting others
+### 🎯 **Job-Based Personalization**
+- **Paste Any Job Description**: Analyze requirements from real job postings
+- **Automatic Topic Extraction**: AI identifies explicit and implicit skills needed
+- **Staged Learning Paths**: Topics organized in logical progression stages
+- **Coverage Calculation**: See what % of job requirements you've mastered
 
-### 🧮 **Professional Mathematical Content**
+### 🧮 **Professional Content Generation**
 - **LaTeX Rendering**: Beautiful mathematical formulas with KaTeX
-- **Comprehensive Explanations**: Structured educational content with:
+- **AI-Powered Explanations**: GPT-4 generated content for each topic with:
   - Core concepts with mathematical formulations
   - Real-world quantitative finance applications
   - Python implementation examples
   - Key takeaways
-- **Syntax-Highlighted Code**: Python code snippets with VS Code Dark Plus theme
+- **Syntax-Highlighted Code**: Python snippets with VS Code Dark Plus theme
+- **External Resources**: Curated papers, tutorials, and references
 
 ### 📊 **Learning Management**
-- **Interactive Mind Maps**: Visualexploration of topic relationships
-- **Progress Tracking**: Level-specific completion tracking
+- **Interactive Mind Maps**: Visual exploration of topic relationships
+- **Progress Tracking**: Mark topics complete as you learn
 - **Smart Caching**: Instant loading for previously viewed content
-- **Personalized Recommendations**: Suggested topics based on your progress
+- **Recommended Resources**: External learning materials for each topic
 
 ### 🗺️ **Core Content Categories**
 - **Linear Algebra**: Vectors, matrices, eigenvalues, SVD, PCA
 - **Calculus**: Multivariable calculus, optimization, differential equations
 - **Probability**: Distributions, expectations, stochastic processes
-- **Statistics**: Inference, regression, hypothesis testing
+- **Statistics**: Inference, regression, hypothesis testing, time series
 
 ## 🚀 Quick Start
 
@@ -96,33 +98,33 @@ Frontend runs at: **http://localhost:3000**
 
 ## 📖 User Guide
 
-### Setting Your Learning Level
+### Creating a Learning Path from a Job Description
 
-1. Click **⚙️ Settings** in the top navigation
-2. Select your level:
-   - **🌱 Undergraduate - New to Quant Finance**: Simple explanations, minimal equations
-   - **📚 Undergraduate - Foundation**: Balanced intuition and formalism
-   - **🎓 Graduate Student**: Strong math background, rigorous approach
-   - **🔬 PhD Researcher**: Research-level examples, cutting-edge applications
-   - **⭐ Experienced Researcher**: Technical depth, production implementations
-3. Click **Save Preferences**
+1. **Navigate to Home Page** - Click "Quant Learning Platform" logo or home button
+2. **Paste Job Description** - Copy/paste the full job posting text into the text area
+3. **Click "Analyze Job & Generate Path"** - Wait 10-30 seconds for AI analysis
+4. **Review Learning Path**:
+   - **Stages**: Topics organized in logical progression (Fundamentals → Advanced)
+   - **Priority**: High-priority topics highlighted in red
+   - **Coverage**: See % of job requirements covered by available content
+5. **Start Learning**:
+   - Click any topic to view AI-generated content
+   - First load: 30-60 seconds (LLM generation)
+   - Subsequent loads: Instant (cached)
+6. **Track Progress**: Mark topics complete as you master them
 
-### Learning a Topic
+### Exploring Topics with Mind Map
 
-1. **Choose a category** (Linear Algebra, Calculus, Probability, Statistics)
-2. **Switch between views**:
-   - **Study Mode**: Structured learning with explanations
-   - **Explore Mode**: Visual mind map navigation
-3. **Click a topic** to view content
-4. **First-time load**: May take 30-60 seconds (LLM generation)
-5. **Subsequent loads**: Instant (cached)
-6. **Mark as complete** when finished
+1. **Switch to Explore Mode** - Toggle between Study and Explore views
+2. **Visual Navigation** - Interactive force-directed graph shows topic relationships
+3. **Click nodes** to view content
+4. **Zoom and pan** to explore connections
 
-### Switching Levels
+### Using External Resources
 
-- Progress is tracked **separately per level**
-- Completing "Eigenvalues" at Level 3 ≠ complete at Level 5
-- Try the same topic at different levels to see adapted content!
+- Each topic includes curated external resources (papers, tutorials, courses)
+- Click links to access original materials
+- Resources are ranked by relevance to the specific job requirements
 
 ## 🏗️ Architecture
 
@@ -329,27 +331,30 @@ DEBUG=True
 
 ## 🗺️ Roadmap
 
-### ✅ MVP v1.0 (Current)
-- [x] Level-specific content generation
-- [x] LaTeX math rendering
-- [x] Python code highlighting
-- [x] Independent progress tracking
-- [x] Smart caching
-- [x] Mind map visualization
+### ✅ Phase 1-3: Complete
+- [x] **Phase 1**: Difficulty-based content system (deprecated)
+- [x] **Phase 2**: Backend job-based personalization
+  - Job description analysis and topic extraction
+  - Staged learning path generation
+  - Coverage calculation
+- [x] **Phase 3**: Frontend job-based UI
+  - Job input and analysis interface
+  - Visual learning path display
+  - Progress tracking
 
-### 📅 v1.1 (Next)
-- [ ] Examples mode (applied finance examples)
-- [ ] Quiz mode (interactive quizzes)
-- [ ] Visualization mode (interactive plots)
-- [ ] User authentication
-- [ ] More content topics
+### 🚧 Phase 4: Quality Improvements (Current)
+- [x] Topic extraction improvements (80% specificity achieved)
+- [ ] Upgrade to GPT-4o for better topic quality
+- [ ] Enhanced content generation
+- [ ] Improved resource recommendations
+- [ ] Performance optimizations
 
-### 🔮 v2.0 (Future)
-- [ ] Machine Learning content
+### 📅 Future Enhancements
+- [ ] User authentication and saved learning paths
+- [ ] Quiz mode (interactive assessments)
 - [ ] Code execution environment
-- [ ] Collaborative features
 - [ ] Mobile responsive design
-- [ ] Offline mode
+- [ ] Collaborative features
 
 ## 📄 License
 
@@ -371,6 +376,6 @@ For questions, feature requests, or bug reports:
 
 ---
 
-**MVP v1.0 - Ready for Testing** 🚀
+**Phase 3 Complete - Job-Based Personalization Live** 🚀
 
 *Built with ❤️ for aspiring quants*

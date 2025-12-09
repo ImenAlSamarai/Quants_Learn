@@ -131,14 +131,13 @@ python backend/scripts/index_content.py --content-dir content
 
 ### **2. Index Specific Chapter from Book**
 
-Example scripts already exist for granular indexing:
+The main indexing script `index_content.py` handles all content types:
 ```bash
-# Index specific chapters
-python backend/scripts/index_esl_chapter3.py      # Elements of Statistical Learning Ch3
-python backend/scripts/index_dl_chapter10.py      # Deep Learning Foundations Ch10
+# Index specific book chapters by pointing to their directory
+python backend/scripts/index_content.py --content-dir content/statistics/book_name
 ```
 
-You can create similar scripts for your confidential materials.
+**Note**: Book-specific indexing scripts have been archived. Use the main `index_content.py` script for all indexing needs.
 
 ### **3. Check What's Indexed**
 
@@ -317,9 +316,13 @@ python -c "from app.services.vector_store import vector_store; print(vector_stor
 
 ## 📧 Questions?
 
-Check existing scripts:
+Check available indexing scripts:
 ```bash
 ls backend/scripts/index_*.py
 ```
 
-Most common patterns already have examples!
+Main scripts:
+- `index_content.py` - Index books, PDFs, markdown files
+- `index_web_resource.py` - Index web articles and documentation
+
+For more information, see `CURRENT_STATE.md`

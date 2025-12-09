@@ -93,3 +93,16 @@ content/**/*.md
 !content/**/index.json
 !content/**/metadata.json
 !content/**/README.md
+
+# ========================================
+# CLAUDE CODE CONFIGURATION - LOCAL ONLY
+# ========================================
+
+# Claude Code configuration (keep local, don't push)
+.claude/
+.claude/*
+!.claude/PROJECT_MAP.md
+!.claude/README.md
+
+# MCP server configuration (project-specific, keep)
+# .mcp.json is intentionally tracked

@@ -2,7 +2,7 @@
 
 **Last Updated:** 2025-12-09
 **Branch:** `dev` (main development branch)
-**Last Commit:** Add git operations guide with clear feature workflow
+**Last Commit:** Merge feature/cleanup-scripts-and-structure into dev
 
 ---
 
@@ -25,30 +25,30 @@
 **Current Branch:** `dev` (main development branch)
 **Old Name:** `claude/quants-learn-development-017hwkmJsQgb38KEDB8RzfYB` (renamed 2025-12-09)
 **Working Directory:** Clean
-**Commits Ahead of Remote:** 9 commits (deprecation docs + workflow test + topic extraction improvements)
+**Commits Ahead of Remote:** 12 commits (deprecation docs + workflow test + topic extraction improvements + cleanup)
 
 ### Active Work
-- **Current Feature:** Cleanup scripts and structure (feature/cleanup-scripts-and-structure)
-- **Last Shipped:** Topic extraction quality improvements (2025-12-09)
+- **Current Feature:** None (ready for new work)
+- **Last Shipped:** Repository cleanup (2025-12-09)
 
 ### Features on Dev Branch (Not Yet on Main)
-1. ✅ Topic extraction quality improvements - zero cost increase (2025-12-09)
+1. ✅ Repository cleanup (2025-12-09)
+   - Archived 38 book-specific and chapter-specific scripts
+   - Deleted 13 debug/test utility scripts
+   - Moved 8 legacy migration scripts to migrations/legacy/
+   - .claude/ directory now local only
+   - scripts/start-dev.sh references dev branch
+   - 53 scripts removed/organized (67 → 14 essential scripts)
+2. ✅ Topic extraction quality improvements - zero cost increase (2025-12-09)
    - 80% specificity score (Grade B)
    - Few-shot examples + keyword fallback
    - Cost still $0.005 per analysis
-2. ✅ Deprecation documentation system (2025-12-09)
-3. ✅ Topic extraction issue documentation (2025-12-08)
-4. ✅ Timeout fix documentation (2025-12-08)
+3. ✅ Deprecation documentation system (2025-12-09)
+4. ✅ Topic extraction issue documentation (2025-12-08)
+5. ✅ Timeout fix documentation (2025-12-08)
 
 ### Feature Branches
-- `feature/cleanup-scripts-and-structure` - Repository cleanup (in progress, do not merge until tested)
-  - Archived 40+ book-specific scripts to backend/scripts/_archive/
-  - Deleted 13 debug/test scripts
-  - Moved 8 legacy migration scripts to migrations/legacy/
-  - Updated .gitignore to exclude .claude/ directory (keep local only)
-  - Updated scripts/start-dev.sh to reference dev branch
-  - Essential scripts remain: index_content.py, index_web_resource.py
-  - **NOTE**: User will test before merging to dev
+- None currently active
 
 ---
 

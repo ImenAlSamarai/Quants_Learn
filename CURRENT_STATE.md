@@ -28,7 +28,7 @@
 **Commits Ahead of Remote:** 9 commits (deprecation docs + workflow test + topic extraction improvements)
 
 ### Active Work
-- **Current Feature:** None (ready for new work)
+- **Current Feature:** Cleanup scripts and structure (feature/cleanup-scripts-and-structure)
 - **Last Shipped:** Topic extraction quality improvements (2025-12-09)
 
 ### Features on Dev Branch (Not Yet on Main)
@@ -41,7 +41,14 @@
 4. ✅ Timeout fix documentation (2025-12-08)
 
 ### Feature Branches
-- None currently active
+- `feature/cleanup-scripts-and-structure` - Repository cleanup (in progress, do not merge until tested)
+  - Archived 40+ book-specific scripts to backend/scripts/_archive/
+  - Deleted 13 debug/test scripts
+  - Moved 8 legacy migration scripts to migrations/legacy/
+  - Updated .gitignore to exclude .claude/ directory (keep local only)
+  - Updated scripts/start-dev.sh to reference dev branch
+  - Essential scripts remain: index_content.py, index_web_resource.py
+  - **NOTE**: User will test before merging to dev
 
 ---
 

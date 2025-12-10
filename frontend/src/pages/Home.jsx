@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateJobProfile } from '../services/api';
+import { getUser } from '../services/auth';
 import '../styles/Home.css';
 
-const Home = ({ userId = 'demo_user' }) => {
+const Home = () => {
   const navigate = useNavigate();
 
   const [userName, setUserName] = useState('');
@@ -22,7 +23,14 @@ const Home = ({ userId = 'demo_user' }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/users/${encodeURIComponent(userId)}`);
+      // Get current authenticated user
+      const currentUser = getUser();
+      if (!currentUser) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:8000/api/users/${encodeURIComponent(currentUser.user_id)}`);
       if (response.ok) {
         const data = await response.json();
         setUserName(data.name || '');
@@ -44,11 +52,18 @@ const Home = ({ userId = 'demo_user' }) => {
       return;
     }
 
+    // Get current authenticated user
+    const currentUser = getUser();
+    if (!currentUser) {
+      navigate('/login');
+      return;
+    }
+
     setGeneratingPath(true);
     setLearningPath(null);
 
     try {
-      const result = await updateJobProfile(userId, {
+      const result = await updateJobProfile(currentUser.user_id, {
         name: userName,
         job_title: jobTitle,
         job_description: jobDescription,

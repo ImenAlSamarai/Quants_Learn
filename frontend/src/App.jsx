@@ -19,17 +19,6 @@ import './styles/Auth.css';
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState('demo_user');
-
-  useEffect(() => {
-    // Update userId when auth state changes
-    if (isAuthenticated()) {
-      const user = getUser();
-      setUserId(user.user_id);
-    } else {
-      setUserId('demo_user');
-    }
-  }, []);
   const [showAdmin, setShowAdmin] = useState(false);
 
   const { setCategories, setTopics } = useAppStore();
@@ -177,7 +166,7 @@ function App() {
         <main className="main-content-new">
           <Routes>
             <Route path="/" element={<LandingPageNew />} />
-            <Route path="/create-path" element={<Home userId={userId} />} />
+            <Route path="/create-path" element={<Home />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -187,7 +176,7 @@ function App() {
               path="/category/:categoryId/topic/:topicId"
               element={<CategoryView />}
             />
-            <Route path="/learning-path" element={<LearningPathView userId={userId} />} />
+            <Route path="/learning-path" element={<LearningPathView />} />
             <Route path="/topic/:topicSlug" element={<TopicDetailPage />} />
             <Route path="/topic/:topicSlug/week/:weekNumber/section/:sectionId" element={<SectionContentPage />} />
           </Routes>

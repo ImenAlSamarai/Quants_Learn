@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getLearningPath } from '../services/api';
+import { getUser } from '../services/auth';
 import StagedTreeLayout from './tree/StagedTreeLayout';
 import '../styles/LearningPath.css';
 
-const LearningPathView = ({ userId = 'demo_user', onClose }) => {
+const LearningPathView = ({ onClose }) => {
   const [learningPath, setLearningPath] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -12,12 +13,20 @@ const LearningPathView = ({ userId = 'demo_user', onClose }) => {
 
   useEffect(() => {
     fetchLearningPath();
-  }, [userId]);
+  }, []);
 
   const fetchLearningPath = async () => {
     try {
       setLoading(true);
-      const data = await getLearningPath(userId);
+
+      // Get current authenticated user
+      const currentUser = getUser();
+      if (!currentUser) {
+        navigate('/login');
+        return;
+      }
+
+      const data = await getLearningPath(currentUser.user_id);
       setLearningPath(data);
       setError(null);
     } catch (err) {

@@ -39,7 +39,7 @@ const Dashboard = () => {
         setUserProgress(progressArray);
       } catch (error) {
         // No learning path yet - this is okay for new users
-        console.log('No learning path found:', error);
+        console.log('No learning path found. User can create one from the dashboard.');
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);
@@ -176,6 +176,12 @@ const Dashboard = () => {
     );
   }
 
+  // Check if user has localStorage progress without a learning path
+  const hasLocalProgress = () => {
+    const completionKeys = Object.keys(localStorage).filter(k => k.includes('-completed'));
+    return completionKeys.some(key => localStorage.getItem(key) === 'true');
+  };
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -271,15 +277,34 @@ const Dashboard = () => {
       ) : (
         <div className="dashboard-content">
           <div className="empty-state">
-            <div className="empty-state-icon">📚</div>
-            <h2>No Learning Path Yet</h2>
-            <p>Create your first personalized learning path by entering a job description.</p>
+            <div className="empty-state-icon">
+              {hasLocalProgress() ? '🎯' : '📚'}
+            </div>
+            <h2>
+              {hasLocalProgress()
+                ? "You've Made Progress!"
+                : "No Learning Path Yet"}
+            </h2>
+            <p>
+              {hasLocalProgress()
+                ? "We see you've been learning! Create a personalized learning path based on your target job to track your progress and get a structured roadmap."
+                : "Create your first personalized learning path by entering a job description."}
+            </p>
             <button
               className="btn-primary"
               onClick={() => navigate('/create-path')}
             >
               Create Learning Path
             </button>
+            {hasLocalProgress() && (
+              <p style={{
+                marginTop: '1.5rem',
+                fontSize: '0.9rem',
+                color: '#64748b'
+              }}>
+                Your completed sections will be tracked once you create a learning path.
+              </p>
+            )}
           </div>
         </div>
       )}

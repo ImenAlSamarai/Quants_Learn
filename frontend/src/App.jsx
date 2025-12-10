@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Header from './components/layout/Header';
 import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
 import CategoryView from './pages/CategoryView';
 import AdminPanel from './components/AdminPanel';
@@ -175,6 +176,7 @@ function App() {
         <main className="main-content-new">
           <Routes>
             <Route path="/" element={<Home userId={userId} />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/explore" element={<LandingPage />} />

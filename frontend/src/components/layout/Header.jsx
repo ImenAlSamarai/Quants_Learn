@@ -18,7 +18,21 @@ const Header = ({ onShowAdmin }) => {
   }, [location]);
 
   const handleLogoClick = () => {
-    navigate('/');
+    // Navigate to dashboard if authenticated, otherwise home
+    if (isAuthenticated()) {
+      navigate('/dashboard');
+    } else {
+      navigate('/');
+    }
+  };
+
+  const handleHomeClick = () => {
+    // Same logic for Home button
+    if (isAuthenticated()) {
+      navigate('/dashboard');
+    } else {
+      navigate('/');
+    }
   };
 
   const handleSearch = (e) => {
@@ -104,7 +118,7 @@ const Header = ({ onShowAdmin }) => {
         <div className="header-actions">
           {!isHome && (
             <motion.button
-              onClick={handleLogoClick}
+              onClick={handleHomeClick}
               className="header-action-btn"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

@@ -225,11 +225,13 @@
 }
 
 .priority-badge {
+  background: #dc2626;
+  color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
   font-size: 0.75rem;
   font-weight: 600;
-  color: white;
+  display: inline-block;
 }
 
 .topic-title {

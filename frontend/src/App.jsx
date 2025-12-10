@@ -4,6 +4,7 @@ import Header from './components/layout/Header';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import LandingPage from './pages/LandingPage';
+import LandingPageNew from './pages/LandingPage_New';
 import CategoryView from './pages/CategoryView';
 import AdminPanel from './components/AdminPanel';
 import LearningPathView from './components/LearningPathView';
@@ -175,7 +176,8 @@ function App() {
 
         <main className="main-content-new">
           <Routes>
-            <Route path="/" element={<Home userId={userId} />} />
+            <Route path="/" element={<LandingPageNew />} />
+            <Route path="/create-path" element={<Home userId={userId} />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />

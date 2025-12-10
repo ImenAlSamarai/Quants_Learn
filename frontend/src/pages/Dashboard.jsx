@@ -16,6 +16,7 @@ const Dashboard = () => {
     loadDashboardData();
   }, []);
 
+
   const loadDashboardData = async () => {
     try {
       const currentUser = getUser();
@@ -32,8 +33,10 @@ const Dashboard = () => {
         setLearningPath(path);
 
         // Fetch user progress data
-        const progress = await fetchUserProgress(currentUser.user_id);
-        setUserProgress(progress || []);
+        const progressData = await fetchUserProgress(currentUser.user_id);
+        // Extract the progress array from the response object
+        const progressArray = progressData?.progress || [];
+        setUserProgress(progressArray);
       } catch (error) {
         // No learning path yet - this is okay for new users
         console.log('No learning path found:', error);
@@ -72,34 +75,65 @@ const Dashboard = () => {
     return topics;
   };
 
-  const getTopicProgress = (topicName) => {
-    if (!Array.isArray(userProgress) || userProgress.length === 0) return false;
-
+  // Get topic progress from localStorage (where section completion is actually stored)
+  const getTopicProgressFromLocalStorage = (topicName) => {
     try {
-      // Check if user has any progress on this topic
-      // UserProgress might track by node_id, but topic names are strings
-      // For MVP: check if topic appears in recent progress (by matching name in extra_metadata or similar)
-      const hasProgress = userProgress.some(p => {
-        if (!p) return false;
-        return (
-          p.extra_metadata?.topic_name?.toLowerCase().includes(topicName.toLowerCase()) ||
-          p.time_spent_minutes > 0
-        );
-      });
-      return hasProgress;
+      const topicSlug = topicName.toLowerCase().replace(/\s+/g, '-');
+      let completedSections = 0;
+      let totalSections = 0;
+
+      // The learning_structure is stored in covered_topics, NOT in stages.topics
+      // We need to find the topic in covered_topics array
+      if (learningPath && learningPath.covered_topics && Array.isArray(learningPath.covered_topics)) {
+        const coveredTopic = learningPath.covered_topics.find(ct => {
+          const ctName = ct.topic || ct.name;
+          return ctName === topicName;
+        });
+
+        if (coveredTopic && coveredTopic.learning_structure && coveredTopic.learning_structure.weeks) {
+          // Count sections in this topic
+          coveredTopic.learning_structure.weeks.forEach(week => {
+            if (week.sections && Array.isArray(week.sections)) {
+              week.sections.forEach(section => {
+                totalSections++;
+                // Check localStorage for completion
+                const completionKey = `${topicSlug}-${week.weekNumber}-${section.id}-completed`;
+                if (localStorage.getItem(completionKey) === 'true') {
+                  completedSections++;
+                }
+              });
+            }
+          });
+        }
+      }
+
+      return { completedSections, totalSections };
     } catch (error) {
-      console.error('Error checking topic progress:', error);
-      return false;
+      console.error('Error checking topic progress from localStorage:', error);
+      return { completedSections: 0, totalSections: 0 };
     }
+  };
+
+  const getTopicProgress = (topicName) => {
+    const { completedSections, totalSections } = getTopicProgressFromLocalStorage(topicName);
+    return totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
   };
 
   const calculateProgress = () => {
     const topics = getAllTopics();
     if (topics.length === 0) return 0;
 
-    // Count topics that have been started/completed
-    const topicsWithProgress = topics.filter(topic => getTopicProgress(topic.name));
-    return Math.round((topicsWithProgress.length / topics.length) * 100);
+    // Calculate average progress across all topics
+    let totalSections = 0;
+    let completedSections = 0;
+
+    topics.forEach(topic => {
+      const { completedSections: completed, totalSections: total } = getTopicProgressFromLocalStorage(topic.name);
+      completedSections += completed;
+      totalSections += total;
+    });
+
+    return totalSections > 0 ? Math.round((completedSections / totalSections) * 100) : 0;
   };
 
   const formatJobTitle = () => {
@@ -122,13 +156,13 @@ const Dashboard = () => {
       setShowUpdateWarning(true);
     } else {
       // No existing path, go straight to job input
-      navigate('/');
+      navigate('/create-path');
     }
   };
 
   const confirmUpdateJob = () => {
     setShowUpdateWarning(false);
-    navigate('/');
+    navigate('/create-path');
   };
 
   if (loading) {
@@ -185,19 +219,32 @@ const Dashboard = () => {
                 <h3 className="section-heading">Required Topics</h3>
                 <div className="topics-list">
                   {getAllTopics().map((topic, index) => {
-                    const hasProgress = getTopicProgress(topic.name);
+                    const progressPercent = getTopicProgress(topic.name);
+                    const isCompleted = progressPercent === 100;
+                    const hasProgress = progressPercent > 0;
                     return (
                       <div key={index} className="topic-item">
-                        <span className={`topic-status ${hasProgress ? 'completed' : 'pending'}`}>
-                          {hasProgress ? '✓' : '○'}
+                        <span className={`topic-status ${isCompleted ? 'completed' : 'pending'}`}>
+                          {isCompleted ? '✓' : '○'}
                         </span>
                         <div className="topic-details">
                           <span className="topic-name">{topic.name}</span>
                           <span className="topic-stage">{topic.stage}</span>
                         </div>
-                        {topic.priority === 'HIGH' && (
-                          <span className="priority-badge">High Priority</span>
-                        )}
+                        <div className="topic-priority-slot">
+                          {topic.priority === 'HIGH' && (
+                            <span className="priority-badge">High Priority</span>
+                          )}
+                        </div>
+                        <div className="topic-progress-bar">
+                          <div className="topic-progress-bar-bg">
+                            <div
+                              className="topic-progress-bar-fill"
+                              style={{ width: `${progressPercent}%` }}
+                            ></div>
+                          </div>
+                          <span className="topic-progress-percent">{progressPercent}%</span>
+                        </div>
                       </div>
                     );
                   })}
@@ -229,7 +276,7 @@ const Dashboard = () => {
             <p>Create your first personalized learning path by entering a job description.</p>
             <button
               className="btn-primary"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/create-path')}
             >
               Create Learning Path
             </button>

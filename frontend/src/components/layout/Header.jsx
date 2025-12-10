@@ -19,7 +19,7 @@ const Header = ({ onShowAdmin }) => {
 
   const handleLogoClick = () => {
     // Navigate to dashboard if authenticated, otherwise home
-    if (isAuthenticated()) {
+    if (user || isAuthenticated()) {
       navigate('/dashboard');
     } else {
       navigate('/');
@@ -27,8 +27,8 @@ const Header = ({ onShowAdmin }) => {
   };
 
   const handleHomeClick = () => {
-    // Same logic for Home button
-    if (isAuthenticated()) {
+    // Same logic for Home button - always go to dashboard if user exists
+    if (user || isAuthenticated()) {
       navigate('/dashboard');
     } else {
       navigate('/');
@@ -43,9 +43,12 @@ const Header = ({ onShowAdmin }) => {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    // Clear user state FIRST
     setUser(null);
+
+    // AWAIT logout to ensure localStorage is cleared BEFORE navigation
+    await logout();
 
     // Show success notification
     const notification = document.createElement('div');
@@ -66,9 +69,14 @@ const Header = ({ onShowAdmin }) => {
 
     setTimeout(() => {
       notification.style.animation = 'slideOut 0.3s ease-in';
-      setTimeout(() => document.body.removeChild(notification), 300);
+      setTimeout(() => {
+        if (document.body.contains(notification)) {
+          document.body.removeChild(notification);
+        }
+      }, 300);
     }, 3000);
 
+    // Navigate AFTER logout completes
     navigate('/');
   };
 
@@ -88,10 +96,11 @@ const Header = ({ onShowAdmin }) => {
           whileTap={{ scale: 0.98 }}
         >
           <Brain size={32} color="#C9A96E" strokeWidth={2} />
-          <div className="brand-text">
-            <h1>Quant Learning</h1>
-            <p>Interactive Knowledge Platform</p>
-          </div>
+          {!isHome && (
+            <div className="brand-text">
+              <h1>The Ethical Hiring Platform</h1>
+            </div>
+          )}
         </motion.div>
 
         {/* Search Bar - Only show when not on home */}
@@ -116,6 +125,26 @@ const Header = ({ onShowAdmin }) => {
 
         {/* Actions */}
         <div className="header-actions">
+          {user && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '0.5rem 1rem',
+              background: 'rgba(201, 169, 110, 0.1)',
+              borderRadius: '8px',
+              marginRight: '1rem',
+              border: '1px solid rgba(201, 169, 110, 0.2)'
+            }}>
+              <span style={{
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                color: '#C9A96E'
+              }}>
+                Hello, {user.name || user.user_id}
+              </span>
+            </div>
+          )}
+
           {!isHome && (
             <motion.button
               onClick={handleHomeClick}
@@ -130,9 +159,6 @@ const Header = ({ onShowAdmin }) => {
 
           {user ? (
             <>
-              <span className="user-greeting" style={{ marginRight: '1rem', color: '#C9A96E' }}>
-                Hello, {user.name || user.user_id}
-              </span>
               <motion.button
                 onClick={handleLogout}
                 className="header-action-btn"
@@ -154,15 +180,17 @@ const Header = ({ onShowAdmin }) => {
                 <LogIn size={18} />
                 <span className="action-label">Login</span>
               </motion.button>
-              <motion.button
-                onClick={() => navigate('/register')}
-                className="header-action-btn header-action-btn-primary"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <UserPlus size={18} />
-                <span className="action-label">Register</span>
-              </motion.button>
+              {!isHome && (
+                <motion.button
+                  onClick={() => navigate('/register')}
+                  className="header-action-btn header-action-btn-primary"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <UserPlus size={18} />
+                  <span className="action-label">Register</span>
+                </motion.button>
+              )}
             </>
           )}
 

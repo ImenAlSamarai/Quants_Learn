@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { register } from '../../services/auth';
 import '../../styles/Auth.css';
 
 const Register = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [formData, setFormData] = useState({
     user_id: '',
     password: '',
@@ -13,6 +14,16 @@ const Register = () => {
     email: '',
     role: 'candidate',
   });
+  const [rolePreselected, setRolePreselected] = useState(false);
+
+  // Pre-populate role from URL query parameter
+  useEffect(() => {
+    const roleParam = searchParams.get('role');
+    if (roleParam === 'candidate' || roleParam === 'recruiter') {
+      setFormData(prev => ({ ...prev, role: roleParam }));
+      setRolePreselected(true);
+    }
+  }, [searchParams]);
 
   // Candidate-specific fields
   const [candidateData, setCandidateData] = useState({
@@ -196,28 +207,52 @@ const Register = () => {
             />
           </div>
 
-          {/* Role Selection */}
-          <div className="form-group">
-            <label htmlFor="role">
-              Role <span className="required">*</span>
-            </label>
-            <select
-              id="role"
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              disabled={loading}
-              required
-            >
-              <option value="candidate">Candidate (Job Seeker)</option>
-              <option value="recruiter">Recruiter</option>
-            </select>
-            <p className="form-help-text">
-              {formData.role === 'candidate'
-                ? 'Learn quantitative finance and prepare for job opportunities'
-                : 'Find and connect with qualified candidates'}
-            </p>
-          </div>
+          {/* Role Selection - Only show if not pre-selected */}
+          {!rolePreselected && (
+            <div className="form-group">
+              <label htmlFor="role">
+                Role <span className="required">*</span>
+              </label>
+              <select
+                id="role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                disabled={loading}
+                required
+              >
+                <option value="candidate">Candidate (Job Seeker)</option>
+                <option value="recruiter">Recruiter</option>
+              </select>
+              <p className="form-help-text">
+                {formData.role === 'candidate'
+                  ? 'Learn quantitative finance and prepare for job opportunities'
+                  : 'Find and connect with qualified candidates'}
+              </p>
+            </div>
+          )}
+
+          {/* Show selected role when pre-selected */}
+          {rolePreselected && (
+            <div className="form-group">
+              <label>Selected Role</label>
+              <div style={{
+                padding: '0.75rem 1rem',
+                background: 'var(--cream-bg)',
+                border: '1px solid var(--cream-border)',
+                borderRadius: '8px',
+                color: 'var(--text-primary)',
+                fontWeight: 600
+              }}>
+                {formData.role === 'candidate' ? '🎓 Candidate (Job Seeker)' : '💼 Recruiter'}
+              </div>
+              <p className="form-help-text">
+                {formData.role === 'candidate'
+                  ? 'Learn quantitative finance and prepare for job opportunities'
+                  : 'Find and connect with qualified candidates'}
+              </p>
+            </div>
+          )}
 
           {/* Candidate-Specific Fields */}
           {formData.role === 'candidate' && (

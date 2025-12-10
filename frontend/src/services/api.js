@@ -121,7 +121,7 @@ export const searchContent = async (query, category = null, topK = 10) => {
 
 // Progress APIs
 export const fetchUserProgress = async (userId) => {
-  const response = await api.get(`/api/progress/user/${userId}`);
+  const response = await api.get(`/api/progress/user/${encodeURIComponent(userId)}`);
   return response.data;
 };
 
@@ -137,18 +137,18 @@ export const updateProgress = async (userId, nodeId, completed, quizScore = null
 };
 
 export const getRecommendations = async (userId) => {
-  const response = await api.get(`/api/progress/user/${userId}/recommendations`);
+  const response = await api.get(`/api/progress/user/${encodeURIComponent(userId)}/recommendations`);
   return response.data;
 };
 
 // Phase 2: Progress Dashboard APIs
 export const getUserDashboard = async (userId) => {
-  const response = await api.get(`/api/users/${userId}/dashboard`);
+  const response = await api.get(`/api/users/${encodeURIComponent(userId)}/dashboard`);
   return response.data;
 };
 
 export const updateUserProfile = async (userId, profileData) => {
-  const response = await api.patch(`/api/users/${userId}/profile`, profileData);
+  const response = await api.patch(`/api/users/${encodeURIComponent(userId)}/profile`, profileData);
   return response.data;
 };
 
@@ -163,12 +163,12 @@ export const logStudySession = async (userId, nodeId, durationSeconds) => {
 
 // Phase 2.5: Job-Based Personalization APIs
 export const updateJobProfile = async (userId, jobData) => {
-  const response = await api.post(`/api/users/${userId}/job-profile`, jobData);
+  const response = await api.post(`/api/users/${encodeURIComponent(userId)}/job-profile`, jobData);
   return response.data;
 };
 
 export const getLearningPath = async (userId) => {
-  const response = await api.get(`/api/users/${userId}/learning-path`);
+  const response = await api.get(`/api/users/${encodeURIComponent(userId)}/learning-path`);
   return response.data;
 };
 

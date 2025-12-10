@@ -1,9 +1,5 @@
 {
   "mcpServers": {
-    "serena": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-serena"]
-    },
     "chrome-devtools": {
       "command": "npx",
       "args": ["-y", "chrome-devtools-mcp@latest"]

@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { register } from '../../services/auth';
 import '../../styles/Auth.css';
 
-const Register = ({ onSuccess, onSwitchToLogin }) => {
+const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     user_id: '',
     password: '',
@@ -95,10 +97,8 @@ const Register = ({ onSuccess, onSwitchToLogin }) => {
       const response = await register(registrationData);
       console.log('Registration successful:', response);
 
-      // Call success callback if provided
-      if (onSuccess) {
-        onSuccess(response);
-      }
+      // Redirect to dashboard after successful registration
+      navigate('/dashboard');
     } catch (err) {
       console.error('Registration error:', err);
       setError(err.response?.data?.detail || 'Registration failed. Please try again.');
@@ -310,7 +310,7 @@ const Register = ({ onSuccess, onSwitchToLogin }) => {
             <button
               type="button"
               className="auth-link"
-              onClick={onSwitchToLogin}
+              onClick={() => navigate('/login')}
               disabled={loading}
             >
               Login here

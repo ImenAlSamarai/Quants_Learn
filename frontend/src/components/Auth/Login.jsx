@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { login } from '../../services/auth';
 import '../../styles/Auth.css';
 
-const Login = ({ onSuccess, onSwitchToRegister }) => {
+const Login = () => {
+  const navigate = useNavigate();
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -24,10 +26,8 @@ const Login = ({ onSuccess, onSwitchToRegister }) => {
       const response = await login(userId, password);
       console.log('Login successful:', response);
 
-      // Call success callback if provided
-      if (onSuccess) {
-        onSuccess(response);
-      }
+      // Redirect to dashboard after successful login
+      navigate('/dashboard');
     } catch (err) {
       console.error('Login error:', err);
       setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
@@ -87,7 +87,7 @@ const Login = ({ onSuccess, onSwitchToRegister }) => {
             <button
               type="button"
               className="auth-link"
-              onClick={onSwitchToRegister}
+              onClick={() => navigate('/register')}
               disabled={loading}
             >
               Register here

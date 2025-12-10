@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUser } from '../services/auth';
-import { getUserProfile } from '../services/api';
+import { getLearningPath } from '../services/api';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
@@ -25,9 +25,12 @@ const Dashboard = () => {
       setUser(currentUser);
 
       // Fetch user's learning path
-      const profile = await getUserProfile(currentUser.user_id);
-      if (profile.learning_path) {
-        setLearningPath(profile.learning_path);
+      try {
+        const path = await getLearningPath(currentUser.user_id);
+        setLearningPath(path);
+      } catch (error) {
+        // No learning path yet - this is okay for new users
+        console.log('No learning path found:', error);
       }
     } catch (error) {
       console.error('Error loading dashboard:', error);

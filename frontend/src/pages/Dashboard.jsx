@@ -49,29 +49,48 @@ const Dashboard = () => {
     if (!learningPath || !learningPath.stages) return [];
 
     const topics = [];
-    learningPath.stages.forEach(stage => {
-      if (stage.topics && Array.isArray(stage.topics)) {
-        stage.topics.forEach(topic => {
-          topics.push({
-            name: topic.name || topic.topic || topic,
-            stage: stage.stage_name,
-            priority: topic.priority || 'MEDIUM'
+    try {
+      learningPath.stages.forEach(stage => {
+        if (stage.topics && Array.isArray(stage.topics)) {
+          stage.topics.forEach(topic => {
+            // Handle different topic formats
+            const topicName = typeof topic === 'string'
+              ? topic
+              : (topic.name || topic.topic || 'Unknown Topic');
+
+            topics.push({
+              name: topicName,
+              stage: stage.stage_name || 'General',
+              priority: typeof topic === 'object' ? (topic.priority || 'MEDIUM') : 'MEDIUM'
+            });
           });
-        });
-      }
-    });
+        }
+      });
+    } catch (error) {
+      console.error('Error parsing topics:', error);
+    }
     return topics;
   };
 
   const getTopicProgress = (topicName) => {
-    // Check if user has any progress on this topic
-    // UserProgress might track by node_id, but topic names are strings
-    // For MVP: check if topic appears in recent progress (by matching name in extra_metadata or similar)
-    const hasProgress = userProgress.some(p =>
-      p.extra_metadata?.topic_name?.toLowerCase().includes(topicName.toLowerCase()) ||
-      p.time_spent_minutes > 0
-    );
-    return hasProgress;
+    if (!Array.isArray(userProgress) || userProgress.length === 0) return false;
+
+    try {
+      // Check if user has any progress on this topic
+      // UserProgress might track by node_id, but topic names are strings
+      // For MVP: check if topic appears in recent progress (by matching name in extra_metadata or similar)
+      const hasProgress = userProgress.some(p => {
+        if (!p) return false;
+        return (
+          p.extra_metadata?.topic_name?.toLowerCase().includes(topicName.toLowerCase()) ||
+          p.time_spent_minutes > 0
+        );
+      });
+      return hasProgress;
+    } catch (error) {
+      console.error('Error checking topic progress:', error);
+      return false;
+    }
   };
 
   const calculateProgress = () => {
@@ -161,28 +180,30 @@ const Dashboard = () => {
             </div>
 
             {/* Topic Progress List */}
-            <div className="topics-progress-section">
-              <h3 className="section-heading">Required Topics</h3>
-              <div className="topics-list">
-                {getAllTopics().map((topic, index) => {
-                  const hasProgress = getTopicProgress(topic.name);
-                  return (
-                    <div key={index} className="topic-item">
-                      <span className={`topic-status ${hasProgress ? 'completed' : 'pending'}`}>
-                        {hasProgress ? '✓' : '○'}
-                      </span>
-                      <div className="topic-details">
-                        <span className="topic-name">{topic.name}</span>
-                        <span className="topic-stage">{topic.stage}</span>
+            {getAllTopics().length > 0 && (
+              <div className="topics-progress-section">
+                <h3 className="section-heading">Required Topics</h3>
+                <div className="topics-list">
+                  {getAllTopics().map((topic, index) => {
+                    const hasProgress = getTopicProgress(topic.name);
+                    return (
+                      <div key={index} className="topic-item">
+                        <span className={`topic-status ${hasProgress ? 'completed' : 'pending'}`}>
+                          {hasProgress ? '✓' : '○'}
+                        </span>
+                        <div className="topic-details">
+                          <span className="topic-name">{topic.name}</span>
+                          <span className="topic-stage">{topic.stage}</span>
+                        </div>
+                        {topic.priority === 'HIGH' && (
+                          <span className="priority-badge">High Priority</span>
+                        )}
                       </div>
-                      {topic.priority === 'HIGH' && (
-                        <span className="priority-badge">High Priority</span>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="card-actions">
               <button

@@ -1,13 +1,21 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Brain, Search, Settings, BarChart3, Home } from 'lucide-react';
+import { Brain, Search, Settings, BarChart3, Home, LogIn, LogOut, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { isAuthenticated, getUser, logout } from '../../services/auth';
 
 const Header = ({ onShowAdmin }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [user, setUser] = useState(null);
   const isHome = location.pathname === '/';
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      setUser(getUser());
+    }
+  }, [location]);
 
   const handleLogoClick = () => {
     navigate('/');
@@ -19,6 +27,12 @@ const Header = ({ onShowAdmin }) => {
       // TODO: Implement search functionality
       console.log('Searching for:', searchQuery);
     }
+  };
+
+  const handleLogout = () => {
+    logout();
+    setUser(null);
+    navigate('/');
   };
 
   return (
@@ -77,9 +91,47 @@ const Header = ({ onShowAdmin }) => {
             </motion.button>
           )}
 
+          {user ? (
+            <>
+              <span className="user-greeting" style={{ marginRight: '1rem', color: '#C9A96E' }}>
+                Hello, {user.name || user.user_id}
+              </span>
+              <motion.button
+                onClick={handleLogout}
+                className="header-action-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <LogOut size={18} />
+                <span className="action-label">Logout</span>
+              </motion.button>
+            </>
+          ) : (
+            <>
+              <motion.button
+                onClick={() => navigate('/login')}
+                className="header-action-btn"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <LogIn size={18} />
+                <span className="action-label">Login</span>
+              </motion.button>
+              <motion.button
+                onClick={() => navigate('/register')}
+                className="header-action-btn header-action-btn-primary"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <UserPlus size={18} />
+                <span className="action-label">Register</span>
+              </motion.button>
+            </>
+          )}
+
           <motion.button
             onClick={onShowAdmin}
-            className="header-action-btn header-action-btn-primary"
+            className="header-action-btn"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
           >

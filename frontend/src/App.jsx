@@ -8,12 +8,26 @@ import AdminPanel from './components/AdminPanel';
 import LearningPathView from './components/LearningPathView';
 import TopicDetailPage from './pages/TopicDetailPage';
 import SectionContentPage from './pages/SectionContentPage';
+import Login from './components/Auth/Login';
+import Register from './components/Auth/Register';
 import useAppStore from './store/useAppStore';
 import { fetchMindMap } from './services/api';
+import { getUser, isAuthenticated } from './services/auth';
+import './styles/Auth.css';
 
 function App() {
   const [loading, setLoading] = useState(true);
-  const [userId] = useState('demo_user');
+  const [userId, setUserId] = useState('demo_user');
+
+  useEffect(() => {
+    // Update userId when auth state changes
+    if (isAuthenticated()) {
+      const user = getUser();
+      setUserId(user.user_id);
+    } else {
+      setUserId('demo_user');
+    }
+  }, []);
   const [showAdmin, setShowAdmin] = useState(false);
 
   const { setCategories, setTopics } = useAppStore();
@@ -161,6 +175,8 @@ function App() {
         <main className="main-content-new">
           <Routes>
             <Route path="/" element={<Home userId={userId} />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/explore" element={<LandingPage />} />
             <Route path="/category/:categoryId" element={<CategoryView />} />
             <Route

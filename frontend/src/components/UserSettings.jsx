@@ -23,7 +23,7 @@ const UserSettings = ({ userId, onClose }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/users/${userId}`);
+      const response = await fetch(`http://localhost:8000/api/users/${encodeURIComponent(userId)}`);
       if (response.ok) {
         const data = await response.json();
         setUserName(data.name || '');

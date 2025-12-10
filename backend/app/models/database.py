@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, Float, ForeignKey, Table, JSON, DateTime, Boolean
+from sqlalchemy import create_engine, Column, Integer, String, Text, Float, ForeignKey, Table, JSON, DateTime, Boolean, Date
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
@@ -125,6 +125,8 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(String(100), unique=True, nullable=False, index=True)  # Username or email
     name = Column(String(200))
+    password_hash = Column(String(255), nullable=False)
+    role = Column(String(50), default='candidate')  # 'candidate', 'recruiter', 'admin'
     learning_level = Column(Integer, default=3)  # DEPRECATED: Keep for backward compat with scripts
     background = Column(Text)  # DEPRECATED: Replaced by job_description
     preferences = Column(JSON)  # Custom preferences
@@ -147,6 +149,17 @@ class User(Base):
     job_seniority = Column(String(50))  # 'junior', 'mid', 'senior', 'not_specified'
     firm = Column(String(200))  # e.g., "Citadel", "Two Sigma" (optional)
     job_role_type = Column(String(100))  # 'quant_researcher', 'quant_trader', 'risk_quant', 'ml_engineer'
+
+    # Candidate-specific fields (nullable)
+    cv_text = Column(Text, nullable=True)
+    availability_date = Column(Date, nullable=True)
+    public_profile = Column(Boolean, default=False)
+    willing_to_relocate = Column(Boolean, default=False, nullable=True)
+
+    # Recruiter-specific fields (nullable)
+    company_name = Column(String(200), nullable=True)
+    company_url = Column(String(500), nullable=True)
+    recruiter_type = Column(String(50), nullable=True)  # 'internal', 'agency', 'headhunter'
 
     progress = relationship('UserProgress', back_populates='user')
     competencies = relationship('UserCompetency', back_populates='user', cascade='all, delete-orphan')

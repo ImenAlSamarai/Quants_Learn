@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     APP_NAME: str = "Quant Learning Platform"
     DEBUG: bool = True
 
+    # JWT Authentication
+    JWT_SECRET_KEY: str = "your-secret-key-change-in-production"  # Change in production!
+    JWT_ALGORITHM: str = "HS256"
+    JWT_EXPIRATION_HOURS: int = 24
+
     # Embedding Settings
     EMBEDDING_MODEL: str = "text-embedding-3-small"
     EMBEDDING_DIMENSION: int = 1536

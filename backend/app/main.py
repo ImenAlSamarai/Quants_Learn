@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config.settings import settings
 from app.models.database import init_db
-from app.routes import nodes, content, progress, users, admin, insights
+from app.routes import nodes, content, progress, users, admin, insights, auth
 import uvicorn
 
 # Initialize FastAPI app
@@ -22,6 +22,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router)
 app.include_router(nodes.router)
 app.include_router(content.router)
 app.include_router(progress.router)
@@ -54,6 +55,7 @@ def root():
             "admin_panel": "enabled"
         },
         "endpoints": {
+            "auth": "/auth (register, login)",
             "nodes": "/api/nodes",
             "mindmap": "/api/nodes/mindmap",
             "content": "/api/content (with caching)",

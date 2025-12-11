@@ -40,9 +40,12 @@
    - **Logout Fix:** Async/await prevents race condition (single-click logout)
    - **Navigation:** Home button properly routes to dashboard when authenticated
    - **Progress Bars:** Aligned horizontal bars with fixed priority slot (110px)
-   - **Bug Fixes:** High Priority badge visibility, progress calculation from covered_topics
-   - **Files Changed:** 8 files (788 insertions, 81 deletions)
-   - **Branch:** `feature/multi-role-authentication` merged to dev
+   - **Bug Fixes:**
+     - High Priority badge visibility, progress calculation from covered_topics
+     - **CRITICAL: URL encoding for email-based user IDs** - Fixed 404 errors when userId contains `@` symbol (encodeURIComponent added to 8 locations)
+     - **CRITICAL: Stale user context** - Fixed Learning Journey showing wrong user's data after logout/login (components now get current user directly from auth service)
+   - **Files Changed:** 11 files total (856 insertions, 100 deletions)
+   - **Branch:** `feature/multi-role-authentication` merged to dev, plus 3 critical bug fix commits
 2. ✅ Root directory cleanup and README update (2025-12-09)
    - Deleted 4 obsolete scripts (PULL_CHANGES.sh, test_topic_hierarchy.py, analyze_book.py, find_chapters.py)
    - Updated README.md to reflect Phase 3 job-based personalization
@@ -718,6 +721,8 @@ git status
   - Single-click logout with async/await
   - New landing page with dual CTAs for Candidate/Recruiter
   - High Priority badges now visible with proper styling
+  - **CRITICAL BUG FIXED:** URL encoding for email-based user IDs (no more 404 errors)
+  - **CRITICAL BUG FIXED:** Stale user context (Learning Journey now shows correct user after logout/login)
 - ✅ **Workflow test completed** (2025-12-09) - Validated Claude feature development workflow
 - ✅ **Deprecation system added** - Prevents implementing in old/unused code
 - ✅ Job-based personalization fully implemented (Phase 3)

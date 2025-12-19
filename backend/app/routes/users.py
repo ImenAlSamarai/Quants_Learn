@@ -199,18 +199,21 @@ def update_job_profile(
     # ============ RATE LIMITING: Prevent API cost explosion ============
     from datetime import datetime, timedelta
 
-    # Check if user generated a path in last 24 hours
+    # Rate limit hours (configurable via environment variable)
+    rate_limit_hours = int(os.getenv("LEARNING_PATH_RATE_LIMIT_HOURS", "24"))
+
+    # Check if user generated a path in last N hours
     recent_path = db.query(LearningPath).filter(
         LearningPath.user_id == user_id,
-        LearningPath.created_at >= datetime.utcnow() - timedelta(hours=24)
+        LearningPath.created_at >= datetime.utcnow() - timedelta(hours=rate_limit_hours)
     ).first()
 
     if recent_path:
         hours_since = (datetime.utcnow() - recent_path.created_at).total_seconds() / 3600
-        hours_remaining = 24 - hours_since
+        hours_remaining = rate_limit_hours - hours_since
         raise HTTPException(
             status_code=429,
-            detail=f"Rate limit: You can generate 1 learning path per 24 hours. Try again in {hours_remaining:.1f} hours. (Cost protection during testing)"
+            detail=f"Rate limit: You can generate 1 learning path per {rate_limit_hours} hours. Try again in {hours_remaining:.1f} hours. (Cost protection during testing)"
         )
 
     # Update job fields

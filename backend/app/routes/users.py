@@ -301,6 +301,36 @@ def get_learning_path(user_id: str, db: Session = Depends(get_db)):
     return learning_path
 
 
+@router.delete("/{user_id}/learning-path")
+def delete_learning_path(
+    user_id: str,
+    db: Session = Depends(get_db),
+    _admin: bool = Depends(verify_admin_token)
+):
+    """
+    [ADMIN ONLY] Delete user's learning path to reset rate limit
+
+    Requires X-Admin-Token header for authentication.
+    Users must email admin to request learning path deletion.
+    """
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Delete all learning paths for this user
+    deleted_count = db.query(LearningPath).filter(
+        LearningPath.user_id == user_id
+    ).delete()
+
+    db.commit()
+
+    return {
+        "message": "Learning path deleted successfully",
+        "deleted_count": deleted_count,
+        "user_id": user_id
+    }
+
+
 @router.post("/check-coverage", response_model=TopicCoverageCheck)
 def check_topic_coverage(topic: str, db: Session = Depends(get_db)):
     """

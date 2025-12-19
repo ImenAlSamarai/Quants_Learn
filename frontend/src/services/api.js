@@ -172,6 +172,11 @@ export const getLearningPath = async (userId) => {
   return response.data;
 };
 
+export const deleteLearningPath = async (userId) => {
+  const response = await api.delete(`/api/users/${encodeURIComponent(userId)}/learning-path`);
+  return response.data;
+};
+
 export const checkTopicCoverage = async (topic) => {
   const response = await api.post('/api/users/check-coverage', { topic });
   return response.data;

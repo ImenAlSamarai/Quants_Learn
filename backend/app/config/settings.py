@@ -31,8 +31,11 @@ class Settings(BaseSettings):
     # Embedding Settings
     EMBEDDING_MODEL: str = "text-embedding-3-small"
     EMBEDDING_DIMENSION: int = 1536
-    CHUNK_SIZE: int = 500
-    CHUNK_OVERLAP: int = 50
+
+    # Chunking Settings (Token-based for better semantic coherence)
+    CHUNK_SIZE: int = 256  # tokens (not characters)
+    CHUNK_OVERLAP: int = 128  # tokens (50% overlap for context preservation)
+    TOKENIZER_MODEL: str = "cl100k_base"  # OpenAI's tiktoken encoding
 
     class Config:
         env_file = ".env"

@@ -560,13 +560,20 @@ QUALITY STANDARDS (Match validated "Statistical Modeling" example):
 - Key Formulas: Highlight THE formula to memorize
 - Interview Tips: Practical, specific advice
 - Practice Problems: 2-3 problems of increasing difficulty
-- Resources: Extract from provided book content
+- Resources: ONLY list books from the provided content (DO NOT invent book names!)
+
+🚨 ANTI-HALLUCINATION RULES FOR RESOURCES:
+- ONLY reference books/chapters mentioned in the "Book Content to Incorporate" section below
+- DO NOT invent external book names (e.g., "Cracking the Coding Interview", "Introduction to Algorithms")
+- If no specific book/chapter is clear from context, use generic: {"source": "Course materials", "chapter": "See content above"}
+- Be conservative - better to have fewer resources than to hallucinate book names
 
 CRITICAL:
 - Return ONLY valid JSON (no markdown wrapper, no extra text)
 - Use \\\\  (double backslash) for LaTeX in JSON strings
 - Draw heavily from provided book content
-- Be mathematically rigorous but interview-focused"""
+- Be mathematically rigorous but interview-focused
+- DO NOT reference books not provided in the content below"""
 
         user_prompt = f"""Topic: {topic_name}
 Section {section_id}: {section_title}

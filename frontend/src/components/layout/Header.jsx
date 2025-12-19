@@ -38,7 +38,7 @@ const Header = ({ onShowAdmin }) => {
   const handleSearch = (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // TODO: Implement search functionality
+      alert('🔍 Search feature coming soon! You\'ll be able to search across all topics, sections, and learning materials.');
       console.log('Searching for:', searchQuery);
     }
   };

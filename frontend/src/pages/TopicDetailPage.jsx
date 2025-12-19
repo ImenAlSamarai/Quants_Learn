@@ -370,8 +370,18 @@ const TopicDetailPage = () => {
                     <p className="book-topic">{book.topics}</p>
                   </div>
                   <div className="book-actions">
-                    <button className="btn-secondary">View Chapter</button>
-                    <button className="btn-secondary">Download PDF</button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => alert('📚 Chapter viewer coming soon! You\'ll be able to browse and search book chapters directly.')}
+                    >
+                      View Chapter
+                    </button>
+                    <button
+                      className="btn-secondary"
+                      onClick={() => alert('📥 PDF download feature coming soon! You\'ll be able to download relevant chapters for offline reading.')}
+                    >
+                      Download PDF
+                    </button>
                   </div>
                 </div>
               ))}
@@ -389,7 +399,12 @@ const TopicDetailPage = () => {
                 <div key={problem.id} className="practice-item">
                   <input type="checkbox" checked={problem.completed} onChange={() => {}} />
                   <span>Q{problem.id}: {problem.text}</span>
-                  <button className="btn-practice">Answer</button>
+                  <button
+                    className="btn-practice"
+                    onClick={() => alert('🎯 Practice problems feature coming soon! You\'ll be able to solve problems and get instant feedback.')}
+                  >
+                    Answer
+                  </button>
                 </div>
               ))}
             </div>
@@ -400,7 +415,12 @@ const TopicDetailPage = () => {
                 <div key={problem.id} className="practice-item">
                   <input type="checkbox" checked={problem.completed} onChange={() => {}} />
                   <span>Q{problem.id}: {problem.text}</span>
-                  <button className="btn-practice">Start</button>
+                  <button
+                    className="btn-practice"
+                    onClick={() => alert('📐 Mathematical derivation workspace coming soon! You\'ll be able to solve and submit derivations.')}
+                  >
+                    Start
+                  </button>
                 </div>
               ))}
             </div>
@@ -411,7 +431,12 @@ const TopicDetailPage = () => {
                 <div key={problem.id} className="practice-item">
                   <input type="checkbox" checked={problem.completed} onChange={() => {}} />
                   <span>Q{problem.id}: {problem.text}</span>
-                  <button className="btn-practice">Code</button>
+                  <button
+                    className="btn-practice"
+                    onClick={() => alert('💻 Coding environment coming soon! You\'ll be able to code, test, and submit solutions.')}
+                  >
+                    Code
+                  </button>
                 </div>
               ))}
             </div>
@@ -419,7 +444,12 @@ const TopicDetailPage = () => {
             <div className="mock-interview-card">
               <h3>🎬 Interview Simulation</h3>
               <p>45-minute mock interview with live coding + whiteboard + conceptual questions</p>
-              <button className="btn-primary">Start Mock Interview</button>
+              <button
+                className="btn-primary"
+                onClick={() => alert('🎬 Mock interview feature coming soon! You\'ll be able to practice full 45-minute interview simulations with AI feedback.')}
+              >
+                Start Mock Interview
+              </button>
             </div>
           </section>
         )}
@@ -427,6 +457,21 @@ const TopicDetailPage = () => {
         {activeTab === 'progress' && (
           <section className="progress-section">
             <h2>📊 Your Progress</h2>
+
+            <div className="feature-placeholder-banner" style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              color: 'white',
+              padding: '20px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              textAlign: 'center'
+            }}>
+              <h3 style={{margin: '0 0 10px 0'}}>📊 Detailed Progress Tracking Coming Soon!</h3>
+              <p style={{margin: 0}}>
+                We're building comprehensive progress analytics including reading tracking, concept mastery,
+                practice problem stats, and interview readiness scores. The data below is for preview purposes only.
+              </p>
+            </div>
 
             <div className="progress-overview">
               <div className="progress-metric">

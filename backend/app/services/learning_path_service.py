@@ -19,10 +19,10 @@ import os
 
 # Configuration: Topic coverage threshold
 # For semantic search: 0.9+=identical, 0.7-0.9=very similar, 0.5-0.7=related, <0.5=unrelated
-# NOTE: Lowered to 0.45 due to chunking strategy - book chunks often lack explicit topic mentions
-# See diagnose_vector_store.py output: "machine learning" in DL book scores 0.48 (chunking issue)
-# TODO: Improve chunking to include chapter titles + more context, then raise to 0.55-0.6
-TOPIC_COVERAGE_THRESHOLD = float(os.getenv('TOPIC_COVERAGE_THRESHOLD', '0.45'))
+# OPTIMIZED: Set to 0.58 after testing with improved chunking (256 tokens, 128 overlap)
+# Threshold balances precision (not too many false positives) with recall (catch valid matches)
+# Pure semantic search (NO subject filtering) - embeddings handle cross-subject discovery
+TOPIC_COVERAGE_THRESHOLD = float(os.getenv('TOPIC_COVERAGE_THRESHOLD', '0.58'))
 
 
 # Common role templates for caching
@@ -235,8 +235,37 @@ class LearningPathService:
         system_prompt = """You are an expert in quantitative finance recruiting and job analysis.
 Your task is to extract structured, hierarchical topic information from job descriptions.
 
-CRITICAL: Preserve the EXACT domain-specific terminology from the job description.
-DO NOT abstract or generalize terms - use them as-is!
+CRITICAL GRANULARITY REQUIREMENT:
+Extract PARENT-LEVEL topics suitable for a learning mindmap (5-10 topics total).
+Each topic will be expanded into detailed subtopics later, so keep them broad but meaningful.
+
+GRANULARITY LEVELS (Understanding the hierarchy):
+Level 1: Job Role → "Machine Learning Researcher" (already known)
+Level 2: PARENT TOPICS (what you extract) → "Python programming", "Supervised learning" (5-10 topics)
+Level 3: Child topics (generated later) → "NumPy arrays", "Linear regression" (detailed curriculum)
+Level 4: Mastery path sections → Week-by-week detailed lessons (auto-generated)
+
+YOUR JOB: Extract Level 2 (PARENT TOPICS) only!
+
+GRANULARITY EXAMPLES:
+✅ GOOD Parent Topics (broad, suitable for mindmap):
+- "Python programming" (NOT "Python Skills", NOT "NumPy")
+- "Supervised learning" (NOT "Machine learning", NOT "Linear regression")
+- "Time series analysis" (NOT "Data analysis", NOT "ARIMA models")
+- "Risk management" (NOT "Finance", NOT "VaR calculation")
+- "Probability theory" (NOT "Math", NOT "Bayes theorem")
+
+❌ BAD - Too vague/generic:
+- "Programming skills" → Should be "Python programming" or "R programming"
+- "Programming proficiency" → Should be "Python programming" or "R programming"
+- "Coding skills" → Should be "Python programming" or "C++ programming"
+- "Data science" → Should be "Statistical modeling" or "Machine learning"
+- "Math" → Should be "Linear algebra" or "Probability theory"
+
+❌ BAD - Too specific (these are child topics):
+- "NumPy arrays" → Too narrow, part of "Python programming"
+- "Linear regression" → Too specific, part of "Supervised learning"
+- "ARIMA models" → Too specific, part of "Time series analysis"
 
 COMMON MISTAKES TO AVOID - Here are examples of INCORRECT vs CORRECT extractions:
 
@@ -332,77 +361,98 @@ Return ONLY valid JSON (no markdown, no extra text) with this structure:
     }}
 }}
 
-IMPORTANT GUIDELINES:
+IMPORTANT GUIDELINES FOR PARENT-LEVEL TOPIC EXTRACTION:
 
-1. EXPLICIT TOPICS (directly mentioned):
-   - MUST use EXACT terminology from job description - DO NOT abstract!
-   - If job says "market microstructure" → topic name is "market microstructure" (NOT "data analysis")
-   - If job says "alpha decay" → topic name is "alpha decay" (NOT "performance analysis")
-   - If job says "slippage modeling" → topic name is "slippage modeling" (NOT "modeling & simulation")
-   - CREATE SEPARATE TOPICS for each distinct concept - don't group them!
+1. TARGET COUNT: Extract 5-10 total parent topics (explicit + implicit combined)
+   - Not too many (overwhelming mindmap)
+   - Not too few (missing coverage)
+   - Each parent topic will expand to 3-8 child topics later
+
+2. EXPLICIT TOPICS (directly mentioned in job):
+   - Use domain-specific terminology, but at PARENT level
+   - If job mentions "NumPy, Pandas, Matplotlib" → extract "Python programming" (parent)
+   - If job mentions "linear regression, logistic regression" → extract "Supervised learning" (parent)
+   - If job mentions "ARIMA, seasonality, forecasting" → extract "Time series analysis" (parent)
    - Priority is HIGH if in "Requirements", MEDIUM if in "Nice to have"
    - Include context showing where it was mentioned
 
-2. IMPLICIT TOPICS (typical for role, but not mentioned):
-   - ONLY add if commonly tested for this role type
-   - Examples for quant researcher: probability theory, brain teasers, mental math
-   - Examples for engineering roles: data structures, algorithms, system design
+3. IMPLICIT TOPICS (typical for role, but not mentioned):
+   - ONLY add parent-level fundamentals commonly tested
+   - Examples for quant researcher: "Probability theory", "Linear algebra" (NOT "Bayes theorem")
+   - Examples for engineering roles: "Data structures", "Algorithms" (NOT "Binary trees")
    - Priority: MEDIUM if commonly tested, LOW if just helpful background
-   - Keep this list SHORT (max 3-5 topics) - be selective!
+   - Keep this list SHORT (max 2-3 implicit topics) - be selective!
 
-3. KEYWORDS:
-   - Include synonyms, related terms, specific techniques
-   - Example: "machine learning" → ["ML", "supervised learning", "model training", "feature engineering"]
-   - Example: "time series" → ["ARMA", "ARIMA", "forecasting", "autocorrelation"]
+4. KEYWORDS (for better RAG matching):
+   - Include specific child topics as keywords
+   - Example: "Python programming" → ["NumPy", "Pandas", "matplotlib", "data manipulation"]
+   - Example: "Supervised learning" → ["linear regression", "logistic regression", "decision trees"]
+   - Example: "Time series analysis" → ["ARIMA", "forecasting", "autocorrelation", "seasonality"]
+   - These keywords help with coverage checking but are NOT separate topics
 
-4. PREFER GRANULARITY OVER GROUPING:
-   - Extract 10-15 specific topics rather than 5 generic ones
-   - "trading algorithms" + "algorithmic strategies" = TWO separate topics
-   - "alpha decay" + "slippage" = TWO separate topics
-   - DON'T group related concepts - keep them separate for better matching!
+5. CONSOLIDATION RULES:
+   - If job mentions multiple related specific skills, GROUP into parent topic:
+     - "NumPy" + "Pandas" + "matplotlib" → "Python programming"
+     - "linear regression" + "logistic regression" → "Supervised learning"
+     - "ARIMA" + "forecasting" + "seasonality" → "Time series analysis"
+   - Avoid splitting closely related concepts into separate parent topics
+   - The detailed breakdown happens in the mastery path, not the mindmap
 
-5. AVOID:
-   - Generic abstractions like "algorithm design" when job says "trading algorithms"
-   - Grouping multiple concepts under one umbrella topic
-   - Over-adding implicit topics (only critical ones)
-   - Repeating same concept in both explicit and implicit
+6. AVOID:
+   - Too vague: "Programming skills", "Data science", "Math"
+   - Too specific: "NumPy arrays", "Linear regression", "ARIMA models"
+   - Inconsistent granularity: mixing broad topics with narrow ones
+   - Over-adding topics: keep it 5-10 parent topics total!
 
-Example for a role mentioning "trading algorithms, market microstructure, alpha decay, slippage modeling":
+EXAMPLE - Job mentioning: "Python, NumPy, pandas, machine learning, linear regression, decision trees, time series, ARIMA"
 
+✅ GOOD Parent-Level Extraction:
 {{
     "topic_hierarchy": {{
         "explicit_topics": [
             {{
-                "name": "trading algorithms",
+                "name": "Python programming",
                 "priority": "HIGH",
-                "keywords": ["algorithmic trading", "execution algorithms", "TWAP", "VWAP", "smart order routing"],
+                "keywords": ["NumPy", "pandas", "matplotlib", "data manipulation", "scientific computing"],
                 "mentioned_explicitly": true,
-                "context": "Core responsibility - leading creation of proprietary trading algorithms"
+                "context": "Required for data analysis and model implementation - Python, NumPy, pandas mentioned"
             }},
             {{
-                "name": "market microstructure",
+                "name": "Supervised learning",
                 "priority": "HIGH",
-                "keywords": ["order book dynamics", "price formation", "liquidity", "market impact"],
+                "keywords": ["linear regression", "logistic regression", "decision trees", "random forests", "classification"],
                 "mentioned_explicitly": true,
-                "context": "Mentioned as key area for data mining insights"
+                "context": "Core ML requirement - linear regression and decision trees specifically mentioned"
             }},
             {{
-                "name": "alpha decay",
+                "name": "Time series analysis",
                 "priority": "HIGH",
-                "keywords": ["signal degradation", "alpha erosion", "strategy lifecycle"],
+                "keywords": ["ARIMA", "forecasting", "autocorrelation", "seasonality", "stationarity"],
                 "mentioned_explicitly": true,
-                "context": "Listed as KPI to track in performance analysis"
-            }},
+                "context": "Financial forecasting requirement - time series and ARIMA mentioned"
+            }}
+        ],
+        "implicit_topics": [
             {{
-                "name": "slippage modeling",
-                "priority": "HIGH",
-                "keywords": ["transaction costs", "execution shortfall", "market impact costs"],
-                "mentioned_explicitly": true,
-                "context": "Mentioned as metric for tracking execution quality"
-            }},
-            {{
-                "name": "backtesting",
-                "priority": "HIGH",
+                "name": "Probability theory",
+                "priority": "MEDIUM",
+                "keywords": ["distributions", "expected value", "conditional probability", "Bayes theorem"],
+                "mentioned_explicitly": false,
+                "reason": "Foundation for ML and statistics; commonly tested in quant interviews"
+            }}
+        ]
+    }}
+}}
+
+❌ BAD - Too Specific (these should be consolidated):
+{{
+    "explicit_topics": [
+        {{"name": "NumPy"}},  // Too narrow - part of Python programming
+        {{"name": "pandas"}},  // Too narrow - part of Python programming
+        {{"name": "linear regression"}},  // Too narrow - part of Supervised learning
+        {{"name": "decision trees"}},  // Too narrow - part of Supervised learning
+        {{"name": "ARIMA models"}},  // Too narrow - part of Time series analysis
+        {{"name": "backtesting",
                 "keywords": ["historical simulation", "walk-forward analysis", "strategy validation"],
                 "mentioned_explicitly": true,
                 "context": "Required for validating trading strategies"
@@ -514,10 +564,11 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
             min_score = TOPIC_COVERAGE_THRESHOLD
 
         # Search vector store for topic across ALL namespaces (books + web content)
+        # Pure semantic search (NO subject filtering) - embeddings handle cross-subject discovery
         try:
             matches = self.vector_store.search_all_namespaces(
                 query=topic,
-                top_k=10,  # Get top 10 per namespace
+                top_k=50,  # Increased from 10 for broader semantic coverage
                 namespaces=['', 'web_resource']  # Search both book and web content
             )
         except Exception as e:
@@ -541,7 +592,7 @@ Example for a role mentioning "trading algorithms, market microstructure, alpha 
                 try:
                     kw_matches = self.vector_store.search_all_namespaces(
                         query=keyword,
-                        top_k=5,
+                        top_k=15,  # Increased from 5 for better keyword coverage
                         namespaces=['', 'web_resource']
                     )
                     keyword_matches.extend(kw_matches)
@@ -1399,21 +1450,43 @@ Prioritize:
         system_prompt = """You are an expert curriculum designer for quantitative finance education.
 Create a structured learning roadmap (weeks → sections) for interview preparation.
 
+🚨 CRITICAL ANTI-HALLUCINATION RULES:
+- ONLY use topics found in the PROVIDED BOOK CONTENT below
+- DO NOT reference external books, courses, or materials
+- DO NOT invent content not present in the book excerpts
+- If book content is limited, create fewer sections (better to be accurate than comprehensive)
+- All section topics MUST come from the actual book content provided
+
 CRITICAL REQUIREMENTS:
 1. Structure into 2-4 weeks of learning
-2. Each week has 2-4 sections
+2. Each week has 4-6 sections (NOT 1-2!) - this is a parent topic that needs detailed breakdown
 3. Each section is a focused sub-topic (45-90 min of study)
-4. Base structure on PROVIDED BOOK CONTENT - don't invent topics not in the books
+4. Base structure EXCLUSIVELY on PROVIDED BOOK CONTENT - don't invent topics not in the books
 5. Order sections from foundational → advanced
 6. Include practical examples and interview relevance
+7. Cover the breadth of the parent topic - for "Python programming", include syntax, data structures, libraries, etc.
 
 QUALITY STANDARDS - Section Titles Must Be SPECIFIC:
-✅ GOOD: "Black-Scholes Formula Derivation", "Maximum Likelihood Estimation for Normal Distributions"
+✅ GOOD: "NumPy Arrays and Vectorization", "Pandas DataFrame Operations and Indexing"
+✅ GOOD: "Linear Regression: OLS, Assumptions, and Diagnostics", "Decision Trees and Random Forests"
 ✅ GOOD: "Ridge vs Lasso: L1 vs L2 Regularization", "ARIMA Models for Financial Time Series"
-❌ BAD: "Introduction to...", "Basics of...", "Overview of...", "Fundamentals"
+❌ BAD: "Introduction to Python", "Basics of Programming", "Overview of ML", "Fundamentals"
 ❌ BAD: Generic topic names without specifics
+❌ BAD: Single generic section for a complex topic
 
-Use concrete mathematical formulas, algorithm names, and specific techniques from the book content.
+SECTION BREADTH - Example for "Python programming" parent topic:
+Week 1: Python Fundamentals
+  - "Basic Syntax: Variables, Types, and Control Flow"
+  - "Data Structures: Lists, Tuples, Dicts, and Sets"
+  - "Functions, Lambdas, and Comprehensions"
+  - "Object-Oriented Programming: Classes and Inheritance"
+Week 2: Scientific Computing in Python
+  - "NumPy Arrays and Vectorization"
+  - "Pandas DataFrames: Loading, Filtering, and Aggregation"
+  - "Matplotlib and Seaborn for Data Visualization"
+  - "SciPy for Scientific Computing"
+
+Use concrete mathematical formulas, algorithm names, library functions, and specific techniques from the book content.
 Make section titles immediately actionable and interview-focused.
 
 Return ONLY valid JSON (no markdown, no extra text):

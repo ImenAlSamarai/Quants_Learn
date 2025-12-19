@@ -8,9 +8,23 @@ from app.models.schemas import (
 from app.models.database import GeneratedContent
 from app.services.progress_service import ProgressService
 from app.services.learning_path_service import learning_path_service
+from app.utils.cost_tracker import cost_tracker
 from typing import List
+from fastapi import Header
+import os
 
 router = APIRouter(prefix="/api/users", tags=["users"])
+
+
+def verify_admin_token(x_admin_token: str = Header(None)):
+    """Verify admin access - require X-Admin-Token header"""
+    if not x_admin_token:
+        raise HTTPException(status_code=401, detail="Admin token required. Set X-Admin-Token header.")
+
+    admin_token = os.getenv("ADMIN_TOKEN", "demo-token-change-in-production")
+    if x_admin_token != admin_token:
+        raise HTTPException(status_code=403, detail="Invalid admin token")
+    return True
 
 
 @router.post("/", response_model=UserResponse)
@@ -175,10 +189,29 @@ def update_job_profile(
     3. Generates complete learning path based on job requirements
     4. Checks topic coverage (Tier 3)
     5. Returns learning path with covered/uncovered topics
+
+    RATE LIMIT: 1 path generation per user per 24 hours (testing/demo protection)
     """
     user = db.query(User).filter(User.user_id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
+
+    # ============ RATE LIMITING: Prevent API cost explosion ============
+    from datetime import datetime, timedelta
+
+    # Check if user generated a path in last 24 hours
+    recent_path = db.query(LearningPath).filter(
+        LearningPath.user_id == user_id,
+        LearningPath.created_at >= datetime.utcnow() - timedelta(hours=24)
+    ).first()
+
+    if recent_path:
+        hours_since = (datetime.utcnow() - recent_path.created_at).total_seconds() / 3600
+        hours_remaining = 24 - hours_since
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit: You can generate 1 learning path per 24 hours. Try again in {hours_remaining:.1f} hours. (Cost protection during testing)"
+        )
 
     # Update job fields
     user.job_title = job_data.job_title
@@ -370,3 +403,25 @@ def get_section_content(
     )
 
     return result
+
+
+@router.get("/admin/api-costs", dependencies=[Depends(verify_admin_token)])
+def get_api_costs():
+    """
+    Admin endpoint to monitor API usage and costs
+
+    Returns daily and total costs to prevent budget overrun during testing
+    """
+    stats = cost_tracker.get_stats()
+
+    return {
+        "daily_cost_usd": round(stats.get('daily_cost', 0), 2),
+        "daily_calls": stats.get('daily_calls', 0),
+        "daily_budget_usd": stats.get('daily_budget', 10.0),
+        "budget_remaining_usd": round(stats.get('budget_remaining', 0), 2),
+        "total_cost_usd": round(stats.get('total_cost', 0), 2),
+        "total_calls": stats.get('total_calls', 0),
+        "by_model": stats.get('by_model', {}),
+        "by_operation": stats.get('by_operation', {}),
+        "warning": "🚨 TESTING MODE: Monitor costs closely!" if stats.get('daily_cost', 0) > 5 else None
+    }

@@ -4,7 +4,7 @@ from typing import Optional
 
 class Settings(BaseSettings):
     # Database
-    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/quant_learn"
+    DATABASE_URL: str
 
     # Pinecone
     PINECONE_API_KEY: str

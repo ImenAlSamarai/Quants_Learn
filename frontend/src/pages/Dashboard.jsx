@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUser } from '../services/auth';
 import { getLearningPath, fetchUserProgress } from '../services/api';
-import '../styles/Dashboard.css';
+import '../styles/dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();

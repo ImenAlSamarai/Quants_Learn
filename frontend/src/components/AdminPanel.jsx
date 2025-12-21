@@ -33,6 +33,17 @@ const AdminPanel = () => {
       setApiCosts(response.data);
     } catch (error) {
       console.error('Error fetching API costs:', error);
+      // Set default empty data so section still shows
+      setApiCosts({
+        daily_cost_usd: 0,
+        daily_calls: 0,
+        daily_budget_usd: 10,
+        budget_remaining_usd: 10,
+        total_cost_usd: 0,
+        total_calls: 0,
+        by_model: {},
+        by_operation: {}
+      });
     }
   };
 

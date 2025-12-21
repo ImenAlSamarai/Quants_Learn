@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Brain, Search, Settings, BarChart3, Home, LogIn, LogOut, UserPlus } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { isAuthenticated, getUser, logout } from '../../services/auth';
+import { isAuthenticated, getUser, logout, isAdmin } from '../../services/auth';
 
 const Header = ({ onShowAdmin }) => {
   const navigate = useNavigate();
@@ -194,15 +194,17 @@ const Header = ({ onShowAdmin }) => {
             </>
           )}
 
-          <motion.button
-            onClick={onShowAdmin}
-            className="header-action-btn"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <BarChart3 size={18} />
-            <span className="action-label">Admin</span>
-          </motion.button>
+          {isAdmin() && (
+            <motion.button
+              onClick={onShowAdmin}
+              className="header-action-btn"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <BarChart3 size={18} />
+              <span className="action-label">Admin</span>
+            </motion.button>
+          )}
         </div>
       </div>
     </motion.header>

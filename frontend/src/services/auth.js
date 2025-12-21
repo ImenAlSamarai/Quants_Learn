@@ -131,6 +131,16 @@ export const hasRole = (roles) => {
 };
 
 /**
+ * Check if current user is admin
+ * Admin is identified by email: inanna.dumuzi66@gmail.com
+ * @returns {boolean} True if user is admin
+ */
+export const isAdmin = () => {
+  const user = getUser();
+  return user && user.user_id === 'inanna.dumuzi66@gmail.com';
+};
+
+/**
  * Initialize auth service (restore token from storage)
  * Call this when app starts to restore authentication state
  */
@@ -169,5 +179,6 @@ export default {
   getRole,
   isAuthenticated,
   hasRole,
+  isAdmin,
   initAuth,
 };

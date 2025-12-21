@@ -33,12 +33,11 @@ const Home = () => {
 
       const response = await api.get(`/api/users/${encodeURIComponent(currentUser.user_id)}`);
       const data = response.data;
-        setUserName(data.name || '');
-        setJobTitle(data.job_title || '');
-        setJobDescription(data.job_description || '');
-        setJobSeniority(data.job_seniority || 'mid');
-        setFirm(data.firm || '');
-      }
+      setUserName(data.name || '');
+      setJobTitle(data.job_title || '');
+      setJobDescription(data.job_description || '');
+      setJobSeniority(data.job_seniority || 'mid');
+      setFirm(data.firm || '');
     } catch (error) {
       console.error('Error fetching user profile:', error);
     } finally {

@@ -37,13 +37,20 @@ const AdminPanel = () => {
   };
 
   const clearCache = async () => {
-    if (!confirm('Are you sure? This will clear ALL cached content. Content will be regenerated on next request.')) {
+    if (!confirm('⚠️ WARNING: This will DELETE ALL cached content from the database!\n\n' +
+      'This includes:\n' +
+      '- All topic structures\n' +
+      '- All section content\n' +
+      '- All generated explanations\n\n' +
+      'Next time users request content, it will be REGENERATED using AI ($$$ cost!).\n\n' +
+      'Only do this if you changed prompts/logic and need fresh content.\n\n' +
+      'Are you ABSOLUTELY SURE?')) {
       return;
     }
 
     try {
       const response = await api.delete('/api/admin/cache');
-      alert(response.data.message);
+      alert(response.data.message + '\n\n⚠️ All content will now be regenerated on next user request (this costs money!)');
       fetchStats();
     } catch (error) {
       console.error('Error clearing cache:', error);

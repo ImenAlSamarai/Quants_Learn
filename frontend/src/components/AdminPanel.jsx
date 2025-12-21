@@ -4,6 +4,7 @@ import '../styles/AdminPanel.css';
 
 const AdminPanel = () => {
   const [stats, setStats] = useState(null);
+  const [apiCosts, setApiCosts] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploadFile, setUploadFile] = useState(null);
   const [uploadCategory, setUploadCategory] = useState('');
@@ -11,6 +12,7 @@ const AdminPanel = () => {
 
   useEffect(() => {
     fetchStats();
+    fetchApiCosts();
   }, []);
 
   const fetchStats = async () => {
@@ -21,6 +23,19 @@ const AdminPanel = () => {
     } catch (error) {
       console.error('Error fetching stats:', error);
       setLoading(false);
+    }
+  };
+
+  const fetchApiCosts = async () => {
+    try {
+      const response = await api.get('/api/users/admin/api-costs', {
+        headers: {
+          'X-Admin-Token': localStorage.getItem('adminToken') || 'demo-token-change-in-production'
+        }
+      });
+      setApiCosts(response.data);
+    } catch (error) {
+      console.error('Error fetching API costs:', error);
     }
   };
 
@@ -196,6 +211,93 @@ const AdminPanel = () => {
               </div>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* API Usage & Costs */}
+      {apiCosts && (
+        <div className="section">
+          <h2>💰 API Usage & Costs</h2>
+
+          {/* Daily Stats */}
+          <div className="stats-grid" style={{marginBottom: '20px'}}>
+            <div className="stat-card">
+              <div className="stat-value">${apiCosts.daily_cost_usd || 0}</div>
+              <div className="stat-label">Daily Cost</div>
+              <div className="stat-hint">Budget: ${apiCosts.daily_budget_usd}</div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-value">{apiCosts.daily_calls || 0}</div>
+              <div className="stat-label">Daily API Calls</div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-value">${apiCosts.budget_remaining_usd || 0}</div>
+              <div className="stat-label">Budget Remaining</div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-value">${apiCosts.total_cost_usd || 0}</div>
+              <div className="stat-label">Total Cost (All Time)</div>
+              <div className="stat-hint">{apiCosts.total_calls} total calls</div>
+            </div>
+          </div>
+
+          {/* Warning */}
+          {apiCosts.warning && (
+            <div className="warning-box" style={{
+              background: '#fff3cd',
+              border: '1px solid #ffc107',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '20px',
+              color: '#856404'
+            }}>
+              {apiCosts.warning}
+            </div>
+          )}
+
+          {/* By Model Breakdown */}
+          {apiCosts.by_model && Object.keys(apiCosts.by_model).length > 0 && (
+            <div style={{marginBottom: '20px'}}>
+              <h3 style={{fontSize: '16px', marginBottom: '12px'}}>📊 Usage by Model</h3>
+              <div className="content-types">
+                {Object.entries(apiCosts.by_model).map(([model, data]) => (
+                  <div key={model} className="content-type-item">
+                    <span className="type-icon">
+                      {model.includes('claude') ? '🤖' :
+                       model.includes('gpt-4') ? '🧠' :
+                       model.includes('gpt-3.5') || model.includes('gpt-4o-mini') ? '⚡' : '🔧'}
+                    </span>
+                    <span className="type-name">{model}</span>
+                    <span className="type-count">{data.calls} calls (${data.cost.toFixed(3)})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* By Operation Breakdown */}
+          {apiCosts.by_operation && Object.keys(apiCosts.by_operation).length > 0 && (
+            <div>
+              <h3 style={{fontSize: '16px', marginBottom: '12px'}}>🔧 Usage by Operation</h3>
+              <div className="content-types">
+                {Object.entries(apiCosts.by_operation).map(([operation, data]) => (
+                  <div key={operation} className="content-type-item">
+                    <span className="type-icon">
+                      {operation.includes('structure') ? '📋' :
+                       operation.includes('content') ? '📝' :
+                       operation.includes('job') ? '💼' :
+                       operation.includes('coverage') ? '🎯' : '⚙️'}
+                    </span>
+                    <span className="type-name">{operation}</span>
+                    <span className="type-count">{data.calls} calls (${data.cost.toFixed(3)})</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

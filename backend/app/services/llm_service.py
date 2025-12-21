@@ -1,6 +1,7 @@
 from openai import OpenAI
 from typing import List, Dict, Any, Optional
 from app.config.settings import settings
+from app.utils.cost_tracker import cost_tracker
 import json
 
 try:
@@ -164,6 +165,14 @@ IMPORTANT: Draw extensively from the context above. If specific distributions, t
             max_tokens=2000  # Increased for comprehensive content
         )
 
+        # Track API costs
+        cost_tracker.log_api_call(
+            model=self.model,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+            operation="generate_explanation"
+        )
+
         return response.choices[0].message.content
 
     def generate_explanation_for_job(
@@ -253,6 +262,14 @@ IMPORTANT:
             max_tokens=2000
         )
 
+        # Track API costs
+        cost_tracker.log_api_call(
+            model=self.model,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+            operation="generate_job_explanation"
+        )
+
         return response.choices[0].message.content
 
     def generate_applied_example(
@@ -305,6 +322,14 @@ Provide your response in the following JSON format:
             temperature=0.7,
             max_tokens=1500,
             response_format={"type": "json_object"}
+        )
+
+        # Track API costs
+        cost_tracker.log_api_call(
+            model=self.model,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+            operation="generate_applied_example"
         )
 
         try:
@@ -366,6 +391,14 @@ Provide your response in JSON format:
             response_format={"type": "json_object"}
         )
 
+        # Track API costs
+        cost_tracker.log_api_call(
+            model=self.model,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+            operation="generate_quiz"
+        )
+
         try:
             return json.loads(response.choices[0].message.content)
         except json.JSONDecodeError:
@@ -419,6 +452,14 @@ Provide your response in JSON format:
             response_format={"type": "json_object"}
         )
 
+        # Track API costs
+        cost_tracker.log_api_call(
+            model=self.model,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+            operation="generate_visualization"
+        )
+
         try:
             return json.loads(response.choices[0].message.content)
         except json.JSONDecodeError:
@@ -464,6 +505,14 @@ Return only a JSON array of topic names: ["topic1", "topic2", ...]"""
             ],
             temperature=0.7,
             max_tokens=500
+        )
+
+        # Track API costs
+        cost_tracker.log_api_call(
+            model=self.model,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+            operation="suggest_topics"
         )
 
         try:
@@ -599,6 +648,14 @@ Return ONLY the JSON object - no markdown formatting, no ```json wrapper, just t
                     }]
                 )
 
+                # Track Claude API costs
+                cost_tracker.log_api_call(
+                    model="claude-3-5-sonnet",
+                    input_tokens=response.usage.input_tokens,
+                    output_tokens=response.usage.output_tokens,
+                    operation="generate_section_content"
+                )
+
                 content_text = response.content[0].text
 
                 # Parse JSON response
@@ -632,6 +689,14 @@ Return ONLY the JSON object - no markdown formatting, no ```json wrapper, just t
             temperature=0.7,
             max_tokens=3000,
             response_format={"type": "json_object"}
+        )
+
+        # Track GPT-4 API costs
+        cost_tracker.log_api_call(
+            model="gpt-4-turbo-preview",
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+            operation="generate_section_content"
         )
 
         import json

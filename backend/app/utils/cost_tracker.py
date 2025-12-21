@@ -14,6 +14,14 @@ COSTS = {
         "input": 0.15 / 1_000_000,   # $0.15 per 1M input tokens
         "output": 0.60 / 1_000_000   # $0.60 per 1M output tokens
     },
+    "gpt-4-turbo-preview": {
+        "input": 10.00 / 1_000_000,  # $10 per 1M input tokens
+        "output": 30.00 / 1_000_000  # $30 per 1M output tokens
+    },
+    "gpt-4": {
+        "input": 30.00 / 1_000_000,  # $30 per 1M input tokens
+        "output": 60.00 / 1_000_000  # $60 per 1M output tokens
+    },
     "claude-3-5-sonnet": {
         "input": 3.00 / 1_000_000,   # $3 per 1M input tokens
         "output": 15.00 / 1_000_000  # $15 per 1M output tokens

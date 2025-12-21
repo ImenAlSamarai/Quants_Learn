@@ -6,9 +6,6 @@ const AdminPanel = () => {
   const [stats, setStats] = useState(null);
   const [apiCosts, setApiCosts] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [uploadFile, setUploadFile] = useState(null);
-  const [uploadCategory, setUploadCategory] = useState('');
-  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     fetchStats();
@@ -36,36 +33,6 @@ const AdminPanel = () => {
       setApiCosts(response.data);
     } catch (error) {
       console.error('Error fetching API costs:', error);
-    }
-  };
-
-  const handleFileUpload = async (e) => {
-    e.preventDefault();
-    if (!uploadFile || !uploadCategory) {
-      alert('Please select a file and enter a category');
-      return;
-    }
-
-    setUploading(true);
-
-    const formData = new FormData();
-    formData.append('file', uploadFile);
-    formData.append('category', uploadCategory);
-
-    try {
-      const response = await api.post('/api/admin/upload-content', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-
-      alert(`✓ File uploaded successfully!\n\nNext step: Run indexing script to process the content:\npython backend/scripts/index_content.py`);
-      setUploadFile(null);
-      setUploadCategory('');
-      e.target.reset();
-    } catch (error) {
-      console.error('Upload error:', error);
-      alert('Upload failed. Please try again.');
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -106,13 +73,8 @@ const AdminPanel = () => {
 
         <div className="stat-card">
           <div className="stat-value">{stats?.total_queries || 0}</div>
-          <div className="stat-label">Total Queries</div>
-        </div>
-
-        <div className="stat-card">
-          <div className="stat-value">{((stats?.cache_hit_rate || 0) * 100).toFixed(1)}%</div>
-          <div className="stat-label">Cache Hit Rate</div>
-          <div className="stat-hint">💰 Cost savings from caching</div>
+          <div className="stat-label">Total Content Views</div>
+          <div className="stat-hint">Cached content accesses</div>
         </div>
       </div>
 
@@ -148,41 +110,6 @@ const AdminPanel = () => {
               <span className="type-count">{count}</span>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Content Upload */}
-      <div className="section">
-        <h2>📤 Upload Content</h2>
-        <form onSubmit={handleFileUpload} className="upload-form">
-          <div className="form-group">
-            <label>Category:</label>
-            <input
-              type="text"
-              value={uploadCategory}
-              onChange={(e) => setUploadCategory(e.target.value)}
-              placeholder="e.g., linear_algebra, calculus, probability"
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label>File (Markdown or PDF):</label>
-            <input
-              type="file"
-              accept=".md,.pdf,.txt"
-              onChange={(e) => setUploadFile(e.target.files[0])}
-              required
-            />
-          </div>
-
-          <button type="submit" disabled={uploading} className="btn-primary">
-            {uploading ? 'Uploading...' : 'Upload Content'}
-          </button>
-        </form>
-
-        <div className="upload-hint">
-          After uploading, run: <code>python backend/scripts/index_content.py</code>
         </div>
       </div>
 

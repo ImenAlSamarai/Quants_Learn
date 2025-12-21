@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Lightbulb, AlertTriangle, CheckCircle, GitCompare, Settings } from 'lucide-react';
-import axios from 'axios';
+import api from '../../services/api';
 
 const InsightsModal = ({ isOpen, onClose, topicId, topicName }) => {
   const [insights, setInsights] = useState(null);
@@ -19,7 +19,7 @@ const InsightsModal = ({ isOpen, onClose, topicId, topicName }) => {
     setError(null);
 
     try {
-      const response = await axios.get(`http://localhost:8000/api/insights/${topicId}`);
+      const response = await api.get(`/api/insights/${topicId}`);
       setInsights(response.data);
     } catch (err) {
       console.error('Failed to fetch insights:', err);

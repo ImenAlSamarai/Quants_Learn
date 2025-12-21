@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { updateJobProfile } from '../services/api';
+import api from '../services/api';
 import { getUser } from '../services/auth';
 import '../styles/Home.css';
 
@@ -30,9 +31,8 @@ const Home = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:8000/api/users/${encodeURIComponent(currentUser.user_id)}`);
-      if (response.ok) {
-        const data = await response.json();
+      const response = await api.get(`/api/users/${encodeURIComponent(currentUser.user_id)}`);
+      const data = response.data;
         setUserName(data.name || '');
         setJobTitle(data.job_title || '');
         setJobDescription(data.job_description || '');

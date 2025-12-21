@@ -384,6 +384,7 @@ def get_topic_structure(
         topic_name=topic_name,
         keywords=keyword_list,
         source_books=source_books,
+        coverage_data=coverage,  # Pass coverage data with chunks
         db=db
     )
 

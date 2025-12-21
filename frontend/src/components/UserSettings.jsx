@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import useAppStore from '../store/useAppStore';
 import { updateJobProfile } from '../services/api';
+import api from '../services/api';
 import '../styles/UserSettings.css';
 
 const UserSettings = ({ userId, onClose }) => {
@@ -23,9 +24,8 @@ const UserSettings = ({ userId, onClose }) => {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/users/${encodeURIComponent(userId)}`);
-      if (response.ok) {
-        const data = await response.json();
+      const response = await api.get(`/api/users/${encodeURIComponent(userId)}`);
+      const data = response.data;
         setUserName(data.name || '');
 
         // Load job fields if they exist

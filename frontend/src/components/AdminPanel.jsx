@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import api from '../services/api';
 import '../styles/AdminPanel.css';
 
 const AdminPanel = () => {
@@ -14,9 +15,8 @@ const AdminPanel = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/admin/stats');
-      const data = await response.json();
-      setStats(data);
+      const response = await api.get('/api/admin/stats');
+      setStats(response.data);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -38,21 +38,14 @@ const AdminPanel = () => {
     formData.append('category', uploadCategory);
 
     try {
-      const response = await fetch('http://localhost:8000/api/admin/upload-content', {
-        method: 'POST',
-        body: formData,
+      const response = await api.post('/api/admin/upload-content', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
       });
 
-      const data = await response.json();
-
-      if (response.ok) {
-        alert(`✓ File uploaded successfully!\n\nNext step: Run indexing script to process the content:\npython backend/scripts/index_content.py`);
-        setUploadFile(null);
-        setUploadCategory('');
-        e.target.reset();
-      } else {
-        alert(`Error: ${data.detail}`);
-      }
+      alert(`✓ File uploaded successfully!\n\nNext step: Run indexing script to process the content:\npython backend/scripts/index_content.py`);
+      setUploadFile(null);
+      setUploadCategory('');
+      e.target.reset();
     } catch (error) {
       console.error('Upload error:', error);
       alert('Upload failed. Please try again.');
@@ -67,11 +60,8 @@ const AdminPanel = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:8000/api/admin/cache', {
-        method: 'DELETE',
-      });
-      const data = await response.json();
-      alert(data.message);
+      const response = await api.delete('/api/admin/cache');
+      alert(response.data.message);
       fetchStats();
     } catch (error) {
       console.error('Error clearing cache:', error);

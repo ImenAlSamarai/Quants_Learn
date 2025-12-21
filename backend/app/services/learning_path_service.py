@@ -877,10 +877,12 @@ EXAMPLE - Job mentioning: "Python, NumPy, pandas, machine learning, linear regre
                 # First user: generates & caches (~$0.006)
                 # Future users: instant retrieval (FREE!)
                 try:
+                    # Pass the coverage data directly to avoid re-querying
                     structure = self.get_or_generate_topic_structure(
                         topic_name=topic_name,
                         keywords=keywords,
                         source_books=source_books,
+                        coverage_data=coverage,  # Pass original coverage with chunks!
                         db=db
                     )
 
@@ -1343,6 +1345,7 @@ Prioritize:
         topic_name: str,
         keywords: list,
         source_books: list,
+        coverage_data: dict,  # Original coverage data with chunks
         db: Session
     ) -> dict:
         """
@@ -1386,19 +1389,19 @@ Prioritize:
         # Cache miss - generate new structure
         print(f"🔄 Cache MISS for '{topic_name}' - generating with gpt-4o-mini...")
 
-        # Step 1: Retrieve relevant chunks from RAG
-        search_query = f"{topic_name} {' '.join(keywords[:3])}"  # Topic + top 3 keywords
-        coverage = self.check_topic_coverage(search_query)
-
+        # Step 1: Use chunks from original coverage check (don't re-query!)
+        # The coverage_data was already checked in generate_path_for_job
         chunks = []
-        if coverage['covered']:
+        if coverage_data.get('covered'):
             # Get chunks from all sources
-            for source_info in coverage.get('all_sources', []):
+            for source_info in coverage_data.get('all_sources', []):
                 chunks.extend(source_info.get('chunks', []))
 
         # Limit to top 20 most relevant chunks (increased for better context)
         chunks = chunks[:20]
         chunk_texts = [c.get('text', '') for c in chunks]
+
+        print(f"   📝 Using {len(chunks)} chunks from original coverage check (score: {coverage_data.get('confidence', 0):.1%})")
 
         # Step 2: Generate structure using GPT-4o-mini
         structure = self._generate_topic_structure_with_llm(

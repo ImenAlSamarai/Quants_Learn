@@ -25,14 +25,22 @@ const AdminPanel = () => {
 
   const fetchApiCosts = async () => {
     try {
+      // Priority: env var (Railway), then localStorage (manual), then fallback
+      const adminToken = import.meta.env.VITE_ADMIN_TOKEN ||
+                        localStorage.getItem('adminToken') ||
+                        'demo-token-change-in-production';
+
+      console.log('Fetching API costs with token from:', import.meta.env.VITE_ADMIN_TOKEN ? 'env' : 'localStorage/fallback');
+
       const response = await api.get('/api/users/admin/api-costs', {
         headers: {
-          'X-Admin-Token': localStorage.getItem('adminToken') || 'demo-token-change-in-production'
+          'X-Admin-Token': adminToken
         }
       });
       setApiCosts(response.data);
     } catch (error) {
       console.error('Error fetching API costs:', error);
+      console.error('Error details:', error.response?.data);
       // Set default empty data so section still shows
       setApiCosts({
         daily_cost_usd: 0,
@@ -42,7 +50,8 @@ const AdminPanel = () => {
         total_cost_usd: 0,
         total_calls: 0,
         by_model: {},
-        by_operation: {}
+        by_operation: {},
+        error: error.response?.data?.detail || 'Failed to load API costs'
       });
     }
   };

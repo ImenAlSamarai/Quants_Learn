@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from sqlalchemy.orm import Session
 from sqlalchemy import func, desc
-from app.models.database import get_db, Node, User, UserProgress, GeneratedContent
+from app.models.database import get_db, Node, User, UserProgress, GeneratedContent, TopicStructure, SectionContent
 from app.models.schemas import UsageStats
 from datetime import datetime, timedelta
 from typing import List
@@ -28,36 +28,59 @@ def get_usage_stats(db: Session = Depends(get_db)):
         User.last_active >= yesterday
     ).scalar()
 
-    # Total queries (cached content access count)
-    total_queries = db.query(func.sum(GeneratedContent.access_count)).scalar() or 0
+    # Total queries (sum access_count from all content tables)
+    gen_queries = db.query(func.sum(GeneratedContent.access_count)).scalar() or 0
+    topic_queries = db.query(func.sum(TopicStructure.access_count)).scalar() or 0
+    section_queries = db.query(func.sum(SectionContent.access_count)).scalar() or 0
+    total_queries = gen_queries + topic_queries + section_queries
 
     # Cache hit rate calculation
-    total_cached = db.query(func.count(GeneratedContent.id)).scalar() or 1
-    cache_hit_rate = (total_queries - total_cached) / max(total_queries, 1)
+    gen_cached = db.query(func.count(GeneratedContent.id)).scalar() or 0
+    topic_cached = db.query(func.count(TopicStructure.id)).scalar() or 0
+    section_cached = db.query(func.count(SectionContent.id)).scalar() or 0
+    total_cached = gen_cached + topic_cached + section_cached
 
-    # Most accessed nodes
-    most_accessed = db.query(
-        Node.id,
-        Node.title,
-        func.sum(GeneratedContent.access_count).label('access_count')
-    ).join(GeneratedContent).group_by(Node.id, Node.title).order_by(
-        desc('access_count')
+    # Handle zero case to avoid negative percentages
+    if total_queries == 0:
+        cache_hit_rate = 0.0
+    else:
+        cache_hit_rate = (total_queries - total_cached) / total_queries
+
+    # Most accessed topics (from SectionContent - the main content table)
+    # Note: This only tracks section content, not topic structures
+    most_accessed_raw = db.query(
+        SectionContent.topic_name,
+        func.sum(SectionContent.access_count).label('total_access')
+    ).group_by(SectionContent.topic_name).order_by(
+        desc('total_access')
     ).limit(10).all()
 
     most_accessed_nodes = [
-        {"node_id": n.id, "title": n.title, "access_count": n.access_count}
-        for n in most_accessed
+        {"node_id": idx, "title": topic.topic_name, "access_count": topic.total_access}
+        for idx, topic in enumerate(most_accessed_raw, 1)
     ]
 
-    # Popular content types
-    content_type_stats = db.query(
+    # Popular content types (aggregate from all tables)
+    popular_content_types = {}
+
+    # Section content (learning path lessons)
+    section_count = db.query(func.sum(SectionContent.access_count)).scalar() or 0
+    if section_count > 0:
+        popular_content_types['mastery_path_lesson'] = section_count
+
+    # Topic structures (week/section structures)
+    topic_structures_count = db.query(func.sum(TopicStructure.access_count)).scalar() or 0
+    if topic_structures_count > 0:
+        popular_content_types['topic_structure'] = topic_structures_count
+
+    # Old generated content (explanation, example, quiz, etc.)
+    gen_types = db.query(
         GeneratedContent.content_type,
         func.sum(GeneratedContent.access_count).label('count')
     ).group_by(GeneratedContent.content_type).all()
 
-    popular_content_types = {
-        stat.content_type: stat.count for stat in content_type_stats
-    }
+    for stat in gen_types:
+        popular_content_types[stat.content_type] = stat.count
 
     # Average rating by difficulty level
     rating_by_difficulty = db.query(
